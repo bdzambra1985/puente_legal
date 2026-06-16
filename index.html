@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Puente Legal Internacional EC</title>
+<meta name="description" content="Tu representación legal en Ecuador, estés donde estés. Servicios jurídicos 100% remotos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:   #1B2B4B;
+  --gold:   #C9A227;
+  --white:  #FFFFFF;
+  --off:    #F7F6F3;
+  --muted:  #8A8F9C;
+  --border: #E8E6E0;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Inter', sans-serif; color: var(--navy); background: var(--white); overflow-x: hidden; }
+a { text-decoration: none; color: inherit; }
+img { display: block; max-width: 100%; }
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 60px; height: 72px;
+  background: rgba(255,255,255,0.92); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo img { height: 40px; }
+.nav-links { display: flex; gap: 36px; }
+.nav-links a { font-size: .82rem; font-weight: 500; color: var(--muted); letter-spacing: .3px; transition: color .2s; }
+.nav-links a:hover { color: var(--navy); }
+.nav-cta {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--navy); color: var(--white);
+  padding: 10px 22px; border-radius: 4px;
+  font-size: .80rem; font-weight: 600; letter-spacing: .3px;
+  transition: opacity .2s;
+}
+.nav-cta:hover { opacity: .85; }
+.nav-cta svg { width: 14px; height: 14px; fill: var(--white); flex-shrink: 0; }
+.hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; }
+.hamburger span { display: block; width: 22px; height: 1.5px; background: var(--navy); }
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: grid; grid-template-columns: 1fr 1fr;
+  padding-top: 72px;
+}
+.hero-left {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 80px 60px 80px 80px;
+  background: var(--white);
+}
+.hero-eyebrow {
+  display: flex; align-items: center; gap: 10px;
+  font-size: .72rem; font-weight: 600; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--gold); margin-bottom: 28px;
+}
+.hero-eyebrow::before {
+  content: ''; display: block; width: 24px; height: 1px; background: var(--gold);
+}
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.4rem, 3.5vw, 3.8rem);
+  font-weight: 700; line-height: 1.12;
+  color: var(--navy); margin-bottom: 24px;
+  letter-spacing: -.3px;
+}
+.hero h1 span { color: var(--gold); }
+.hero-sub {
+  font-size: 1rem; color: var(--muted); line-height: 1.8;
+  max-width: 400px; margin-bottom: 44px; font-weight: 400;
+}
+.hero-actions { display: flex; gap: 14px; align-items: center; }
+.btn-solid {
+  background: var(--gold); color: var(--navy);
+  padding: 13px 28px; border-radius: 4px;
+  font-size: .83rem; font-weight: 600; letter-spacing: .3px;
+  transition: opacity .2s;
+}
+.btn-solid:hover { opacity: .88; }
+.btn-text {
+  font-size: .83rem; font-weight: 500; color: var(--muted);
+  display: flex; align-items: center; gap: 6px; transition: color .2s;
+}
+.btn-text:hover { color: var(--navy); }
+.btn-text::after { content: '→'; }
+.hero-right {
+  position: relative; overflow: hidden;
+  background: var(--navy);
+}
+.hero-right img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: right center;
+  opacity: .7; filter: grayscale(20%);
+}
+.hero-right-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(27,43,75,.6) 0%, rgba(27,43,75,.2) 100%);
+}
+.hero-badge {
+  position: absolute; bottom: 48px; left: 48px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.15);
+  backdrop-filter: blur(8px);
+  padding: 18px 24px; border-radius: 6px; color: var(--white);
+}
+.hero-badge-num { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; line-height: 1; }
+.hero-badge-label { font-size: .72rem; color: rgba(255,255,255,.60); margin-top: 4px; letter-spacing: .5px; }
+
+/* PILLARS */
+.pillars {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  background: var(--white);
+}
+.pillar {
+  padding: 36px 48px;
+  border-right: 1px solid var(--border);
+  display: flex; align-items: flex-start; gap: 18px;
+}
+.pillar:last-child { border-right: none; }
+.pillar-line { width: 2px; height: 40px; background: var(--gold); flex-shrink: 0; margin-top: 2px; }
+.pillar-body strong { display: block; font-size: .90rem; font-weight: 600; color: var(--navy); margin-bottom: 5px; }
+.pillar-body span { font-size: .80rem; color: var(--muted); line-height: 1.5; }
+
+/* SERVICES */
+.services { padding: 100px 80px; background: var(--off); }
+.section-label {
+  font-size: .70rem; font-weight: 600; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--gold); margin-bottom: 16px;
+}
+.services h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.9rem, 2.5vw, 2.8rem); font-weight: 700;
+  color: var(--navy); margin-bottom: 56px; max-width: 480px; line-height: 1.2;
+}
+.services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+.svc {
+  background: var(--white); padding: 40px 36px;
+  transition: background .2s;
+  cursor: default;
+}
+.svc:hover { background: var(--navy); }
+.svc:hover .svc-num,
+.svc:hover .svc-title,
+.svc:hover .svc-desc { color: var(--white); }
+.svc:hover .svc-desc { color: rgba(255,255,255,.60); }
+.svc:hover .svc-arrow { color: var(--gold); }
+.svc-num { font-size: .72rem; font-weight: 600; letter-spacing: 2px; color: var(--gold); margin-bottom: 28px; }
+.svc-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; color: var(--navy); margin-bottom: 12px; line-height: 1.3; }
+.svc-desc { font-size: .82rem; color: var(--muted); line-height: 1.7; margin-bottom: 24px; }
+.svc-arrow { font-size: .80rem; color: var(--muted); font-weight: 500; transition: color .2s; }
+
+/* HOW */
+.how { padding: 100px 80px; background: var(--white); }
+.how-inner { max-width: 860px; margin: 0 auto; }
+.how h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.9rem, 2.5vw, 2.8rem); font-weight: 700;
+  color: var(--navy); margin-bottom: 64px; text-align: center;
+}
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; }
+.step { text-align: center; }
+.step-n {
+  width: 52px; height: 52px; border-radius: 50%;
+  border: 1.5px solid var(--gold); display: flex;
+  align-items: center; justify-content: center;
+  margin: 0 auto 20px;
+  font-family: 'Playfair Display', serif; font-size: 1.2rem;
+  font-weight: 700; color: var(--gold);
+}
+.step h3 { font-size: .90rem; font-weight: 600; color: var(--navy); margin-bottom: 10px; }
+.step p { font-size: .80rem; color: var(--muted); line-height: 1.7; }
+
+/* CONTACT */
+.contact { background: var(--navy); padding: 100px 80px; }
+.contact-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+.contact-left .section-label { color: rgba(201,162,39,.85); }
+.contact-left h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.9rem, 2.5vw, 2.8rem); font-weight: 700;
+  color: var(--white); line-height: 1.2; margin-bottom: 20px;
+}
+.contact-left p { font-size: .88rem; color: rgba(255,255,255,.55); line-height: 1.8; margin-bottom: 40px; max-width: 360px; }
+.contact-detail { display: flex; flex-direction: column; gap: 20px; }
+.cd { display: flex; gap: 14px; align-items: flex-start; }
+.cd-label { font-size: .70rem; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); margin-bottom: 2px; }
+.cd-val { font-size: .85rem; color: rgba(255,255,255,.65); }
+.form-card { background: var(--white); border-radius: 6px; padding: 40px; }
+.fg { margin-bottom: 16px; }
+.fg label { display: block; font-size: .70rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.fg input, .fg select, .fg textarea {
+  width: 100%; padding: 11px 14px;
+  border: 1px solid var(--border); border-radius: 4px;
+  font-family: 'Inter', sans-serif; font-size: .88rem;
+  color: var(--navy); background: var(--off); outline: none;
+  transition: border .15s, background .15s;
+}
+.fg input:focus, .fg select:focus, .fg textarea:focus {
+  border-color: var(--navy); background: var(--white);
+}
+.fg textarea { min-height: 88px; resize: vertical; }
+.fg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-submit {
+  width: 100%; background: var(--navy); color: var(--white);
+  font-family: 'Inter', sans-serif; font-size: .83rem;
+  font-weight: 600; letter-spacing: .5px; padding: 13px;
+  border: none; border-radius: 4px; cursor: pointer;
+  transition: opacity .2s; margin-top: 4px;
+}
+.form-submit:hover { opacity: .85; }
+
+/* FOOTER */
+footer { background: var(--navy); border-top: 1px solid rgba(255,255,255,.08); padding: 36px 80px; }
+.footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+.footer-logo img { height: 36px; filter: brightness(10); opacity: .7; }
+.footer-links { display: flex; gap: 28px; }
+.footer-links a { font-size: .78rem; color: rgba(255,255,255,.35); transition: color .2s; }
+.footer-links a:hover { color: rgba(255,255,255,.75); }
+.footer-copy { font-size: .74rem; color: rgba(255,255,255,.25); }
+
+/* FLOAT WA */
+.float-wa {
+  position: fixed; bottom: 28px; right: 28px; z-index: 90;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: #25D366; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 24px rgba(37,211,102,.38); transition: transform .2s;
+}
+.float-wa:hover { transform: scale(1.08); }
+.float-wa svg { width: 24px; height: 24px; fill: var(--white); }
+
+/* RESPONSIVE */
+@media (max-width: 960px) {
+  nav { padding: 0 28px; }
+  .nav-links { display: none; }
+  .nav-links.open {
+    display: flex; flex-direction: column; align-items: flex-start;
+    position: absolute; top: 72px; left: 0; right: 0;
+    background: var(--white); border-bottom: 1px solid var(--border);
+    padding: 16px 28px 24px; gap: 4px;
+  }
+  .hamburger { display: flex; }
+  .hero { grid-template-columns: 1fr; min-height: auto; }
+  .hero-left { padding: 64px 28px; }
+  .hero-right { display: none; }
+  .pillars { grid-template-columns: 1fr; }
+  .pillar { border-right: none; border-bottom: 1px solid var(--border); padding: 28px 28px; }
+  .pillar:last-child { border-bottom: none; }
+  .services { padding: 72px 28px; }
+  .services-grid { grid-template-columns: 1fr; gap: 2px; }
+  .how { padding: 72px 28px; }
+  .steps { grid-template-columns: 1fr; gap: 40px; }
+  .contact { padding: 72px 28px; }
+  .contact-inner { grid-template-columns: 1fr; gap: 48px; }
+  footer { padding: 28px 28px; }
+  .footer-inner { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .float-wa { bottom: 20px; right: 20px; }
+}
+@media (max-width: 600px) {
+  .hero-left { padding: 48px 20px; }
+  .services { padding: 56px 20px; }
+  .how { padding: 56px 20px; }
+  .contact { padding: 56px 20px; }
+  footer { padding: 24px 20px; }
+  .fg-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="topNav">
+  <a href="#" class="nav-logo"><img src="img/logo.jpeg" alt="Puente Legal"></a>
+  <div class="nav-links" id="navLinks">
+    <a href="#servicios">Servicios</a>
+    <a href="#proceso">Proceso</a>
+    <a href="#contacto">Contacto</a>
+  </div>
+  <a href="https://wa.me/593000000000?text=Hola,%20quisiera%20una%20consulta%20legal" target="_blank" class="nav-cta">
+    <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.533 5.867L0 24l6.301-1.651A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.518-5.163-1.422l-.371-.219-3.742.981.998-3.642-.24-.375A9.939 9.939 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+    Consulta gratis
+  </a>
+  <button class="hamburger" id="hamburger" aria-label="Menú">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow">Ecuador · Internacional</div>
+    <h1>Tu representación<br>legal en Ecuador,<br><span>estés donde estés.</span></h1>
+    <p class="hero-sub">Gestionamos tus trámites jurídicos de forma 100% remota. Sin visitas presenciales, con resultados concretos.</p>
+    <div class="hero-actions">
+      <a href="https://wa.me/593000000000?text=Hola,%20quiero%20consulta%20legal%20gratuita" target="_blank" class="btn-solid">Consulta gratuita</a>
+      <a href="#servicios" class="btn-text">Ver servicios</a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <img src="img/logo_horizontal.jpeg" alt="Puente Legal Internacional EC">
+    <div class="hero-right-overlay"></div>
+    <div class="hero-badge">
+      <div class="hero-badge-num">500+</div>
+      <div class="hero-badge-label">Casos gestionados</div>
+    </div>
+  </div>
+</section>
+
+<!-- PILLARS -->
+<div class="pillars">
+  <div class="pillar">
+    <div class="pillar-line"></div>
+    <div class="pillar-body">
+      <strong>100% Confidencial</strong>
+      <span>Secreto profesional garantizado en cada caso</span>
+    </div>
+  </div>
+  <div class="pillar">
+    <div class="pillar-line"></div>
+    <div class="pillar-body">
+      <strong>Sin visita presencial</strong>
+      <span>Todo el proceso se gestiona de forma remota</span>
+    </div>
+  </div>
+  <div class="pillar">
+    <div class="pillar-line"></div>
+    <div class="pillar-body">
+      <strong>Atención internacional</strong>
+      <span>Válido en Ecuador desde cualquier país</span>
+    </div>
+  </div>
+</div>
+
+<!-- SERVICES -->
+<section class="services" id="servicios">
+  <div class="section-label">Servicios</div>
+  <h2>¿En qué te podemos ayudar?</h2>
+  <div class="services-grid">
+    <div class="svc">
+      <div class="svc-num">01</div>
+      <div class="svc-title">Poderes y Trámites Notariales</div>
+      <div class="svc-desc">Poderes especiales, generales y escrituras ante notaría ecuatoriana, aunque te encuentres en el exterior.</div>
+      <div class="svc-arrow">Consultar →</div>
+    </div>
+    <div class="svc">
+      <div class="svc-num">02</div>
+      <div class="svc-title">Procesos Judiciales</div>
+      <div class="svc-desc">Representación y defensa en juicios civiles, penales, laborales y administrativos en todas las instancias.</div>
+      <div class="svc-arrow">Consultar →</div>
+    </div>
+    <div class="svc">
+      <div class="svc-num">03</div>
+      <div class="svc-title">Asuntos Societarios</div>
+      <div class="svc-desc">Constitución de empresas, reformas estatutarias, juntas de accionistas y cumplimiento corporativo.</div>
+      <div class="svc-arrow">Consultar →</div>
+    </div>
+    <div class="svc">
+      <div class="svc-num">04</div>
+      <div class="svc-title">Contratos y Asesoría</div>
+      <div class="svc-desc">Redacción y revisión de contratos civiles y mercantiles. Asesoramiento preventivo para proteger tus intereses.</div>
+      <div class="svc-arrow">Consultar →</div>
+    </div>
+    <div class="svc">
+      <div class="svc-num">05</div>
+      <div class="svc-title">Representación Integral</div>
+      <div class="svc-desc">Actuamos en tu nombre ante SRI, IESS, Registros de la Propiedad, Ministerios y entidades públicas.</div>
+      <div class="svc-arrow">Consultar →</div>
+    </div>
+    <div class="svc">
+      <div class="svc-num">06</div>
+      <div class="svc-title">Consulta Legal Express</div>
+      <div class="svc-desc">Primera consulta gratuita por WhatsApp con un abogado especializado en derecho ecuatoriano.</div>
+      <div class="svc-arrow">Iniciar →</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="how" id="proceso">
+  <div class="how-inner">
+    <h2>Tres pasos para comenzar</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">1</div>
+        <h3>Cuéntanos tu caso</h3>
+        <p>Escríbenos por WhatsApp o formulario. Evaluamos tu situación sin costo y te orientamos sobre las opciones legales disponibles.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">2</div>
+        <h3>Propuesta y acuerdo</h3>
+        <p>Te enviamos una propuesta con honorarios claros, plazos definidos y estrategia. Sin sorpresas ni costos ocultos.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">3</div>
+        <h3>Gestión y resultados</h3>
+        <p>Ejecutamos todas las gestiones necesarias y te mantenemos informado en cada etapa hasta obtener el resultado.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contacto">
+  <div class="contact-inner">
+    <div class="contact-left">
+      <div class="section-label">Contacto</div>
+      <h2>Hablemos de tu caso</h2>
+      <p>Un abogado especializado te responderá en menos de 24 horas. Primera consulta completamente gratuita.</p>
+      <div class="contact-detail">
+        <div class="cd">
+          <div>
+            <div class="cd-label">WhatsApp</div>
+            <div class="cd-val">+593 00 000 0000</div>
+          </div>
+        </div>
+        <div class="cd">
+          <div>
+            <div class="cd-label">Email</div>
+            <div class="cd-val">info@puentelegal.ec</div>
+          </div>
+        </div>
+        <div class="cd">
+          <div>
+            <div class="cd-label">Cobertura</div>
+            <div class="cd-val">Ecuador · Nacional e Internacional</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="form-card">
+      <form id="form" onsubmit="send(event)">
+        <div class="fg-row">
+          <div class="fg"><label>Nombre</label><input type="text" placeholder="Tu nombre" required></div>
+          <div class="fg"><label>Teléfono</label><input type="tel" placeholder="+593..."></div>
+        </div>
+        <div class="fg"><label>Email</label><input type="email" placeholder="tu@correo.com" required></div>
+        <div class="fg">
+          <label>Servicio</label>
+          <select>
+            <option value="">Selecciona...</option>
+            <option>Poderes Notariales</option>
+            <option>Procesos Judiciales</option>
+            <option>Asuntos Societarios</option>
+            <option>Contratos y Asesoría</option>
+            <option>Representación Integral</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div class="fg"><label>Mensaje</label><textarea placeholder="Cuéntanos brevemente tu situación..."></textarea></div>
+        <button type="submit" class="form-submit" id="submitBtn">Enviar consulta</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <a href="#" class="footer-logo"><img src="img/logo.jpeg" alt="Puente Legal"></a>
+    <div class="footer-links">
+      <a href="#servicios">Servicios</a>
+      <a href="#proceso">Proceso</a>
+      <a href="#contacto">Contacto</a>
+    </div>
+    <span class="footer-copy">© 2026 Puente Legal Internacional EC</span>
+  </div>
+</footer>
+
+<!-- FLOAT WA -->
+<a href="https://wa.me/593000000000?text=Hola" target="_blank" class="float-wa" aria-label="WhatsApp">
+  <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.533 5.867L0 24l6.301-1.651A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.518-5.163-1.422l-.371-.219-3.742.981.998-3.642-.24-.375A9.939 9.939 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+</a>
+
+<script>
+document.getElementById('hamburger').onclick = function() {
+  document.getElementById('navLinks').classList.toggle('open');
+};
+document.querySelectorAll('#navLinks a').forEach(function(a) {
+  a.onclick = function() { document.getElementById('navLinks').classList.remove('open'); };
+});
+function send(e) {
+  e.preventDefault();
+  var btn = document.getElementById('submitBtn');
+  btn.textContent = 'Enviando...'; btn.disabled = true; btn.style.opacity = '.5';
+  setTimeout(function() {
+    btn.textContent = '✓ Mensaje enviado'; btn.style.opacity = '1'; btn.style.background = '#16a34a';
+    e.target.reset();
+    setTimeout(function() {
+      btn.textContent = 'Enviar consulta'; btn.style.background = ''; btn.disabled = false;
+    }, 3500);
+  }, 1000);
+}
+document.querySelectorAll('.svc').forEach(function(el) {
+  el.onclick = function() {
+    window.open('https://wa.me/593000000000?text=Hola,%20necesito%20informacion%20sobre:%20' + encodeURIComponent(el.querySelector('.svc-title').textContent), '_blank');
+  };
+});
+</script>
+</body>
+</html>
