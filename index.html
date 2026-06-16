@@ -3,431 +3,921 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Puente Legal Internacional EC</title>
-<meta name="description" content="Tu representación legal en Ecuador, estés donde estés. Servicios jurídicos 100% remotos.">
+<title>Puente Legal Internacional EC — Tu Abogado en Ecuador desde Cualquier País</title>
+<meta name="description" content="Representación legal 100% remota en Ecuador. Poderes notariales, juicios, empresas y trámites desde cualquier país del mundo.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* ===== TOKENS ===== */
 :root {
-  --navy:   #1B2B4B;
-  --gold:   #C9A227;
-  --white:  #FFFFFF;
-  --off:    #F7F6F3;
-  --muted:  #8A8F9C;
-  --border: #E8E6E0;
+  --navy:    #1B2B4B;
+  --navy2:   #142039;
+  --gold:    #C9A227;
+  --gold2:   #b08d1e;
+  --white:   #FFFFFF;
+  --off:     #F7F6F3;
+  --off2:    #EFF0F4;
+  --muted:   #6B7280;
+  --border:  #E5E7EB;
+  --green:   #16a34a;
+  --radius:  6px;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body { font-family: 'Inter', sans-serif; color: var(--navy); background: var(--white); overflow-x: hidden; }
 a { text-decoration: none; color: inherit; }
 img { display: block; max-width: 100%; }
+ul { list-style: none; }
 
-/* NAV */
+/* ===== TOP BANNER ===== */
+.top-banner {
+  background: var(--navy);
+  color: var(--white);
+  text-align: center;
+  padding: 10px 20px;
+  font-size: .78rem;
+  letter-spacing: .3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.top-banner strong { color: var(--gold); }
+.top-banner a {
+  color: var(--gold);
+  font-weight: 600;
+  border-bottom: 1px solid rgba(201,162,39,.4);
+  transition: border-color .2s;
+}
+.top-banner a:hover { border-color: var(--gold); }
+
+/* ===== NAV ===== */
 nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 60px; height: 72px;
-  background: rgba(255,255,255,0.92); backdrop-filter: blur(12px);
+  position: sticky; top: 0; z-index: 200;
+  background: rgba(255,255,255,.95);
+  backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
 }
-.nav-logo img { height: 40px; }
-.nav-links { display: flex; gap: 36px; }
-.nav-links a { font-size: .82rem; font-weight: 500; color: var(--muted); letter-spacing: .3px; transition: color .2s; }
-.nav-links a:hover { color: var(--navy); }
+.nav-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center;
+  padding: 0 32px; height: 68px;
+  gap: 32px;
+}
+.nav-logo img { height: 38px; object-fit: contain; }
+.nav-menu { display: flex; gap: 28px; flex: 1; }
+.nav-menu a {
+  font-size: .82rem; font-weight: 500; color: var(--muted);
+  letter-spacing: .2px; transition: color .2s; white-space: nowrap;
+}
+.nav-menu a:hover { color: var(--navy); }
+.nav-right { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+.nav-phone {
+  font-size: .78rem; color: var(--muted); font-weight: 500;
+  display: flex; align-items: center; gap: 6px;
+}
+.nav-phone svg { width: 14px; height: 14px; fill: var(--gold); flex-shrink: 0; }
 .nav-cta {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--navy); color: var(--white);
-  padding: 10px 22px; border-radius: 4px;
-  font-size: .80rem; font-weight: 600; letter-spacing: .3px;
-  transition: opacity .2s;
+  background: var(--gold); color: var(--navy);
+  padding: 9px 22px; border-radius: var(--radius);
+  font-size: .80rem; font-weight: 700; letter-spacing: .3px;
+  white-space: nowrap; transition: background .2s;
 }
-.nav-cta:hover { opacity: .85; }
-.nav-cta svg { width: 14px; height: 14px; fill: var(--white); flex-shrink: 0; }
-.hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; }
-.hamburger span { display: block; width: 22px; height: 1.5px; background: var(--navy); }
+.nav-cta:hover { background: var(--gold2); }
+.hamburger {
+  display: none; flex-direction: column; gap: 5px;
+  background: none; border: none; cursor: pointer; padding: 4px; margin-left: auto;
+}
+.hamburger span { display: block; width: 22px; height: 2px; background: var(--navy); border-radius: 2px; transition: .2s; }
 
-/* HERO */
+/* ===== HERO ===== */
 .hero {
-  min-height: 100vh;
-  display: grid; grid-template-columns: 1fr 1fr;
-  padding-top: 72px;
+  background: var(--off);
+  padding: 72px 32px;
 }
-.hero-left {
-  display: flex; flex-direction: column; justify-content: center;
-  padding: 80px 60px 80px 80px;
-  background: var(--white);
+.hero-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 420px;
+  gap: 64px; align-items: center;
 }
-.hero-eyebrow {
-  display: flex; align-items: center; gap: 10px;
-  font-size: .72rem; font-weight: 600; letter-spacing: 2.5px;
-  text-transform: uppercase; color: var(--gold); margin-bottom: 28px;
+.hero-badge-top {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(201,162,39,.12); border: 1px solid rgba(201,162,39,.3);
+  padding: 6px 14px; border-radius: 20px;
+  font-size: .72rem; font-weight: 600; color: var(--gold);
+  letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 24px;
 }
-.hero-eyebrow::before {
-  content: ''; display: block; width: 24px; height: 1px; background: var(--gold);
-}
+.hero-badge-top::before { content: ''; width: 6px; height: 6px; background: var(--gold); border-radius: 50%; }
 .hero h1 {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(2.4rem, 3.5vw, 3.8rem);
-  font-weight: 700; line-height: 1.12;
-  color: var(--navy); margin-bottom: 24px;
-  letter-spacing: -.3px;
+  font-size: clamp(2.2rem, 3.8vw, 3.6rem);
+  font-weight: 700; line-height: 1.12; color: var(--navy);
+  margin-bottom: 20px; letter-spacing: -.3px;
 }
-.hero h1 span { color: var(--gold); }
+.hero h1 em { color: var(--gold); font-style: normal; }
 .hero-sub {
   font-size: 1rem; color: var(--muted); line-height: 1.8;
-  max-width: 400px; margin-bottom: 44px; font-weight: 400;
+  max-width: 480px; margin-bottom: 36px;
 }
-.hero-actions { display: flex; gap: 14px; align-items: center; }
-.btn-solid {
+.hero-actions { display: flex; gap: 12px; align-items: center; margin-bottom: 48px; flex-wrap: wrap; }
+.btn-primary {
   background: var(--gold); color: var(--navy);
-  padding: 13px 28px; border-radius: 4px;
-  font-size: .83rem; font-weight: 600; letter-spacing: .3px;
-  transition: opacity .2s;
-}
-.btn-solid:hover { opacity: .88; }
-.btn-text {
-  font-size: .83rem; font-weight: 500; color: var(--muted);
-  display: flex; align-items: center; gap: 6px; transition: color .2s;
-}
-.btn-text:hover { color: var(--navy); }
-.btn-text::after { content: '→'; }
-.hero-right {
-  position: relative; overflow: hidden;
-  background: var(--navy);
-}
-.hero-right img {
-  width: 100%; height: 100%;
-  object-fit: cover; object-position: right center;
-  opacity: .7; filter: grayscale(20%);
-}
-.hero-right-overlay {
-  position: absolute; inset: 0;
-  background: linear-gradient(135deg, rgba(27,43,75,.6) 0%, rgba(27,43,75,.2) 100%);
-}
-.hero-badge {
-  position: absolute; bottom: 48px; left: 48px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.15);
-  backdrop-filter: blur(8px);
-  padding: 18px 24px; border-radius: 6px; color: var(--white);
-}
-.hero-badge-num { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; line-height: 1; }
-.hero-badge-label { font-size: .72rem; color: rgba(255,255,255,.60); margin-top: 4px; letter-spacing: .5px; }
-
-/* PILLARS */
-.pillars {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
-  background: var(--white);
-}
-.pillar {
-  padding: 36px 48px;
-  border-right: 1px solid var(--border);
-  display: flex; align-items: flex-start; gap: 18px;
-}
-.pillar:last-child { border-right: none; }
-.pillar-line { width: 2px; height: 40px; background: var(--gold); flex-shrink: 0; margin-top: 2px; }
-.pillar-body strong { display: block; font-size: .90rem; font-weight: 600; color: var(--navy); margin-bottom: 5px; }
-.pillar-body span { font-size: .80rem; color: var(--muted); line-height: 1.5; }
-
-/* SERVICES */
-.services { padding: 100px 80px; background: var(--off); }
-.section-label {
-  font-size: .70rem; font-weight: 600; letter-spacing: 3px;
-  text-transform: uppercase; color: var(--gold); margin-bottom: 16px;
-}
-.services h2 {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(1.9rem, 2.5vw, 2.8rem); font-weight: 700;
-  color: var(--navy); margin-bottom: 56px; max-width: 480px; line-height: 1.2;
-}
-.services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
-.svc {
-  background: var(--white); padding: 40px 36px;
+  padding: 13px 28px; border-radius: var(--radius);
+  font-size: .85rem; font-weight: 700; letter-spacing: .3px;
+  display: inline-flex; align-items: center; gap: 8px;
   transition: background .2s;
-  cursor: default;
 }
-.svc:hover { background: var(--navy); }
-.svc:hover .svc-num,
-.svc:hover .svc-title,
-.svc:hover .svc-desc { color: var(--white); }
-.svc:hover .svc-desc { color: rgba(255,255,255,.60); }
-.svc:hover .svc-arrow { color: var(--gold); }
-.svc-num { font-size: .72rem; font-weight: 600; letter-spacing: 2px; color: var(--gold); margin-bottom: 28px; }
-.svc-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; color: var(--navy); margin-bottom: 12px; line-height: 1.3; }
-.svc-desc { font-size: .82rem; color: var(--muted); line-height: 1.7; margin-bottom: 24px; }
-.svc-arrow { font-size: .80rem; color: var(--muted); font-weight: 500; transition: color .2s; }
+.btn-primary:hover { background: var(--gold2); }
+.btn-outline {
+  border: 1.5px solid var(--navy); color: var(--navy);
+  padding: 12px 24px; border-radius: var(--radius);
+  font-size: .85rem; font-weight: 600;
+  transition: background .2s, color .2s;
+}
+.btn-outline:hover { background: var(--navy); color: var(--white); }
+.hero-trust { display: flex; gap: 28px; flex-wrap: wrap; }
+.hero-trust-item { display: flex; align-items: center; gap: 8px; }
+.hero-trust-item svg { width: 18px; height: 18px; fill: var(--green); flex-shrink: 0; }
+.hero-trust-item span { font-size: .78rem; color: var(--muted); font-weight: 500; }
 
-/* HOW */
-.how { padding: 100px 80px; background: var(--white); }
-.how-inner { max-width: 860px; margin: 0 auto; }
-.how h2 {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(1.9rem, 2.5vw, 2.8rem); font-weight: 700;
-  color: var(--navy); margin-bottom: 64px; text-align: center;
+/* Hero card */
+.hero-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(27,43,75,.10);
 }
-.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; }
-.step { text-align: center; }
-.step-n {
+.hero-card-img {
+  width: 100%; height: 220px; object-fit: cover; object-position: center top;
+}
+.hero-card-body { padding: 28px; }
+.hero-card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem; font-weight: 700; color: var(--navy); margin-bottom: 6px;
+}
+.hero-card-sub { font-size: .80rem; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+.hero-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border-top: 1px solid var(--border); }
+.hero-stat {
+  background: var(--white); padding: 18px 20px; text-align: center;
+}
+.hero-stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem; font-weight: 700; color: var(--navy); line-height: 1;
+}
+.hero-stat-label { font-size: .70rem; color: var(--muted); margin-top: 4px; letter-spacing: .3px; }
+
+/* ===== TRUST STRIP ===== */
+.trust-strip {
+  background: var(--navy);
+  padding: 0;
+}
+.trust-strip-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+}
+.trust-item {
+  padding: 28px 32px;
+  border-right: 1px solid rgba(255,255,255,.08);
+  display: flex; align-items: center; gap: 14px;
+}
+.trust-item:last-child { border-right: none; }
+.trust-icon {
+  width: 40px; height: 40px; border-radius: 8px;
+  background: rgba(201,162,39,.15);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.trust-icon svg { width: 20px; height: 20px; fill: var(--gold); }
+.trust-item strong { display: block; font-size: .85rem; color: var(--white); font-weight: 600; margin-bottom: 2px; }
+.trust-item span { font-size: .73rem; color: rgba(255,255,255,.45); line-height: 1.4; }
+
+/* ===== SECTION HEADER ===== */
+.section-wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+.sec-label {
+  font-size: .68rem; font-weight: 700; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--gold); margin-bottom: 10px;
+  display: block;
+}
+.sec-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.7rem, 2.5vw, 2.6rem);
+  font-weight: 700; color: var(--navy); line-height: 1.2;
+  margin-bottom: 12px;
+}
+.sec-sub { font-size: .93rem; color: var(--muted); max-width: 520px; line-height: 1.7; }
+
+/* ===== SERVICES ===== */
+.services-sec { padding: 96px 0; background: var(--white); }
+.services-header { margin-bottom: 52px; }
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.svc-card {
+  border: 1px solid var(--border);
+  border-radius: 10px; padding: 32px 28px;
+  transition: box-shadow .2s, border-color .2s, transform .2s;
+  cursor: pointer; position: relative; overflow: hidden;
+}
+.svc-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 3px; background: var(--gold); transform: scaleX(0);
+  transform-origin: left; transition: transform .25s;
+}
+.svc-card:hover { box-shadow: 0 8px 32px rgba(27,43,75,.10); border-color: rgba(201,162,39,.3); transform: translateY(-2px); }
+.svc-card:hover::before { transform: scaleX(1); }
+.svc-icon-wrap {
+  width: 48px; height: 48px; border-radius: 10px;
+  background: var(--off); display: flex; align-items: center; justify-content: center;
+  margin-bottom: 20px; transition: background .2s;
+}
+.svc-card:hover .svc-icon-wrap { background: rgba(201,162,39,.12); }
+.svc-icon-wrap svg { width: 24px; height: 24px; fill: var(--navy); transition: fill .2s; }
+.svc-card:hover .svc-icon-wrap svg { fill: var(--gold); }
+.svc-num { font-size: .68rem; font-weight: 700; letter-spacing: 2px; color: var(--gold); margin-bottom: 8px; }
+.svc-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; color: var(--navy); margin-bottom: 10px; line-height: 1.3; }
+.svc-desc { font-size: .80rem; color: var(--muted); line-height: 1.75; margin-bottom: 20px; }
+.svc-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+.svc-tag {
+  font-size: .68rem; font-weight: 600; letter-spacing: .5px;
+  background: var(--off2); color: var(--muted); padding: 3px 10px; border-radius: 20px;
+}
+.svc-link {
+  font-size: .78rem; font-weight: 600; color: var(--navy);
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: gap .2s, color .2s;
+}
+.svc-card:hover .svc-link { color: var(--gold); gap: 10px; }
+
+/* ===== STATS ===== */
+.stats-sec { background: var(--off); padding: 80px 0; }
+.stats-grid {
+  max-width: 1200px; margin: 0 auto; padding: 0 32px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px;
+  background: var(--border); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+}
+.stat-box { background: var(--white); padding: 40px 32px; text-align: center; }
+.stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.8rem; font-weight: 700; color: var(--navy); line-height: 1;
+  margin-bottom: 6px;
+}
+.stat-num span { color: var(--gold); }
+.stat-label { font-size: .80rem; color: var(--muted); font-weight: 500; line-height: 1.4; }
+
+/* ===== HOW ===== */
+.how-sec { padding: 96px 0; background: var(--white); }
+.how-inner { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+.how-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 56px; gap: 40px; }
+.steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; position: relative; }
+.steps-grid::before {
+  content: ''; position: absolute; top: 26px; left: calc(16.66% + 12px); right: calc(16.66% + 12px);
+  height: 1px; background: var(--border); z-index: 0;
+}
+.step-box { padding: 0 24px; text-align: center; position: relative; z-index: 1; }
+.step-num {
   width: 52px; height: 52px; border-radius: 50%;
-  border: 1.5px solid var(--gold); display: flex;
-  align-items: center; justify-content: center;
-  margin: 0 auto 20px;
-  font-family: 'Playfair Display', serif; font-size: 1.2rem;
-  font-weight: 700; color: var(--gold);
-}
-.step h3 { font-size: .90rem; font-weight: 600; color: var(--navy); margin-bottom: 10px; }
-.step p { font-size: .80rem; color: var(--muted); line-height: 1.7; }
-
-/* CONTACT */
-.contact { background: var(--navy); padding: 100px 80px; }
-.contact-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
-.contact-left .section-label { color: rgba(201,162,39,.85); }
-.contact-left h2 {
+  background: var(--white); border: 2px solid var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 24px;
   font-family: 'Playfair Display', serif;
-  font-size: clamp(1.9rem, 2.5vw, 2.8rem); font-weight: 700;
-  color: var(--white); line-height: 1.2; margin-bottom: 20px;
+  font-size: 1.1rem; font-weight: 700; color: var(--gold);
 }
-.contact-left p { font-size: .88rem; color: rgba(255,255,255,.55); line-height: 1.8; margin-bottom: 40px; max-width: 360px; }
-.contact-detail { display: flex; flex-direction: column; gap: 20px; }
-.cd { display: flex; gap: 14px; align-items: flex-start; }
-.cd-label { font-size: .70rem; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); margin-bottom: 2px; }
-.cd-val { font-size: .85rem; color: rgba(255,255,255,.65); }
-.form-card { background: var(--white); border-radius: 6px; padding: 40px; }
+.step-box h3 { font-size: .92rem; font-weight: 700; color: var(--navy); margin-bottom: 12px; }
+.step-box p { font-size: .80rem; color: var(--muted); line-height: 1.75; }
+
+/* ===== TESTIMONIALS ===== */
+.testimonials-sec { background: var(--off); padding: 96px 0; }
+.testimonials-header { margin-bottom: 52px; }
+.stars { color: var(--gold); font-size: 1rem; letter-spacing: 2px; margin-bottom: 12px; }
+.reviews-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+}
+.review-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 10px; padding: 28px 24px;
+}
+.review-stars { font-size: .85rem; color: var(--gold); margin-bottom: 14px; }
+.review-text { font-size: .84rem; color: var(--muted); line-height: 1.75; margin-bottom: 20px; font-style: italic; }
+.review-author { display: flex; align-items: center; gap: 12px; }
+.review-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--navy); display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif; font-size: .95rem; font-weight: 700; color: var(--gold);
+  flex-shrink: 0;
+}
+.review-name { font-size: .82rem; font-weight: 700; color: var(--navy); }
+.review-loc { font-size: .72rem; color: var(--muted); }
+
+/* ===== FAQ ===== */
+.faq-sec { padding: 96px 0; background: var(--white); }
+.faq-inner { max-width: 1200px; margin: 0 auto; padding: 0 32px; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+.faq-header { position: sticky; top: 100px; }
+.faq-header .btn-primary { margin-top: 32px; }
+.faq-list { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.faq-item { border-bottom: 1px solid var(--border); }
+.faq-item:last-child { border-bottom: none; }
+.faq-q {
+  width: 100%; background: none; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px; gap: 16px;
+  font-family: 'Inter', sans-serif; font-size: .88rem; font-weight: 600;
+  color: var(--navy); text-align: left; transition: background .15s;
+}
+.faq-q:hover { background: var(--off); }
+.faq-q.open { background: var(--off); color: var(--gold); }
+.faq-icon { width: 20px; height: 20px; flex-shrink: 0; border-radius: 50%; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; transition: background .2s, border-color .2s; }
+.faq-q.open .faq-icon { background: var(--gold); border-color: var(--gold); }
+.faq-icon svg { width: 10px; height: 10px; fill: var(--muted); transition: fill .2s, transform .2s; }
+.faq-q.open .faq-icon svg { fill: var(--white); transform: rotate(45deg); }
+.faq-a { display: none; padding: 0 24px 20px; font-size: .83rem; color: var(--muted); line-height: 1.8; }
+.faq-a.open { display: block; }
+
+/* ===== CTA BANNER ===== */
+.cta-banner { background: var(--navy); padding: 80px 32px; text-align: center; }
+.cta-banner-inner { max-width: 680px; margin: 0 auto; }
+.cta-banner .sec-label { color: rgba(201,162,39,.8); justify-content: center; display: block; }
+.cta-banner h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.8rem, 3vw, 2.8rem); font-weight: 700;
+  color: var(--white); margin: 12px 0 16px; line-height: 1.2;
+}
+.cta-banner p { font-size: .92rem; color: rgba(255,255,255,.55); line-height: 1.7; margin-bottom: 36px; }
+.cta-banner-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.btn-white {
+  background: var(--white); color: var(--navy);
+  padding: 13px 28px; border-radius: var(--radius);
+  font-size: .85rem; font-weight: 700; transition: opacity .2s;
+}
+.btn-white:hover { opacity: .9; }
+.btn-ghost {
+  border: 1.5px solid rgba(255,255,255,.25); color: var(--white);
+  padding: 12px 24px; border-radius: var(--radius);
+  font-size: .85rem; font-weight: 600; transition: border-color .2s;
+}
+.btn-ghost:hover { border-color: rgba(255,255,255,.6); }
+
+/* ===== CONTACT ===== */
+.contact-sec { padding: 96px 0; background: var(--off); }
+.contact-inner { max-width: 1200px; margin: 0 auto; padding: 0 32px; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+.contact-left h2 { margin-bottom: 16px; }
+.contact-left p { font-size: .90rem; color: var(--muted); line-height: 1.8; margin-bottom: 36px; }
+.contact-details { display: flex; flex-direction: column; gap: 20px; }
+.cd { display: flex; align-items: flex-start; gap: 14px; }
+.cd-icon {
+  width: 40px; height: 40px; border-radius: 8px;
+  background: var(--navy); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.cd-icon svg { width: 18px; height: 18px; fill: var(--gold); }
+.cd-label { font-size: .68rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); margin-bottom: 2px; }
+.cd-val { font-size: .84rem; color: var(--navy); font-weight: 500; }
+
+.form-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 36px; }
 .fg { margin-bottom: 16px; }
-.fg label { display: block; font-size: .70rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.fg label { display: block; font-size: .68rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
 .fg input, .fg select, .fg textarea {
   width: 100%; padding: 11px 14px;
-  border: 1px solid var(--border); border-radius: 4px;
+  border: 1.5px solid var(--border); border-radius: var(--radius);
   font-family: 'Inter', sans-serif; font-size: .88rem;
   color: var(--navy); background: var(--off); outline: none;
-  transition: border .15s, background .15s;
+  transition: border-color .15s, background .15s;
 }
-.fg input:focus, .fg select:focus, .fg textarea:focus {
-  border-color: var(--navy); background: var(--white);
-}
-.fg textarea { min-height: 88px; resize: vertical; }
+.fg input:focus, .fg select:focus, .fg textarea:focus { border-color: var(--navy); background: var(--white); }
+.fg textarea { min-height: 90px; resize: vertical; }
 .fg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .form-submit {
   width: 100%; background: var(--navy); color: var(--white);
-  font-family: 'Inter', sans-serif; font-size: .83rem;
-  font-weight: 600; letter-spacing: .5px; padding: 13px;
-  border: none; border-radius: 4px; cursor: pointer;
+  font-family: 'Inter', sans-serif; font-size: .85rem; font-weight: 700;
+  letter-spacing: .5px; padding: 14px;
+  border: none; border-radius: var(--radius); cursor: pointer;
   transition: opacity .2s; margin-top: 4px;
 }
 .form-submit:hover { opacity: .85; }
 
-/* FOOTER */
-footer { background: var(--navy); border-top: 1px solid rgba(255,255,255,.08); padding: 36px 80px; }
-.footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
-.footer-logo img { height: 36px; filter: brightness(10); opacity: .7; }
-.footer-links { display: flex; gap: 28px; }
-.footer-links a { font-size: .78rem; color: rgba(255,255,255,.35); transition: color .2s; }
-.footer-links a:hover { color: rgba(255,255,255,.75); }
-.footer-copy { font-size: .74rem; color: rgba(255,255,255,.25); }
+/* ===== FOOTER ===== */
+footer { background: var(--navy2); padding: 64px 32px 32px; }
+.footer-inner { max-width: 1200px; margin: 0 auto; }
+.footer-top {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 48px; margin-bottom: 48px; padding-bottom: 48px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.footer-brand img { height: 36px; margin-bottom: 16px; filter: brightness(10); opacity: .7; }
+.footer-brand p { font-size: .78rem; color: rgba(255,255,255,.35); line-height: 1.7; max-width: 260px; }
+.footer-social { display: flex; gap: 10px; margin-top: 20px; }
+.footer-social a {
+  width: 34px; height: 34px; border-radius: 6px;
+  border: 1px solid rgba(255,255,255,.12);
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .2s, background .2s;
+}
+.footer-social a:hover { border-color: var(--gold); background: rgba(201,162,39,.1); }
+.footer-social svg { width: 15px; height: 15px; fill: rgba(255,255,255,.45); }
+.footer-col h4 { font-size: .72rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
+.footer-col ul { display: flex; flex-direction: column; gap: 10px; }
+.footer-col ul a { font-size: .78rem; color: rgba(255,255,255,.35); transition: color .2s; }
+.footer-col ul a:hover { color: rgba(255,255,255,.7); }
+.footer-bottom {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+}
+.footer-copy { font-size: .73rem; color: rgba(255,255,255,.20); }
+.footer-badges { display: flex; gap: 8px; align-items: center; }
+.badge {
+  font-size: .65rem; font-weight: 600; letter-spacing: .5px;
+  padding: 4px 10px; border-radius: 4px;
+  border: 1px solid rgba(255,255,255,.10); color: rgba(255,255,255,.30);
+}
 
-/* FLOAT WA */
+/* ===== FLOAT WA ===== */
 .float-wa {
-  position: fixed; bottom: 28px; right: 28px; z-index: 90;
-  width: 52px; height: 52px; border-radius: 50%;
-  background: #25D366; display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 24px rgba(37,211,102,.38); transition: transform .2s;
+  position: fixed; bottom: 28px; right: 28px; z-index: 300;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: #25D366;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 24px rgba(37,211,102,.4);
+  transition: transform .2s;
 }
 .float-wa:hover { transform: scale(1.08); }
-.float-wa svg { width: 24px; height: 24px; fill: var(--white); }
+.float-wa svg { width: 26px; height: 26px; fill: var(--white); }
 
-/* RESPONSIVE */
-@media (max-width: 960px) {
-  nav { padding: 0 28px; }
-  .nav-links { display: none; }
-  .nav-links.open {
-    display: flex; flex-direction: column; align-items: flex-start;
-    position: absolute; top: 72px; left: 0; right: 0;
-    background: var(--white); border-bottom: 1px solid var(--border);
-    padding: 16px 28px 24px; gap: 4px;
-  }
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .nav-menu { display: none; }
   .hamburger { display: flex; }
-  .hero { grid-template-columns: 1fr; min-height: auto; }
-  .hero-left { padding: 64px 28px; }
-  .hero-right { display: none; }
-  .pillars { grid-template-columns: 1fr; }
-  .pillar { border-right: none; border-bottom: 1px solid var(--border); padding: 28px 28px; }
-  .pillar:last-child { border-bottom: none; }
-  .services { padding: 72px 28px; }
-  .services-grid { grid-template-columns: 1fr; gap: 2px; }
-  .how { padding: 72px 28px; }
-  .steps { grid-template-columns: 1fr; gap: 40px; }
-  .contact { padding: 72px 28px; }
-  .contact-inner { grid-template-columns: 1fr; gap: 48px; }
-  footer { padding: 28px 28px; }
-  .footer-inner { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .nav-phone { display: none; }
+
+  .hero-inner { grid-template-columns: 1fr; }
+  .hero-card { display: none; }
+
+  .trust-strip-inner { grid-template-columns: 1fr 1fr; }
+  .trust-item { border-bottom: 1px solid rgba(255,255,255,.08); }
+  .trust-item:nth-child(2) { border-right: none; }
+  .trust-item:nth-child(3) { border-bottom: none; }
+  .trust-item:last-child { border-right: none; border-bottom: none; }
+
+  .services-grid { grid-template-columns: 1fr 1fr; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .steps-grid { grid-template-columns: 1fr; gap: 32px; }
+  .steps-grid::before { display: none; }
+  .step-box { display: grid; grid-template-columns: 52px 1fr; gap: 20px; text-align: left; align-items: start; }
+  .step-num { margin: 0; }
+
+  .reviews-grid { grid-template-columns: 1fr 1fr; }
+
+  .faq-inner { grid-template-columns: 1fr; gap: 40px; }
+  .faq-header { position: static; }
+
+  .contact-inner { grid-template-columns: 1fr; gap: 40px; }
+
+  .footer-top { grid-template-columns: 1fr 1fr; gap: 32px; }
+
+  .how-header { flex-direction: column; align-items: flex-start; gap: 20px; }
+}
+
+@media (max-width: 640px) {
+  .nav-inner { padding: 0 20px; }
+  .hero { padding: 48px 20px; }
+  .section-wrap { padding: 0 20px; }
+  .trust-strip-inner { grid-template-columns: 1fr; }
+  .trust-item { border-right: none; }
+  .services-sec, .stats-sec, .how-sec, .testimonials-sec, .faq-sec, .contact-sec { padding: 64px 0; }
+  .services-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: 1fr 1fr; padding: 0 20px; }
+  .reviews-grid { grid-template-columns: 1fr; }
+  .footer-top { grid-template-columns: 1fr; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+  .fg-row { grid-template-columns: 1fr; }
   .float-wa { bottom: 20px; right: 20px; }
 }
-@media (max-width: 600px) {
-  .hero-left { padding: 48px 20px; }
-  .services { padding: 56px 20px; }
-  .how { padding: 56px 20px; }
-  .contact { padding: 56px 20px; }
-  footer { padding: 24px 20px; }
-  .fg-row { grid-template-columns: 1fr; }
+
+/* Mobile nav */
+.nav-menu.open {
+  display: flex !important; flex-direction: column;
+  position: absolute; top: 68px; left: 0; right: 0;
+  background: var(--white); border-bottom: 1px solid var(--border);
+  padding: 16px 20px 24px; gap: 4px; z-index: 200;
+  box-shadow: 0 8px 32px rgba(0,0,0,.08);
 }
+.nav-menu.open a { padding: 8px 0; font-size: .88rem; border-bottom: 1px solid var(--border); color: var(--navy); }
+.nav-menu.open a:last-child { border-bottom: none; }
 </style>
 </head>
 <body>
 
+<!-- TOP BANNER -->
+<div class="top-banner">
+  <strong>Primera consulta GRATIS</strong> — Habla con un abogado especializado hoy mismo
+  <a href="https://wa.me/593000000000?text=Hola,%20quiero%20mi%20consulta%20gratuita" target="_blank">→ Empezar ahora</a>
+</div>
+
 <!-- NAV -->
 <nav id="topNav">
-  <a href="#" class="nav-logo"><img src="img/logo.jpeg" alt="Puente Legal"></a>
-  <div class="nav-links" id="navLinks">
-    <a href="#servicios">Servicios</a>
-    <a href="#proceso">Proceso</a>
-    <a href="#contacto">Contacto</a>
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">
+      <img src="img/logo.jpeg" alt="Puente Legal Internacional EC">
+    </a>
+    <div class="nav-menu" id="navMenu">
+      <a href="#servicios">Servicios</a>
+      <a href="#proceso">Cómo funciona</a>
+      <a href="#testimonios">Testimonios</a>
+      <a href="#faq">Preguntas</a>
+      <a href="#contacto">Contacto</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-phone">
+        <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+        +593 00 000 0000
+      </span>
+      <a href="https://wa.me/593000000000?text=Hola,%20quisiera%20una%20consulta%20legal%20gratuita" target="_blank" class="nav-cta">Consulta gratis</a>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menú">
+      <span></span><span></span><span></span>
+    </button>
   </div>
-  <a href="https://wa.me/593000000000?text=Hola,%20quisiera%20una%20consulta%20legal" target="_blank" class="nav-cta">
-    <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.533 5.867L0 24l6.301-1.651A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.518-5.163-1.422l-.371-.219-3.742.981.998-3.642-.24-.375A9.939 9.939 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-    Consulta gratis
-  </a>
-  <button class="hamburger" id="hamburger" aria-label="Menú">
-    <span></span><span></span><span></span>
-  </button>
 </nav>
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-left">
-    <div class="hero-eyebrow">Ecuador · Internacional</div>
-    <h1>Tu representación<br>legal en Ecuador,<br><span>estés donde estés.</span></h1>
-    <p class="hero-sub">Gestionamos tus trámites jurídicos de forma 100% remota. Sin visitas presenciales, con resultados concretos.</p>
-    <div class="hero-actions">
-      <a href="https://wa.me/593000000000?text=Hola,%20quiero%20consulta%20legal%20gratuita" target="_blank" class="btn-solid">Consulta gratuita</a>
-      <a href="#servicios" class="btn-text">Ver servicios</a>
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-badge-top">Ecuador · Internacional</div>
+      <h1>Tu representación<br>legal en Ecuador,<br><em>estés donde estés.</em></h1>
+      <p class="hero-sub">Gestionamos tus trámites jurídicos de forma 100% remota. Sin visitas presenciales, con resultados concretos desde cualquier país del mundo.</p>
+      <div class="hero-actions">
+        <a href="https://wa.me/593000000000?text=Hola,%20quiero%20consulta%20legal%20gratuita" target="_blank" class="btn-primary">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.533 5.867L0 24l6.301-1.651A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.518-5.163-1.422l-.371-.219-3.742.981.998-3.642-.24-.375A9.939 9.939 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+          Consulta gratuita
+        </a>
+        <a href="#servicios" class="btn-outline">Ver servicios</a>
+      </div>
+      <div class="hero-trust">
+        <div class="hero-trust-item">
+          <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          <span>Sin visita presencial</span>
+        </div>
+        <div class="hero-trust-item">
+          <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          <span>100% Confidencial</span>
+        </div>
+        <div class="hero-trust-item">
+          <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          <span>Válido internacionalmente</span>
+        </div>
+      </div>
     </div>
-  </div>
-  <div class="hero-right">
-    <img src="img/logo_horizontal.jpeg" alt="Puente Legal Internacional EC">
-    <div class="hero-right-overlay"></div>
-    <div class="hero-badge">
-      <div class="hero-badge-num">500+</div>
-      <div class="hero-badge-label">Casos gestionados</div>
+
+    <!-- Hero card -->
+    <div class="hero-card">
+      <img src="img/logo_horizontal.jpeg" alt="Puente Legal Internacional EC" class="hero-card-img">
+      <div class="hero-card-body">
+        <div class="hero-card-title">Puente Legal Internacional EC</div>
+        <div class="hero-card-sub">Abogados ecuatorianos especializados en servicios jurídicos remotos para la comunidad internacional.</div>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-num">500+</div>
+          <div class="hero-stat-label">Casos gestionados</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">48h</div>
+          <div class="hero-stat-label">Tiempo de respuesta</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">40+</div>
+          <div class="hero-stat-label">Países atendidos</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">10+</div>
+          <div class="hero-stat-label">Años de experiencia</div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- PILLARS -->
-<div class="pillars">
-  <div class="pillar">
-    <div class="pillar-line"></div>
-    <div class="pillar-body">
-      <strong>100% Confidencial</strong>
-      <span>Secreto profesional garantizado en cada caso</span>
+<!-- TRUST STRIP -->
+<div class="trust-strip">
+  <div class="trust-strip-inner">
+    <div class="trust-item">
+      <div class="trust-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+      </div>
+      <div>
+        <strong>100% Confidencial</strong>
+        <span>Secreto profesional garantizado</span>
+      </div>
     </div>
-  </div>
-  <div class="pillar">
-    <div class="pillar-line"></div>
-    <div class="pillar-body">
-      <strong>Sin visita presencial</strong>
-      <span>Todo el proceso se gestiona de forma remota</span>
+    <div class="trust-item">
+      <div class="trust-icon">
+        <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+      </div>
+      <div>
+        <strong>Sin visita presencial</strong>
+        <span>Todo el proceso es 100% remoto</span>
+      </div>
     </div>
-  </div>
-  <div class="pillar">
-    <div class="pillar-line"></div>
-    <div class="pillar-body">
-      <strong>Atención internacional</strong>
-      <span>Válido en Ecuador desde cualquier país</span>
+    <div class="trust-icon" style="display:none"></div>
+    <div class="trust-item">
+      <div class="trust-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+      </div>
+      <div>
+        <strong>Cobertura internacional</strong>
+        <span>Desde cualquier país del mundo</span>
+      </div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon">
+        <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z"/></svg>
+      </div>
+      <div>
+        <strong>Primera consulta gratis</strong>
+        <span>Evaluamos tu caso sin costo</span>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- SERVICES -->
-<section class="services" id="servicios">
-  <div class="section-label">Servicios</div>
-  <h2>¿En qué te podemos ayudar?</h2>
-  <div class="services-grid">
-    <div class="svc">
-      <div class="svc-num">01</div>
-      <div class="svc-title">Poderes y Trámites Notariales</div>
-      <div class="svc-desc">Poderes especiales, generales y escrituras ante notaría ecuatoriana, aunque te encuentres en el exterior.</div>
-      <div class="svc-arrow">Consultar →</div>
+<section class="services-sec" id="servicios">
+  <div class="section-wrap">
+    <div class="services-header">
+      <span class="sec-label">Servicios</span>
+      <h2 class="sec-title">¿En qué te podemos ayudar?</h2>
+      <p class="sec-sub">Ofrecemos representación legal completa en Ecuador desde donde estés. Todos los trámites de forma 100% remota.</p>
     </div>
-    <div class="svc">
-      <div class="svc-num">02</div>
-      <div class="svc-title">Procesos Judiciales</div>
-      <div class="svc-desc">Representación y defensa en juicios civiles, penales, laborales y administrativos en todas las instancias.</div>
-      <div class="svc-arrow">Consultar →</div>
-    </div>
-    <div class="svc">
-      <div class="svc-num">03</div>
-      <div class="svc-title">Asuntos Societarios</div>
-      <div class="svc-desc">Constitución de empresas, reformas estatutarias, juntas de accionistas y cumplimiento corporativo.</div>
-      <div class="svc-arrow">Consultar →</div>
-    </div>
-    <div class="svc">
-      <div class="svc-num">04</div>
-      <div class="svc-title">Contratos y Asesoría</div>
-      <div class="svc-desc">Redacción y revisión de contratos civiles y mercantiles. Asesoramiento preventivo para proteger tus intereses.</div>
-      <div class="svc-arrow">Consultar →</div>
-    </div>
-    <div class="svc">
-      <div class="svc-num">05</div>
-      <div class="svc-title">Representación Integral</div>
-      <div class="svc-desc">Actuamos en tu nombre ante SRI, IESS, Registros de la Propiedad, Ministerios y entidades públicas.</div>
-      <div class="svc-arrow">Consultar →</div>
-    </div>
-    <div class="svc">
-      <div class="svc-num">06</div>
-      <div class="svc-title">Consulta Legal Express</div>
-      <div class="svc-desc">Primera consulta gratuita por WhatsApp con un abogado especializado en derecho ecuatoriano.</div>
-      <div class="svc-arrow">Iniciar →</div>
+    <div class="services-grid">
+
+      <div class="svc-card" onclick="waService('Poderes y Trámites Notariales')">
+        <div class="svc-icon-wrap">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+        </div>
+        <div class="svc-num">01</div>
+        <div class="svc-title">Poderes y Trámites Notariales</div>
+        <div class="svc-desc">Poderes especiales y generales, escrituras ante notaría ecuatoriana. Válidos aunque te encuentres en el exterior.</div>
+        <div class="svc-tags"><span class="svc-tag">Apostilla</span><span class="svc-tag">Poder especial</span><span class="svc-tag">Escritura</span></div>
+        <span class="svc-link">Consultar →</span>
+      </div>
+
+      <div class="svc-card" onclick="waService('Procesos Judiciales')">
+        <div class="svc-icon-wrap">
+          <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+        </div>
+        <div class="svc-num">02</div>
+        <div class="svc-title">Procesos Judiciales</div>
+        <div class="svc-desc">Representación y defensa en juicios civiles, penales, laborales y administrativos en todas las instancias de Ecuador.</div>
+        <div class="svc-tags"><span class="svc-tag">Civil</span><span class="svc-tag">Penal</span><span class="svc-tag">Laboral</span></div>
+        <span class="svc-link">Consultar →</span>
+      </div>
+
+      <div class="svc-card" onclick="waService('Asuntos Societarios')">
+        <div class="svc-icon-wrap">
+          <svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
+        </div>
+        <div class="svc-num">03</div>
+        <div class="svc-title">Asuntos Societarios</div>
+        <div class="svc-desc">Constitución de empresas, reformas estatutarias, juntas de accionistas y cumplimiento corporativo en Ecuador.</div>
+        <div class="svc-tags"><span class="svc-tag">Constitución</span><span class="svc-tag">Estatutos</span><span class="svc-tag">Compliance</span></div>
+        <span class="svc-link">Consultar →</span>
+      </div>
+
+      <div class="svc-card" onclick="waService('Contratos y Asesoría')">
+        <div class="svc-icon-wrap">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+        </div>
+        <div class="svc-num">04</div>
+        <div class="svc-title">Contratos y Asesoría Legal</div>
+        <div class="svc-desc">Redacción y revisión de contratos civiles y mercantiles. Asesoramiento preventivo para proteger tus intereses.</div>
+        <div class="svc-tags"><span class="svc-tag">Contratos</span><span class="svc-tag">Revisión</span><span class="svc-tag">Asesoría</span></div>
+        <span class="svc-link">Consultar →</span>
+      </div>
+
+      <div class="svc-card" onclick="waService('Representación ante Entidades Públicas')">
+        <div class="svc-icon-wrap">
+          <svg viewBox="0 0 24 24"><path d="M4 10v7h3v-7H4zm6 0v7h3v-7h-3zM2 22h19v-3H2v3zm14-12v7h3v-7h-3zM11.5 1L2 6v2h19V6l-9.5-5z"/></svg>
+        </div>
+        <div class="svc-num">05</div>
+        <div class="svc-title">Representación ante Entidades</div>
+        <div class="svc-desc">Actuamos en tu nombre ante SRI, IESS, Registros de la Propiedad, Ministerios y entidades públicas ecuatorianas.</div>
+        <div class="svc-tags"><span class="svc-tag">SRI</span><span class="svc-tag">IESS</span><span class="svc-tag">Ministerios</span></div>
+        <span class="svc-link">Consultar →</span>
+      </div>
+
+      <div class="svc-card" onclick="waService('Consulta Legal Express')">
+        <div class="svc-icon-wrap">
+          <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+        </div>
+        <div class="svc-num">06</div>
+        <div class="svc-title">Consulta Legal Express</div>
+        <div class="svc-desc">Primera consulta gratuita por WhatsApp con un abogado especializado en derecho ecuatoriano. Respuesta en 24h.</div>
+        <div class="svc-tags"><span class="svc-tag">Gratis</span><span class="svc-tag">WhatsApp</span><span class="svc-tag">24h</span></div>
+        <span class="svc-link">Iniciar ahora →</span>
+      </div>
+
     </div>
   </div>
 </section>
+
+<!-- STATS -->
+<div class="stats-sec">
+  <div class="stats-grid">
+    <div class="stat-box">
+      <div class="stat-num">500<span>+</span></div>
+      <div class="stat-label">Casos gestionados<br>con éxito</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">40<span>+</span></div>
+      <div class="stat-label">Países desde donde<br>nos han contactado</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">10<span>+</span></div>
+      <div class="stat-label">Años de experiencia<br>en derecho ecuatoriano</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">24<span>h</span></div>
+      <div class="stat-label">Tiempo máximo<br>de respuesta</div>
+    </div>
+  </div>
+</div>
 
 <!-- HOW -->
-<section class="how" id="proceso">
+<section class="how-sec" id="proceso">
   <div class="how-inner">
-    <h2>Tres pasos para comenzar</h2>
-    <div class="steps">
-      <div class="step">
-        <div class="step-n">1</div>
-        <h3>Cuéntanos tu caso</h3>
-        <p>Escríbenos por WhatsApp o formulario. Evaluamos tu situación sin costo y te orientamos sobre las opciones legales disponibles.</p>
+    <div class="how-header">
+      <div>
+        <span class="sec-label">Proceso</span>
+        <h2 class="sec-title">Tres pasos para comenzar</h2>
       </div>
-      <div class="step">
-        <div class="step-n">2</div>
-        <h3>Propuesta y acuerdo</h3>
-        <p>Te enviamos una propuesta con honorarios claros, plazos definidos y estrategia. Sin sorpresas ni costos ocultos.</p>
+      <a href="https://wa.me/593000000000?text=Hola,%20quiero%20iniciar%20mi%20proceso%20legal" target="_blank" class="btn-primary">Iniciar ahora →</a>
+    </div>
+    <div class="steps-grid">
+      <div class="step-box">
+        <div class="step-num">1</div>
+        <div>
+          <h3>Cuéntanos tu caso</h3>
+          <p>Escríbenos por WhatsApp o formulario. Evaluamos tu situación sin costo y te orientamos sobre las opciones legales disponibles en Ecuador.</p>
+        </div>
       </div>
-      <div class="step">
-        <div class="step-n">3</div>
-        <h3>Gestión y resultados</h3>
-        <p>Ejecutamos todas las gestiones necesarias y te mantenemos informado en cada etapa hasta obtener el resultado.</p>
+      <div class="step-box">
+        <div class="step-num">2</div>
+        <div>
+          <h3>Propuesta y acuerdo</h3>
+          <p>Te enviamos una propuesta con honorarios claros, plazos definidos y estrategia legal. Sin sorpresas ni costos ocultos.</p>
+        </div>
+      </div>
+      <div class="step-box">
+        <div class="step-num">3</div>
+        <div>
+          <h3>Gestión y resultados</h3>
+          <p>Ejecutamos todas las gestiones necesarias y te mantenemos informado en cada etapa hasta obtener el resultado esperado.</p>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
+<!-- TESTIMONIALS -->
+<section class="testimonials-sec" id="testimonios">
+  <div class="section-wrap">
+    <div class="testimonials-header">
+      <span class="sec-label">Testimonios</span>
+      <h2 class="sec-title">Lo que dicen nuestros clientes</h2>
+      <p class="sec-sub">Más de 500 familias y empresas han confiado en nosotros desde el exterior para gestionar sus asuntos legales en Ecuador.</p>
+    </div>
+    <div class="reviews-grid">
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Necesitaba un poder notarial urgente desde España y pensé que sería imposible. Puente Legal lo resolvió en 3 días, completamente en línea. Profesionales, rápidos y muy claros en cada paso."</p>
+        <div class="review-author">
+          <div class="review-avatar">M</div>
+          <div>
+            <div class="review-name">María G.</div>
+            <div class="review-loc">Madrid, España</div>
+          </div>
+        </div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Tuve un problema con una herencia en Ecuador estando en Estados Unidos. El equipo me guió todo el proceso, me explicaron cada detalle y resolvieron en tiempo récord. Totalmente recomendado."</p>
+        <div class="review-author">
+          <div class="review-avatar">C</div>
+          <div>
+            <div class="review-name">Carlos T.</div>
+            <div class="review-loc">Miami, Estados Unidos</div>
+          </div>
+        </div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Constituí mi empresa en Ecuador desde Italia sin ningún problema. El proceso fue claro, el precio justo y la comunicación excelente. Ya los he recomendado a varios compatriotas."</p>
+        <div class="review-author">
+          <div class="review-avatar">A</div>
+          <div>
+            <div class="review-name">Andrea R.</div>
+            <div class="review-loc">Roma, Italia</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-sec" id="faq">
+  <div class="faq-inner">
+    <div class="faq-header">
+      <span class="sec-label">Preguntas frecuentes</span>
+      <h2 class="sec-title">Todo lo que necesitas saber</h2>
+      <p class="sec-sub" style="margin-top:12px">¿Tienes dudas? Aquí encontrarás las respuestas más comunes. Si no ves la tuya, escríbenos.</p>
+      <a href="https://wa.me/593000000000?text=Hola,%20tengo%20una%20pregunta" target="_blank" class="btn-primary" style="margin-top:28px;display:inline-flex">Hacer una pregunta →</a>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          ¿Necesito viajar a Ecuador para hacer mis trámites?
+          <div class="faq-icon"><svg viewBox="0 0 24 24"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
+        </button>
+        <div class="faq-a">No. Todos nuestros servicios son 100% remotos. Gestionamos todo desde el poder notarial hasta los procesos judiciales sin que tengas que desplazarte a Ecuador. La firma de documentos se puede hacer con apostilla desde tu país.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          ¿Cuánto tiempo toma obtener un poder notarial?
+          <div class="faq-icon"><svg viewBox="0 0 24 24"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
+        </button>
+        <div class="faq-a">Depende del trámite y el país donde te encuentres. En promedio, un poder notarial toma entre 5 y 15 días hábiles contando la apostilla en tu país de residencia. Para casos urgentes tenemos un servicio express.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          ¿Cuáles son los métodos de pago aceptados?
+          <div class="faq-icon"><svg viewBox="0 0 24 24"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
+        </button>
+        <div class="faq-a">Aceptamos transferencia bancaria internacional, PayPal, Western Union, y en algunos casos tarjeta de crédito. Siempre te enviamos un presupuesto detallado antes de iniciar cualquier trámite.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          ¿La consulta inicial es realmente gratuita?
+          <div class="faq-icon"><svg viewBox="0 0 24 24"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
+        </button>
+        <div class="faq-a">Sí, completamente. La primera consulta por WhatsApp es gratuita y sin compromiso. Un abogado especializado evaluará tu caso y te orientará sobre las opciones y costos antes de que tomes cualquier decisión.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          ¿Pueden representarme ante el SRI, IESS u otras entidades?
+          <div class="faq-icon"><svg viewBox="0 0 24 24"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
+        </button>
+        <div class="faq-a">Sí. Actuamos como tu representante legal ante cualquier entidad pública ecuatoriana: SRI, IESS, Registro de la Propiedad, Registro Mercantil, Superintendencia de Compañías, Ministerios y más.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          ¿Cómo garantizan la confidencialidad de mi caso?
+          <div class="faq-icon"><svg viewBox="0 0 24 24"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
+        </button>
+        <div class="faq-a">Todos nuestros abogados están sujetos al secreto profesional establecido por el Código de Ética de la Federación de Abogados del Ecuador. Nunca compartimos información de nuestros clientes con terceros.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<div class="cta-banner">
+  <div class="cta-banner-inner">
+    <span class="sec-label">¿Listo para empezar?</span>
+    <h2>Resuelve tu situación legal en Ecuador hoy mismo</h2>
+    <p>Primera consulta gratuita con un abogado especializado. Sin visitas presenciales, sin complicaciones.</p>
+    <div class="cta-banner-btns">
+      <a href="https://wa.me/593000000000?text=Hola,%20quiero%20una%20consulta%20legal%20gratuita" target="_blank" class="btn-white">Consulta por WhatsApp</a>
+      <a href="#contacto" class="btn-ghost">Enviar formulario</a>
+    </div>
+  </div>
+</div>
+
 <!-- CONTACT -->
-<section class="contact" id="contacto">
+<section class="contact-sec" id="contacto">
   <div class="contact-inner">
     <div class="contact-left">
-      <div class="section-label">Contacto</div>
-      <h2>Hablemos de tu caso</h2>
-      <p>Un abogado especializado te responderá en menos de 24 horas. Primera consulta completamente gratuita.</p>
-      <div class="contact-detail">
+      <span class="sec-label">Contacto</span>
+      <h2 class="sec-title">Hablemos de tu caso</h2>
+      <p>Un abogado especializado te responderá en menos de 24 horas. Primera consulta completamente gratuita y sin compromiso.</p>
+      <div class="contact-details">
         <div class="cd">
+          <div class="cd-icon"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.533 5.867L0 24l6.301-1.651A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.518-5.163-1.422l-.371-.219-3.742.981.998-3.642-.24-.375A9.939 9.939 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg></div>
           <div>
             <div class="cd-label">WhatsApp</div>
             <div class="cd-val">+593 00 000 0000</div>
           </div>
         </div>
         <div class="cd">
+          <div class="cd-icon"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></div>
           <div>
             <div class="cd-label">Email</div>
             <div class="cd-val">info@puentelegal.ec</div>
           </div>
         </div>
         <div class="cd">
+          <div class="cd-icon"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
           <div>
             <div class="cd-label">Cobertura</div>
             <div class="cd-val">Ecuador · Nacional e Internacional</div>
@@ -435,26 +925,31 @@ footer { background: var(--navy); border-top: 1px solid rgba(255,255,255,.08); p
         </div>
       </div>
     </div>
+
     <div class="form-card">
-      <form id="form" onsubmit="send(event)">
+      <form id="form" onsubmit="sendForm(event)">
         <div class="fg-row">
-          <div class="fg"><label>Nombre</label><input type="text" placeholder="Tu nombre" required></div>
-          <div class="fg"><label>Teléfono</label><input type="tel" placeholder="+593..."></div>
+          <div class="fg"><label>Nombre</label><input type="text" placeholder="Tu nombre completo" required></div>
+          <div class="fg"><label>Teléfono</label><input type="tel" placeholder="+1 / +34 / +593..."></div>
         </div>
         <div class="fg"><label>Email</label><input type="email" placeholder="tu@correo.com" required></div>
         <div class="fg">
-          <label>Servicio</label>
+          <label>País de residencia</label>
+          <input type="text" placeholder="Ej: España, Estados Unidos...">
+        </div>
+        <div class="fg">
+          <label>Servicio de interés</label>
           <select>
-            <option value="">Selecciona...</option>
+            <option value="">Selecciona un servicio...</option>
             <option>Poderes Notariales</option>
             <option>Procesos Judiciales</option>
             <option>Asuntos Societarios</option>
             <option>Contratos y Asesoría</option>
-            <option>Representación Integral</option>
-            <option>Otro</option>
+            <option>Representación ante Entidades</option>
+            <option>Consulta General</option>
           </select>
         </div>
-        <div class="fg"><label>Mensaje</label><textarea placeholder="Cuéntanos brevemente tu situación..."></textarea></div>
+        <div class="fg"><label>Cuéntanos tu caso</label><textarea placeholder="Describe brevemente tu situación legal..."></textarea></div>
         <button type="submit" class="form-submit" id="submitBtn">Enviar consulta</button>
       </form>
     </div>
@@ -464,44 +959,116 @@ footer { background: var(--navy); border-top: 1px solid rgba(255,255,255,.08); p
 <!-- FOOTER -->
 <footer>
   <div class="footer-inner">
-    <a href="#" class="footer-logo"><img src="img/logo.jpeg" alt="Puente Legal"></a>
-    <div class="footer-links">
-      <a href="#servicios">Servicios</a>
-      <a href="#proceso">Proceso</a>
-      <a href="#contacto">Contacto</a>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <img src="img/logo.jpeg" alt="Puente Legal Internacional EC">
+        <p>Abogados ecuatorianos especializados en servicios jurídicos remotos para ecuatorianos e inversores en el exterior. Más de 10 años de experiencia, 500+ casos gestionados.</p>
+        <div class="footer-social">
+          <a href="#" aria-label="Facebook">
+            <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+          </a>
+          <a href="#" aria-label="Instagram">
+            <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z" fill="none" stroke="currentColor" stroke-width="2"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="currentColor" stroke-width="2"/></svg>
+          </a>
+          <a href="https://wa.me/593000000000" target="_blank" aria-label="WhatsApp">
+            <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.533 5.867L0 24l6.301-1.651A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.518-5.163-1.422l-.371-.219-3.742.981.998-3.642-.24-.375A9.939 9.939 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Servicios</h4>
+        <ul>
+          <li><a href="#servicios">Poderes Notariales</a></li>
+          <li><a href="#servicios">Procesos Judiciales</a></li>
+          <li><a href="#servicios">Asuntos Societarios</a></li>
+          <li><a href="#servicios">Contratos y Asesoría</a></li>
+          <li><a href="#servicios">Representación Integral</a></li>
+          <li><a href="#servicios">Consulta Express</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Empresa</h4>
+        <ul>
+          <li><a href="#proceso">Cómo funciona</a></li>
+          <li><a href="#testimonios">Testimonios</a></li>
+          <li><a href="#faq">Preguntas frecuentes</a></li>
+          <li><a href="#contacto">Contacto</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contacto</h4>
+        <ul>
+          <li><a href="https://wa.me/593000000000" target="_blank">WhatsApp</a></li>
+          <li><a href="mailto:info@puentelegal.ec">info@puentelegal.ec</a></li>
+          <li><a href="#contacto">Formulario de contacto</a></li>
+        </ul>
+      </div>
     </div>
-    <span class="footer-copy">© 2026 Puente Legal Internacional EC</span>
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2026 Puente Legal Internacional EC. Todos los derechos reservados.</span>
+      <div class="footer-badges">
+        <span class="badge">100% Remoto</span>
+        <span class="badge">Confidencial</span>
+        <span class="badge">Ecuador</span>
+      </div>
+    </div>
   </div>
 </footer>
 
 <!-- FLOAT WA -->
-<a href="https://wa.me/593000000000?text=Hola" target="_blank" class="float-wa" aria-label="WhatsApp">
+<a href="https://wa.me/593000000000?text=Hola,%20necesito%20asesoría%20legal" target="_blank" class="float-wa" aria-label="Contactar por WhatsApp">
   <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.533 5.867L0 24l6.301-1.651A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.518-5.163-1.422l-.371-.219-3.742.981.998-3.642-.24-.375A9.939 9.939 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
 </a>
 
 <script>
 document.getElementById('hamburger').onclick = function() {
-  document.getElementById('navLinks').classList.toggle('open');
+  document.getElementById('navMenu').classList.toggle('open');
 };
-document.querySelectorAll('#navLinks a').forEach(function(a) {
-  a.onclick = function() { document.getElementById('navLinks').classList.remove('open'); };
+document.querySelectorAll('#navMenu a').forEach(function(a) {
+  a.onclick = function() { document.getElementById('navMenu').classList.remove('open'); };
 });
-function send(e) {
+
+function toggleFaq(btn) {
+  var item = btn.parentElement;
+  var ans = item.querySelector('.faq-a');
+  var isOpen = btn.classList.contains('open');
+  document.querySelectorAll('.faq-q.open').forEach(function(q) {
+    q.classList.remove('open');
+    q.parentElement.querySelector('.faq-a').classList.remove('open');
+  });
+  if (!isOpen) {
+    btn.classList.add('open');
+    ans.classList.add('open');
+  }
+}
+
+function waService(name) {
+  window.open('https://wa.me/593000000000?text=' + encodeURIComponent('Hola, necesito información sobre: ' + name), '_blank');
+}
+
+function sendForm(e) {
   e.preventDefault();
   var btn = document.getElementById('submitBtn');
-  btn.textContent = 'Enviando...'; btn.disabled = true; btn.style.opacity = '.5';
+  btn.textContent = 'Enviando...'; btn.disabled = true; btn.style.opacity = '.6';
   setTimeout(function() {
-    btn.textContent = '✓ Mensaje enviado'; btn.style.opacity = '1'; btn.style.background = '#16a34a';
+    btn.textContent = '✓ Mensaje enviado — Te contactamos pronto';
+    btn.style.opacity = '1'; btn.style.background = '#16a34a';
     e.target.reset();
     setTimeout(function() {
-      btn.textContent = 'Enviar consulta'; btn.style.background = ''; btn.disabled = false;
-    }, 3500);
+      btn.textContent = 'Enviar consulta';
+      btn.style.background = ''; btn.disabled = false;
+    }, 4000);
   }, 1000);
 }
-document.querySelectorAll('.svc').forEach(function(el) {
-  el.onclick = function() {
-    window.open('https://wa.me/593000000000?text=Hola,%20necesito%20informacion%20sobre:%20' + encodeURIComponent(el.querySelector('.svc-title').textContent), '_blank');
-  };
+
+// Smooth nav scroll-spy
+window.addEventListener('scroll', function() {
+  var nav = document.getElementById('topNav');
+  if (window.scrollY > 10) {
+    nav.style.boxShadow = '0 2px 20px rgba(0,0,0,.07)';
+  } else {
+    nav.style.boxShadow = 'none';
+  }
 });
 </script>
 </body>
