@@ -1,4 +1,15 @@
-FROM nginx:alpine
-COPY . /usr/share/nginx/html
-EXPOSE 8080
-CMD sed -i "s/listen       80/listen       ${PORT:-8080}/" /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install --omit=dev
+
+COPY . .
+
+ENV NODE_ENV=production
+ENV PORT=3000
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]
