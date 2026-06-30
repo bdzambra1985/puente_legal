@@ -52,6 +52,19 @@ function initDB() {
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS promo_cards (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      subtitle TEXT NOT NULL DEFAULT '',
+      description TEXT NOT NULL DEFAULT '',
+      badge TEXT NOT NULL DEFAULT '',
+      bullets TEXT NOT NULL DEFAULT '[]',
+      image TEXT NOT NULL DEFAULT '',
+      cta_text TEXT NOT NULL DEFAULT 'Contáctanos',
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      active INTEGER NOT NULL DEFAULT 1
+    );
   `);
 
   // Admin por defecto
@@ -132,6 +145,45 @@ function initDB() {
       ['email',     'info@puentelegal.ec'],
       ['cobertura', 'Ecuador · Nacional e Internacional'],
     ].forEach(([k,v]) => ins.run(k,v));
+  }
+
+  // Promo cards iniciales
+  const pc = db.prepare('SELECT COUNT(*) as c FROM promo_cards').get();
+  if (pc.c === 0) {
+    const ins = db.prepare(`INSERT INTO promo_cards (title,subtitle,description,badge,bullets,image,cta_text,sort_order)
+      VALUES (@title,@subtitle,@description,@badge,@bullets,@image,@cta_text,@sort_order)`);
+    [
+      {
+        title: 'Firma Electrónica al Instante',
+        subtitle: 'Rápido · Seguro · 100% Online',
+        description: 'Obtén tu firma electrónica de forma rápida, segura y completamente en línea. Sin trasladarte desde tu casa o negocio.',
+        badge: 'Disponible ahora',
+        bullets: JSON.stringify(['Obtén tu firma en minutos','Respaldo legal válido ante el SRI','Confidencialidad garantizada','Soporte y asesoría personalizada']),
+        image: '/img/promo1.jpg',
+        cta_text: 'Solicitar firma electrónica',
+        sort_order: 1
+      },
+      {
+        title: 'Soluciones Tributarias & Contables',
+        subtitle: 'SRI · Impuestos · Contabilidad',
+        description: 'Nos enfocamos en darte respuestas rápidas, claras y efectivas. Atención personalizada para personas y empresas.',
+        badge: 'Expertos SRI',
+        bullets: JSON.stringify(['Actualización de RUC','Declaraciones de impuestos y anexos','Devolución de IVA y Renta','Obtención y renovación de claves electrónicas']),
+        image: '/img/promo2.jpg',
+        cta_text: 'Consultar servicio',
+        sort_order: 2
+      },
+      {
+        title: 'Facturación Electrónica Obligatoria',
+        subtitle: 'Obligatorio · Capacitación · Asesoría',
+        description: 'Te ayudamos a cumplir con la normativa de facturación electrónica del SRI de forma fácil, rápida y sin complicaciones.',
+        badge: 'Normativa SRI',
+        bullets: JSON.stringify(['Cumple con la normativa y evita sanciones','Instalación del sistema de facturación','Capacitación completa sobre su uso','Acompañamiento personalizado continuo']),
+        image: '/img/promo3.jpg',
+        cta_text: 'Consultar servicio',
+        sort_order: 3
+      }
+    ].forEach(p => ins.run(p));
   }
 
   console.log('✓ Base de datos lista');

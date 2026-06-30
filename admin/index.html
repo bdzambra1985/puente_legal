@@ -172,6 +172,9 @@ a{text-decoration:none;color:inherit}
       <div class="sb-item" data-panel="servicios" onclick="nav(this)">
         <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>Servicios
       </div>
+      <div class="sb-item" data-panel="promo" onclick="nav(this)">
+        <svg viewBox="0 0 24 24"><path d="M21 3L3 10.53v.98l6.84 2.65L12.48 21h.98L21 3z"/></svg>Soluciones
+      </div>
       <div class="sb-item" data-panel="contenido" onclick="nav(this)">
         <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>Textos
       </div>
@@ -244,6 +247,14 @@ a{text-decoration:none;color:inherit}
         <div class="card">
           <div class="card-header"><div><h2>Servicios</h2><p>Edita los 6 servicios que aparecen en el sitio</p></div></div>
           <div class="card-body" id="svcBody"></div>
+        </div>
+      </div>
+
+      <!-- PROMO CARDS -->
+      <div class="panel-section" id="panel-promo">
+        <div class="card">
+          <div class="card-header"><div><h2>Soluciones Complementarias</h2><p>Edita las 3 tarjetas de servicios adicionales (firma electrónica, tributario, facturación)</p></div></div>
+          <div class="card-body" id="promoAdminBody"></div>
         </div>
       </div>
 
@@ -371,12 +382,13 @@ var ME    = localStorage.getItem('pl_user') || 'admin';
 
 var PANEL_TITLES = {
   inicio:'Inicio', testimonios:'Testimonios', servicios:'Servicios',
-  contenido:'Textos generales', contacto:'Datos de contacto', cuenta:'Mi cuenta'
+  promo:'Soluciones Complementarias', contenido:'Textos generales',
+  contacto:'Datos de contacto', cuenta:'Mi cuenta'
 };
 var PANEL_SUBS = {
   inicio:'Resumen del panel', testimonios:'Gestión de reseñas de clientes',
-  servicios:'Edición de servicios', contenido:'Hero, estadísticas y FAQ',
-  contacto:'WhatsApp, email y cobertura', cuenta:'Seguridad'
+  servicios:'Edición de servicios', promo:'Firma electrónica, tributario, facturación',
+  contenido:'Hero, estadísticas y FAQ', contacto:'WhatsApp, email y cobertura', cuenta:'Seguridad'
 };
 
 /* ────────────────────────────────────────────────── */
@@ -456,13 +468,14 @@ function loadAll(){
     api('GET','/api/admin/testimonios'),
     api('GET','/api/admin/servicios'),
     api('GET','/api/admin/contenido'),
-    api('GET','/api/admin/contacto')
+    api('GET','/api/admin/contacto'),
+    api('GET','/api/admin/promo-cards')
   ]).then(function(results){
     loadTestimonios(results[0]);
     loadServicios(results[1]);
     loadContenido(results[2]);
     loadContacto(results[3]);
-    // dashboard counts
+    loadPromoCards(results[4]);
     var active=(results[0]||[]).filter(function(t){ return t.active; });
     document.getElementById('dashT').textContent=active.length;
     document.getElementById('dashC').textContent=Object.keys(results[2]||{}).length;
@@ -572,6 +585,63 @@ function saveServicio(id){
   var tags=tagsRaw.split(',').map(function(t){ return t.trim(); }).filter(Boolean);
   api('PUT','/api/admin/servicios/'+id,{title:title,description:desc,tags:tags}).then(function(d){
     if(d.ok) toast('Servicio actualizado'); else toast('Error','error');
+  });
+}
+
+/* ────────────────────────────────────────────────── */
+/*  PROMO CARDS                                       */
+/* ────────────────────────────────────────────────── */
+var promoData=[];
+
+function loadPromoCards(data){
+  promoData=data||[];
+  var body=document.getElementById('promoAdminBody');
+  if(!body) return;
+  body.innerHTML='';
+  promoData.forEach(function(p){
+    var sec=document.createElement('div');
+    sec.style.cssText='margin-bottom:32px;padding-bottom:32px;border-bottom:1px solid var(--border)';
+    var bulletsVal=(p.bullets||[]).join('\n');
+    sec.innerHTML='<div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">'
+      +'<img src="'+escAttr(p.image)+'" style="width:72px;height:72px;object-fit:cover;border-radius:var(--r8);border:1px solid var(--border)">'
+      +'<div><div style="font-size:.9rem;font-weight:700;color:var(--navy)">'+escH(p.title)+'</div>'
+      +'<span class="'+(p.active?'badge-active':'badge-inactive')+'" style="margin-top:4px;display:inline-block">'+(p.active?'Visible':'Oculta')+'</span></div>'
+      +'</div>'
+      +'<div class="form-grid">'
+        +'<div class="form-grid form-grid-2">'
+          +'<div class="fg"><label>Título</label><input type="text" id="p_title_'+p.id+'" value="'+escAttr(p.title)+'"></div>'
+          +'<div class="fg"><label>Badge (etiqueta dorada)</label><input type="text" id="p_badge_'+p.id+'" value="'+escAttr(p.badge)+'"></div>'
+        +'</div>'
+        +'<div class="fg"><label>Subtítulo (debajo del título)</label><input type="text" id="p_subtitle_'+p.id+'" value="'+escAttr(p.subtitle)+'"></div>'
+        +'<div class="fg"><label>Descripción</label><textarea id="p_desc_'+p.id+'">'+escH(p.description)+'</textarea></div>'
+        +'<div class="fg"><label>Puntos clave (uno por línea)</label><textarea id="p_bullets_'+p.id+'" style="min-height:100px">'+escH(bulletsVal)+'</textarea></div>'
+        +'<div class="form-grid form-grid-2">'
+          +'<div class="fg"><label>Texto del botón CTA</label><input type="text" id="p_cta_'+p.id+'" value="'+escAttr(p.cta_text)+'"></div>'
+          +'<div class="fg"><label>Imagen (ruta o URL)</label><input type="text" id="p_img_'+p.id+'" value="'+escAttr(p.image)+'" placeholder="/img/promo1.jpg"></div>'
+        +'</div>'
+        +'<div class="fg"><label>Estado</label>'
+          +'<div class="toggle-wrap"><button class="toggle '+(p.active?'on':'')+'" id="p_active_'+p.id+'" onclick="this.classList.toggle(\'on\')"></button><span>Visible en el sitio</span></div>'
+        +'</div>'
+        +'<div style="text-align:right"><button class="btn btn-gold" onclick="savePromoCard('+p.id+')">Guardar tarjeta</button></div>'
+      +'</div>';
+    body.appendChild(sec);
+  });
+}
+
+function savePromoCard(id){
+  var bullets=document.getElementById('p_bullets_'+id).value.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+  var body={
+    title:   document.getElementById('p_title_'+id).value.trim(),
+    badge:   document.getElementById('p_badge_'+id).value.trim(),
+    subtitle:document.getElementById('p_subtitle_'+id).value.trim(),
+    description:document.getElementById('p_desc_'+id).value.trim(),
+    bullets: bullets,
+    cta_text:document.getElementById('p_cta_'+id).value.trim(),
+    image:   document.getElementById('p_img_'+id).value.trim(),
+    active:  document.getElementById('p_active_'+id).classList.contains('on')?1:0
+  };
+  api('PUT','/api/admin/promo-cards/'+id,body).then(function(d){
+    if(d.ok) toast('Tarjeta actualizada'); else toast('Error','error');
   });
 }
 

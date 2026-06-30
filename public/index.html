@@ -155,6 +155,30 @@ nav.scrolled{box-shadow:0 4px 24px rgba(15,30,56,.08)}
 .stat-suffix{color:var(--gold);font-size:2rem}
 .stat-label{font-size:.78rem;color:rgba(255,255,255,.4);font-weight:500;line-height:1.5}
 
+/* PROMO CARDS */
+.promo-sec{padding:104px 0;background:var(--navy);position:relative;overflow:hidden}
+.promo-sec::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 80% at 80% 20%,rgba(201,162,39,.08) 0%,transparent 60%),radial-gradient(ellipse 50% 60% at 10% 80%,rgba(201,162,39,.05) 0%,transparent 50%)}
+.promo-header{max-width:1240px;margin:0 auto;padding:0 32px;display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:56px;gap:40px;position:relative;z-index:1}
+.promo-header .sec-title{color:var(--white)}
+.promo-header .sec-sub{color:rgba(255,255,255,.45)}
+.promo-grid{max-width:1240px;margin:0 auto;padding:0 32px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px;position:relative;z-index:1}
+.promo-card{border-radius:16px;overflow:hidden;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .35s,border-color .35s;display:flex;flex-direction:column}
+.promo-card:hover{transform:translateY(-6px);box-shadow:0 24px 60px rgba(0,0,0,.4);border-color:rgba(201,162,39,.35)}
+.promo-img-wrap{position:relative;overflow:hidden;height:240px;flex-shrink:0}
+.promo-img-wrap img{width:100%;height:100%;object-fit:cover;object-position:top;transition:transform .5s cubic-bezier(.16,1,.3,1);filter:brightness(.85)}
+.promo-card:hover .promo-img-wrap img{transform:scale(1.05);filter:brightness(.95)}
+.promo-img-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,rgba(15,30,56,.85) 100%)}
+.promo-badge{position:absolute;top:16px;left:16px;background:var(--gold);color:var(--navy);font-size:.62rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:5px 12px;border-radius:20px}
+.promo-body{padding:28px;flex:1;display:flex;flex-direction:column}
+.promo-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--white);margin-bottom:6px;line-height:1.3}
+.promo-subtitle{font-size:.70rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+.promo-desc{font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.75;margin-bottom:20px;flex:1}
+.promo-bullets{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.promo-bullet{display:flex;align-items:flex-start;gap:10px;font-size:.78rem;color:rgba(255,255,255,.65);line-height:1.5}
+.promo-bullet::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:6px}
+.promo-cta{display:inline-flex;align-items:center;gap:8px;background:transparent;border:1.5px solid rgba(201,162,39,.4);color:var(--gold);padding:11px 20px;border-radius:var(--r8);font-size:.80rem;font-weight:700;letter-spacing:.3px;cursor:pointer;transition:background .2s,border-color .2s,color .2s;text-decoration:none;width:100%;justify-content:center;margin-top:auto}
+.promo-cta:hover{background:var(--gold);border-color:var(--gold);color:var(--navy)}
+
 /* HOW IT WORKS */
 .how-sec{padding:104px 0;background:var(--off)}
 .how-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:64px;gap:40px}
@@ -285,6 +309,7 @@ footer{background:var(--navy);padding:72px 32px 36px}
   .trust-item{border-bottom:1px solid var(--border)}
   .trust-item:nth-child(3){border-bottom:none}
   .services-grid{grid-template-columns:1fr 1fr}
+  .promo-grid{grid-template-columns:1fr 1fr}
   .stats-grid{grid-template-columns:1fr 1fr}
   .steps-grid{grid-template-columns:1fr;gap:20px}
   .steps-connector{display:none}
@@ -305,7 +330,8 @@ footer{background:var(--navy);padding:72px 32px 36px}
   .trust-strip-inner{grid-template-columns:1fr;padding:0 20px}
   .trust-item{border-right:none!important;border-bottom:1px solid var(--border)!important}
   .trust-item:last-child{border-bottom:none!important}
-  .services-sec,.stats-sec,.how-sec,.testimonials-sec,.faq-sec,.contact-sec{padding:72px 0}
+  .services-sec,.stats-sec,.promo-sec,.how-sec,.testimonials-sec,.faq-sec,.contact-sec{padding:72px 0}
+  .promo-grid{grid-template-columns:1fr}
   .services-grid{grid-template-columns:1fr}
   .reviews-grid{grid-template-columns:1fr}
   .stats-grid{grid-template-columns:1fr 1fr;padding:0 20px}
@@ -341,6 +367,7 @@ footer{background:var(--navy);padding:72px 32px 36px}
     <a href="#" class="nav-logo"><img src="/img/logo.jpeg" alt="Puente Legal Internacional EC"></a>
     <div class="nav-menu" id="navMenu">
       <a href="#servicios">Servicios</a>
+      <a href="#soluciones">Soluciones</a>
       <a href="#proceso">Cómo funciona</a>
       <a href="#testimonios">Testimonios</a>
       <a href="#faq">Preguntas</a>
@@ -428,6 +455,19 @@ footer{background:var(--navy);padding:72px 32px 36px}
     <div class="stat-box reveal delay-4"><div class="stat-num"><span class="counter" data-key="stat_respuesta">24</span><span class="stat-suffix">h</span></div><div class="stat-label">Tiempo máximo<br>de respuesta</div></div>
   </div>
 </div>
+
+<!-- PROMO CARDS -->
+<section class="promo-sec" id="soluciones">
+  <div class="promo-header">
+    <div class="reveal">
+      <span class="sec-label">Soluciones complementarias</span>
+      <h2 class="sec-title">Servicios adicionales para ti</h2>
+      <p class="sec-sub">Además de nuestros servicios legales, te ofrecemos soluciones tributarias y contables para simplificar tu vida.</p>
+    </div>
+    <a id="promoWa" href="#" target="_blank" class="btn-gold reveal delay-2">Solicitar información →</a>
+  </div>
+  <div class="promo-grid" id="promoGrid"></div>
+</section>
 
 <!-- HOW IT WORKS -->
 <section class="how-sec" id="proceso">
@@ -686,11 +726,45 @@ function renderFAQ(con){
   }
 }
 
+/* ── PROMO CARDS ─────────────────────────────────────────── */
+function renderPromoCards(cards){
+  var grid = document.getElementById('promoGrid');
+  if(!grid) return;
+  grid.innerHTML = '';
+  cards.forEach(function(p, i){
+    var card = document.createElement('div');
+    card.className = 'promo-card reveal delay-'+((i%3)+1);
+    var bulletsHtml = (p.bullets||[]).map(function(b){ return '<div class="promo-bullet">'+b+'</div>'; }).join('');
+    card.innerHTML =
+      '<div class="promo-img-wrap">'
+        +'<img src="'+p.image+'" alt="'+p.title+'" loading="lazy">'
+        +'<div class="promo-img-overlay"></div>'
+        +(p.badge ? '<div class="promo-badge">'+p.badge+'</div>' : '')
+      +'</div>'
+      +'<div class="promo-body">'
+        +'<div class="promo-subtitle">'+p.subtitle+'</div>'
+        +'<div class="promo-title">'+p.title+'</div>'
+        +'<div class="promo-desc">'+p.description+'</div>'
+        +(bulletsHtml ? '<div class="promo-bullets">'+bulletsHtml+'</div>' : '')
+        +'<a id="promoCtaWa" href="#" class="promo-cta">'+p.cta_text+' →</a>'
+      +'</div>';
+    grid.appendChild(card);
+    revealObs.observe(card);
+  });
+  // Enlazar todos los CTAs de promo al WhatsApp
+  grid.querySelectorAll('.promo-cta').forEach(function(a){
+    var waEl = document.getElementById('heroWa');
+    if(waEl) a.href = waEl.href;
+    a.target = '_blank';
+  });
+}
+
 /* ── LOAD ALL CONTENT ────────────────────────────────────── */
 fetch('/api/content').then(function(r){ return r.json(); }).then(function(d){
   applyContacto(d.contacto || {});
   applyContenido(d.contenido || {});
   renderServices(d.servicios || []);
+  renderPromoCards(d.promoCards || []);
   renderTestimonios(d.testimonios || []);
   renderFAQ(d.contenido || {});
   initReveal();

@@ -44,6 +44,19 @@ router.put('/servicios/:id', (req, res) => {
   res.json({ ok: true });
 });
 
+/* ── PROMO CARDS ─────────────────────────────────────────── */
+router.get('/promo-cards', (req, res) => {
+  res.json(getDB().prepare('SELECT * FROM promo_cards ORDER BY sort_order').all()
+    .map(p => ({ ...p, bullets: JSON.parse(p.bullets) })));
+});
+
+router.put('/promo-cards/:id', (req, res) => {
+  const { title, subtitle, description, badge, bullets, image, cta_text, active } = req.body;
+  getDB().prepare(`UPDATE promo_cards SET title=?,subtitle=?,description=?,badge=?,bullets=?,image=?,cta_text=?,active=? WHERE id=?`)
+    .run(title, subtitle, description, badge, JSON.stringify(bullets||[]), image, cta_text, active??1, req.params.id);
+  res.json({ ok: true });
+});
+
 /* ── CONTENIDO GENERAL ───────────────────────────────────── */
 router.get('/contenido', (req, res) => {
   res.json(Object.fromEntries(
