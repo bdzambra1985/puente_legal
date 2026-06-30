@@ -83,7 +83,7 @@ function initDB() {
     const ins = db.prepare(`INSERT INTO servicios (num,title,description,tags,sort_order)
       VALUES (@num,@title,@description,@tags,@sort_order)`);
     [
-      { num:'01', title:'Poderes y Trámites Notariales',     description:'Poderes especiales y generales, escrituras ante notaría ecuatoriana. Válidos aunque te encuentres en el exterior.',                                          tags:JSON.stringify(['Apostilla','Poder especial','Escritura']),  sort_order:1 },
+      { num:'01', title:'Poderes y Trámites Notariales',     description:'Poderes especiales y generales, escrituras ante notaría ecuatoriana. Válidos aunque te encuentres en el exterior.',                                          tags:JSON.stringify(['Poder especial','Escritura']),  sort_order:1 },
       { num:'02', title:'Procesos Judiciales',               description:'Representación y defensa en juicios civiles, penales, laborales y administrativos en todas las instancias.',                                                   tags:JSON.stringify(['Civil','Penal','Laboral']),                 sort_order:2 },
       { num:'03', title:'Asuntos Societarios',               description:'Constitución de empresas, reformas estatutarias, juntas de accionistas y cumplimiento corporativo.',                                                           tags:JSON.stringify(['Constitución','Estatutos','Compliance']),   sort_order:3 },
       { num:'04', title:'Contratos y Asesoría Legal',        description:'Redacción y revisión de contratos civiles y mercantiles. Asesoramiento preventivo para proteger tus intereses.',                                             tags:JSON.stringify(['Contratos','Revisión','Asesoría']),         sort_order:4 },
