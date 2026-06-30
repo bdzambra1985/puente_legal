@@ -106,7 +106,7 @@ function initDB() {
       ['stat_respuesta',  '24'],
       ['trust_rating',    '4.9'],
       ['trust_reviews',   '200'],
-      ['banner_texto',    'Primera consulta 100% GRATUITA — Sin visita presencial, desde cualquier país'],
+      ['banner_texto',    'Sin visita presencial, desde cualquier país'],
       ['faq_1_q', '¿Necesito viajar a Ecuador para hacer mis trámites?'],
       ['faq_1_a', 'No. Todos nuestros servicios son 100% remotos. Gestionamos todo desde el poder notarial hasta los procesos judiciales sin que tengas que desplazarte a Ecuador. La firma de documentos se puede hacer con apostilla desde tu país de residencia.'],
       ['faq_2_q', '¿Cuánto tiempo toma obtener un poder notarial?'],
