@@ -350,6 +350,68 @@ footer{background:var(--navy);padding:72px 32px 36px}
 .nav-menu.open a:last-child{border-bottom:none}
 .btn-navy{background:var(--navy);color:var(--white);padding:13px 28px;border-radius:var(--r8);font-size:.85rem;font-weight:700;letter-spacing:.3px;display:inline-flex;align-items:center;gap:8px;transition:background .2s,transform .15s}
 .btn-navy:hover{background:var(--navy2);transform:translateY(-1px)}
+
+/* ── APPOINTMENT MODAL ──────────────────────────────────────── */
+.apt-overlay{position:fixed;inset:0;z-index:1000;background:rgba(15,30,56,.78);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
+.apt-overlay.open{opacity:1;visibility:visible}
+.apt-modal{background:#fff;border-radius:20px;width:100%;max-width:500px;box-shadow:0 32px 80px rgba(15,30,56,.35);transform:translateY(28px) scale(.98);transition:transform .4s cubic-bezier(.16,1,.3,1)}
+.apt-overlay.open .apt-modal{transform:none}
+.apt-header{background:var(--navy);padding:26px 28px 22px;border-radius:20px 20px 0 0;position:relative}
+.apt-header h3{font-family:'Playfair Display',serif;color:#fff;font-size:1.25rem;margin-bottom:3px}
+.apt-header p{font-size:.75rem;color:rgba(255,255,255,.4)}
+.apt-close{position:absolute;top:18px;right:18px;background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.8);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.apt-close:hover{background:rgba(255,255,255,.22)}
+.apt-tabs{display:flex;background:var(--off);border-bottom:1px solid var(--border)}
+.apt-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 6px;font-size:.68rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:.2s}
+.apt-tab.active{color:var(--navy);border-color:var(--gold)}
+.apt-tab.done{color:var(--green)}
+.apt-tab-dot{width:18px;height:18px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:800;color:#fff;flex-shrink:0}
+.apt-tab.active .apt-tab-dot{background:var(--gold);color:var(--navy)}
+.apt-tab.done .apt-tab-dot{background:var(--green)}
+.apt-body{padding:28px}
+.apt-panel{display:none}
+.apt-panel.active{display:block}
+.apt-fg{margin-bottom:16px}
+.apt-fg label{display:block;font-size:.63rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.apt-fg input{width:100%;padding:13px 15px;border:1.5px solid var(--border);border-radius:10px;font-family:'Inter',sans-serif;font-size:.9rem;color:var(--navy);outline:none;transition:border-color .2s,box-shadow .2s}
+.apt-fg input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(15,30,56,.07)}
+.apt-fg input.error{border-color:#ef4444}
+.apt-err{font-size:.7rem;color:#ef4444;margin-top:4px;display:none}
+.apt-fg.has-error .apt-err{display:block}
+.apt-fg.has-error input{border-color:#ef4444}
+.apt-cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.apt-cal-nav h4{font-size:.9rem;font-weight:700;color:var(--navy);text-transform:capitalize}
+.apt-cal-nav button{background:none;border:1.5px solid var(--border);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:.95rem;color:var(--muted);transition:border-color .2s,color .2s;display:flex;align-items:center;justify-content:center}
+.apt-cal-nav button:hover{border-color:var(--navy);color:var(--navy)}
+.apt-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.apt-day-name{text-align:center;font-size:.6rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding:5px 0}
+.apt-day{text-align:center;padding:7px 2px;border-radius:7px;font-size:.8rem;cursor:pointer;color:var(--navy);font-weight:500;transition:background .15s,color .15s;line-height:1}
+.apt-day:hover:not(.dis):not(.emp){background:var(--off)}
+.apt-day.today{color:var(--gold);font-weight:800}
+.apt-day.sel{background:var(--navy)!important;color:#fff!important;font-weight:700}
+.apt-day.dis{color:var(--border);cursor:default}
+.apt-day.emp{cursor:default}
+.apt-time-lbl{font-size:.63rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:18px 0 10px}
+.apt-slots{display:flex;flex-wrap:wrap;gap:7px}
+.apt-slot{padding:7px 14px;border:1.5px solid var(--border);border-radius:20px;font-size:.76rem;font-weight:600;color:var(--navy);cursor:pointer;transition:border-color .2s,background .2s,color .2s}
+.apt-slot:hover{border-color:var(--navy);background:var(--off)}
+.apt-slot.sel{background:var(--gold);border-color:var(--gold);color:var(--navy);font-weight:800}
+.apt-summary{background:var(--off);border-radius:12px;padding:18px;margin-bottom:18px}
+.apt-sum-row{display:flex;gap:11px;align-items:flex-start;margin-bottom:11px}
+.apt-sum-row:last-child{margin-bottom:0}
+.apt-sum-ico{font-size:.95rem;flex-shrink:0;margin-top:1px}
+.apt-sum-lbl{font-size:.62rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.apt-sum-val{font-size:.88rem;font-weight:600;color:var(--navy);margin-top:1px}
+.apt-btn{width:100%;padding:13px;border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:.88rem;font-weight:700;letter-spacing:.3px;cursor:pointer;transition:background .2s,transform .15s;display:flex;align-items:center;justify-content:center;gap:9px}
+.apt-btn+.apt-btn{margin-top:9px}
+.apt-btn-primary{background:var(--navy);color:#fff}
+.apt-btn-primary:hover{background:var(--navy2);transform:translateY(-1px)}
+.apt-btn-wa{background:#25D366;color:#fff}
+.apt-btn-wa:hover{background:#20b858;transform:translateY(-1px)}
+.apt-btn-ghost{background:none;border:1.5px solid var(--border);color:var(--muted)}
+.apt-btn-ghost:hover{border-color:var(--navy);color:var(--navy)}
+.apt-no-date{font-size:.78rem;color:var(--muted);padding:4px 0}
+@media(max-width:480px){.apt-body{padding:22px 18px}.apt-header{padding:22px 18px 18px}}
 </style>
 </head>
 <body>
@@ -378,7 +440,9 @@ footer{background:var(--navy);padding:72px 32px 36px}
         <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
         <span id="navTelefono">+593 00 000 0000</span>
       </div>
-      <a id="navCtaWa" href="#" target="_blank" class="nav-cta">Contáctanos</a>
+      <a id="navCtaWa" href="#" class="nav-cta" onclick="openApt();return false;">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="flex-shrink:0"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zM9 14H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg>
+        Agendar cita</a>
     </div>
     <button class="hamburger" id="hamburger" aria-label="Menú">
       <span></span><span></span><span></span>
@@ -395,10 +459,9 @@ footer{background:var(--navy);padding:72px 32px 36px}
       <h1 id="heroTitle">Tu representación<br>legal en Ecuador,<br><em>estés donde estés.</em></h1>
       <p class="hero-sub" id="heroSub">Gestionamos tus trámites jurídicos de forma 100% remota.</p>
       <div class="hero-actions">
-        <a id="heroWa" href="#" target="_blank" class="btn-gold">
-          <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.533 5.867L0 24l6.301-1.651A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.518-5.163-1.422l-.371-.219-3.742.981.998-3.642-.24-.375A9.939 9.939 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-          Contáctanos
-</a>
+        <a id="heroWa" href="#" class="btn-gold" onclick="openApt();return false;">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zM9 14H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg>
+          Agendar cita</a>
         <a href="#servicios" class="btn-ghost-white">Ver servicios →</a>
       </div>
       <div class="hero-trust">
@@ -472,7 +535,7 @@ footer{background:var(--navy);padding:72px 32px 36px}
 <!-- HOW IT WORKS -->
 <section class="how-sec" id="proceso">
   <div class="sec-wrap">
-    <div class="how-header"><div class="reveal"><span class="sec-label">Proceso</span><h2 class="sec-title">Tres pasos para comenzar</h2><p class="sec-sub">Simple, transparente y completamente remoto.</p></div><a id="howWa" href="#" target="_blank" class="btn-gold reveal delay-2">Contáctanos →</a></div>
+    <div class="how-header"><div class="reveal"><span class="sec-label">Proceso</span><h2 class="sec-title">Tres pasos para comenzar</h2><p class="sec-sub">Simple, transparente y completamente remoto.</p></div><a id="howWa" href="#" class="btn-gold reveal delay-2" onclick="openApt();return false;">Agendar cita →</a></div>
     <div class="steps-grid">
       <div class="steps-connector"></div>
       <div class="step-box reveal delay-1"><div class="step-num">1</div><div><h3>Cuéntanos tu caso</h3><p>Escríbenos por WhatsApp o formulario. Evaluamos tu situación sin costo y te orientamos sobre las opciones legales disponibles.</p><span class="step-tag">Gratis · Sin compromiso</span></div></div>
@@ -509,7 +572,7 @@ footer{background:var(--navy);padding:72px 32px 36px}
         <span class="sec-label">Preguntas frecuentes</span>
         <h2 class="sec-title">Todo lo que necesitas saber</h2>
         <p class="sec-sub">¿Tienes dudas? Aquí están las respuestas más comunes. Si no encuentras la tuya, escríbenos directamente.</p>
-        <a id="faqWa" href="#" target="_blank" class="btn-gold">Hacer una pregunta →</a>
+        <a id="faqWa" href="#" class="btn-gold" onclick="openApt();return false;">Agendar cita →</a>
       </div>
       <div class="faq-list reveal-right" id="faqList"></div>
     </div>
@@ -523,7 +586,7 @@ footer{background:var(--navy);padding:72px 32px 36px}
     <h2>Resuelve tu situación legal<br>en Ecuador hoy mismo</h2>
     <p>Primera consulta gratuita con un abogado especializado. Sin visitas presenciales, sin complicaciones, con resultados reales.</p>
     <div class="cta-btns">
-      <a id="ctaWa" href="#" target="_blank" class="btn-white">Contáctanos</a>
+      <a id="ctaWa" href="#" class="btn-white" onclick="openApt();return false;">Agendar cita</a>
       <a href="#contacto" class="btn-ghost-light">Enviar formulario</a>
     </div>
   </div>
@@ -634,10 +697,9 @@ function waUrl(num, msg){ return 'https://wa.me/'+num+'?text='+encodeURIComponen
 function applyContacto(c){
   var wa = c.whatsapp || '593000000000';
   var msg = 'Hola, quiero una consulta legal gratuita';
-  [document.getElementById('bannerWa'), document.getElementById('navCtaWa'),
-   document.getElementById('heroWa'), document.getElementById('howWa'),
-   document.getElementById('faqWa'), document.getElementById('ctaWa'),
-   document.getElementById('floatWa')].forEach(function(el){ if(el) el.href = waUrl(wa, msg); });
+  // Solo el botón flotante y el banner mantienen enlace directo a WhatsApp
+  [document.getElementById('bannerWa'), document.getElementById('floatWa')].forEach(function(el){ if(el) el.href = waUrl(wa, msg); });
+  // Los demás botones abren el modal de cita (ya tienen onclick en HTML)
   var fw = document.getElementById('footerWa'); if(fw) fw.href = 'https://wa.me/'+wa;
   var fwl = document.getElementById('footerWaLink'); if(fwl) fwl.href = 'https://wa.me/'+wa;
   var fem = document.getElementById('footerEmailLink'); if(fem){ fem.href='mailto:'+(c.email||''); fem.textContent=c.email||''; }
@@ -770,6 +832,132 @@ fetch('/api/content').then(function(r){ return r.json(); }).then(function(d){
   initReveal();
 }).catch(function(e){ console.error('Error cargando contenido:', e); });
 
+/* ── APPOINTMENT MODAL ───────────────────────────────────── */
+var aptData = { nombre:'', email:'', date:null, time:'' };
+var aptCalRef = new Date();
+var MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+var DIAS  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+var SLOTS = ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00'];
+
+function openApt(){
+  document.getElementById('aptOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  aptGoStep(1);
+  aptCalRef = new Date(); aptCalRef.setDate(1);
+  aptData.date=null; aptData.time='';
+  aptRenderCal(); aptRenderSlots();
+}
+function closeApt(){
+  document.getElementById('aptOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function aptBgClose(e){ if(e.target===document.getElementById('aptOverlay')) closeApt(); }
+
+function aptGoStep(n){
+  [1,2,3].forEach(function(i){
+    document.getElementById('apanel'+i).classList.toggle('active', i===n);
+    var t=document.getElementById('atab'+i);
+    t.classList.remove('active','done');
+    if(i===n) t.classList.add('active');
+    else if(i<n) t.classList.add('done');
+  });
+}
+
+function aptStep2(){
+  var nombre=document.getElementById('aptNombre').value.trim();
+  var email=document.getElementById('aptEmail').value.trim();
+  var fgN=document.getElementById('aptFgNombre'), fgE=document.getElementById('aptFgEmail');
+  var validEmail=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  fgN.classList.toggle('has-error',!nombre);
+  fgE.classList.toggle('has-error',!email||!validEmail);
+  if(!nombre||!email||!validEmail) return;
+  aptData.nombre=nombre; aptData.email=email;
+  aptGoStep(2);
+}
+
+function aptStep3(){
+  if(!aptData.date){ aptShowAlert('Por favor selecciona una fecha en el calendario'); return; }
+  if(!aptData.time){ aptShowAlert('Por favor selecciona un horario'); return; }
+  var d=aptData.date;
+  var ds=DIAS[d.getDay()]+', '+d.getDate()+' de '+MESES[d.getMonth()]+' '+d.getFullYear();
+  document.getElementById('aptSummary').innerHTML=
+    '<div class="apt-sum-row"><div class="apt-sum-ico">👤</div><div><div class="apt-sum-lbl">Nombre</div><div class="apt-sum-val">'+aptData.nombre+'</div></div></div>'+
+    '<div class="apt-sum-row"><div class="apt-sum-ico">📧</div><div><div class="apt-sum-lbl">Correo</div><div class="apt-sum-val">'+aptData.email+'</div></div></div>'+
+    '<div class="apt-sum-row"><div class="apt-sum-ico">📅</div><div><div class="apt-sum-lbl">Fecha</div><div class="apt-sum-val">'+ds+'</div></div></div>'+
+    '<div class="apt-sum-row"><div class="apt-sum-ico">🕐</div><div><div class="apt-sum-lbl">Hora (Ecuador)</div><div class="apt-sum-val">'+aptData.time+'</div></div></div>';
+  aptGoStep(3);
+}
+
+function aptConfirm(){
+  var d=aptData.date;
+  var ds=DIAS[d.getDay()]+', '+d.getDate()+' de '+MESES[d.getMonth()]+' '+d.getFullYear();
+  var msg='Hola, quiero agendar una cita:\n\n'+
+    '👤 Nombre: '+aptData.nombre+'\n'+
+    '📧 Correo: '+aptData.email+'\n'+
+    '📅 Fecha: '+ds+'\n'+
+    '🕐 Hora: '+aptData.time+'\n\n'+
+    'Quedo en espera de confirmación. Gracias.';
+  var floatEl=document.getElementById('floatWa');
+  var num=(floatEl&&floatEl.href)?floatEl.href.replace(/.*wa\.me\//,'').replace(/\?.*/,''):'593000000000';
+  window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+  closeApt();
+}
+
+function aptRenderCal(){
+  var yr=aptCalRef.getFullYear(), mo=aptCalRef.getMonth();
+  document.getElementById('aptCalTitle').textContent=MESES[mo]+' '+yr;
+  var grid=document.getElementById('aptCalGrid');
+  grid.innerHTML='';
+  DIAS.forEach(function(d){ var el=document.createElement('div'); el.className='apt-day-name'; el.textContent=d; grid.appendChild(el); });
+  var first=new Date(yr,mo,1).getDay();
+  var total=new Date(yr,mo+1,0).getDate();
+  var today=new Date(); today.setHours(0,0,0,0);
+  for(var e=0;e<first;e++){ var el=document.createElement('div'); el.className='apt-day emp'; grid.appendChild(el); }
+  for(var day=1;day<=total;day++){
+    var el=document.createElement('div'); el.className='apt-day'; el.textContent=day;
+    var thisDay=new Date(yr,mo,day); var dow=thisDay.getDay();
+    if(thisDay<today||dow===0||dow===6){
+      el.classList.add('dis');
+    } else {
+      if(thisDay.toDateString()===today.toDateString()) el.classList.add('today');
+      if(aptData.date&&thisDay.toDateString()===aptData.date.toDateString()) el.classList.add('sel');
+      (function(td,elem){ elem.onclick=function(){ aptData.date=td; aptData.time=''; aptRenderCal(); aptRenderSlots(); }; })(thisDay,el);
+    }
+    grid.appendChild(el);
+  }
+}
+
+function aptCalPrev(){
+  var today=new Date(); today.setDate(1); today.setHours(0,0,0,0);
+  aptCalRef.setMonth(aptCalRef.getMonth()-1);
+  if(aptCalRef<today) aptCalRef=new Date(today);
+  aptRenderCal();
+}
+function aptCalNext(){ aptCalRef.setMonth(aptCalRef.getMonth()+1); aptRenderCal(); }
+
+function aptRenderSlots(){
+  var cont=document.getElementById('aptSlots'); cont.innerHTML='';
+  if(!aptData.date){ cont.innerHTML='<span class="apt-no-date">Selecciona primero una fecha</span>'; return; }
+  SLOTS.forEach(function(t){
+    var el=document.createElement('div');
+    el.className='apt-slot'+(aptData.time===t?' sel':'');
+    el.textContent=t;
+    el.onclick=function(){ aptData.time=t; aptRenderSlots(); };
+    cont.appendChild(el);
+  });
+}
+
+function aptShowAlert(msg){
+  var old=document.getElementById('aptAlertMsg');
+  if(old) old.remove();
+  var el=document.createElement('div');
+  el.id='aptAlertMsg';
+  el.style.cssText='background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;border-radius:8px;padding:10px 14px;font-size:.78rem;margin-bottom:12px;';
+  el.textContent=msg;
+  document.getElementById('apanel2').prepend(el);
+  setTimeout(function(){ el.remove(); }, 3000);
+}
+
 /* ── FORM SUBMIT ─────────────────────────────────────────── */
 function sendForm(e){
   e.preventDefault();
@@ -782,5 +970,67 @@ function sendForm(e){
   }, 1100);
 }
 </script>
+
+<!-- ── APPOINTMENT MODAL ──────────────────────────────────── -->
+<div class="apt-overlay" id="aptOverlay" onclick="aptBgClose(event)">
+  <div class="apt-modal">
+
+    <div class="apt-header">
+      <h3>Agenda tu cita</h3>
+      <p>Atención personalizada con un abogado especializado</p>
+      <button class="apt-close" onclick="closeApt()" aria-label="Cerrar">✕</button>
+    </div>
+
+    <div class="apt-tabs">
+      <div class="apt-tab active" id="atab1"><div class="apt-tab-dot">1</div>Tus datos</div>
+      <div class="apt-tab" id="atab2"><div class="apt-tab-dot">2</div>Fecha y hora</div>
+      <div class="apt-tab" id="atab3"><div class="apt-tab-dot">3</div>Confirmar</div>
+    </div>
+
+    <div class="apt-body">
+
+      <!-- Paso 1: datos personales -->
+      <div class="apt-panel active" id="apanel1">
+        <div class="apt-fg" id="aptFgNombre">
+          <label>Nombre completo</label>
+          <input type="text" id="aptNombre" placeholder="Tu nombre completo" autocomplete="name">
+          <div class="apt-err">Por favor ingresa tu nombre</div>
+        </div>
+        <div class="apt-fg" id="aptFgEmail">
+          <label>Correo electrónico</label>
+          <input type="email" id="aptEmail" placeholder="tu@correo.com" autocomplete="email">
+          <div class="apt-err">Por favor ingresa un correo válido</div>
+        </div>
+        <button class="apt-btn apt-btn-primary" onclick="aptStep2()">Continuar →</button>
+      </div>
+
+      <!-- Paso 2: calendario + hora -->
+      <div class="apt-panel" id="apanel2">
+        <div class="apt-cal-nav">
+          <button onclick="aptCalPrev()">‹</button>
+          <h4 id="aptCalTitle"></h4>
+          <button onclick="aptCalNext()">›</button>
+        </div>
+        <div class="apt-cal-grid" id="aptCalGrid"></div>
+        <div class="apt-time-lbl">Horario disponible</div>
+        <div class="apt-slots" id="aptSlots"></div>
+        <button class="apt-btn apt-btn-primary" style="margin-top:22px" onclick="aptStep3()">Ver resumen →</button>
+        <button class="apt-btn apt-btn-ghost" onclick="aptGoStep(1)">← Volver</button>
+      </div>
+
+      <!-- Paso 3: resumen y confirmar -->
+      <div class="apt-panel" id="apanel3">
+        <div class="apt-summary" id="aptSummary"></div>
+        <button class="apt-btn apt-btn-wa" onclick="aptConfirm()">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.533 5.867L0 24l6.301-1.651A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.518-5.163-1.422l-.371-.219-3.742.981.998-3.642-.24-.375A9.939 9.939 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+          Confirmar por WhatsApp
+        </button>
+        <button class="apt-btn apt-btn-ghost" onclick="aptGoStep(2)">← Cambiar fecha u hora</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
