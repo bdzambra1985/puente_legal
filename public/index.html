@@ -879,31 +879,43 @@ function aptStep2(){
     if(!phone){ errEl.style.display='block'; return; }
     errEl.style.display='none';
     aptData.contactoValor=document.getElementById('aptCountryCode').value+' '+phone;
-    // Enviar OTP y mostrar panel de verificación
-    var btn=document.getElementById('aptContinuarBtn');
-    btn.disabled=true; btn.textContent='Enviando código...';
-    fetch('/api/citas/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email:email,phone:aptData.contactoValor})
-    }).then(function(r){ return r.json(); }).then(function(d){
-      btn.disabled=false; btn.textContent='Continuar →';
-      if(d.ok){
-        document.getElementById('aptMainForm').style.display='none';
-        document.getElementById('aptVerifPanel').style.display='block';
-        document.getElementById('aptVerifEmail').textContent=email;
-        document.getElementById('aptVerifPhone').textContent=aptData.contactoValor;
-        document.getElementById('aptOtpErr').style.display='none';
-        document.getElementById('aptWaVerifBtn').style.display='flex';
-        document.getElementById('aptWaVerifSent').style.display='none';
-        aptWaSent=false; aptOtpVerified=false;
-        aptInitOtpInputs();
-        aptStartResendTimer(60);
-        setTimeout(function(){ document.querySelector('.apt-otp-d').focus(); },100);
-      } else { aptShowAlert('Error enviando el código. Intenta de nuevo.'); }
-    }).catch(function(){ btn.disabled=false; btn.textContent='Continuar →'; aptShowAlert('Error de conexión.'); });
   } else {
     aptData.contactoValor='';
-    aptGoStep(2);
   }
+  // Ambos tipos (zoom y whatsapp) verifican por correo
+  aptLaunchOtp();
+}
+
+function aptLaunchOtp(){
+  var esWa = aptData.contactoTipo==='whatsapp';
+  var btn=document.getElementById('aptContinuarBtn');
+  btn.disabled=true; btn.textContent='Enviando código...';
+  fetch('/api/citas/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email:aptData.email,phone:aptData.contactoValor})
+  }).then(function(r){ return r.json(); }).then(function(d){
+    btn.disabled=false; btn.textContent='Continuar →';
+    if(d.ok){
+      document.getElementById('aptMainForm').style.display='none';
+      document.getElementById('aptVerifPanel').style.display='block';
+      document.getElementById('aptVerifEmail').textContent=aptData.email;
+      // Mostrar/ocultar bloque WhatsApp según tipo
+      var waBlock=document.getElementById('aptWaVerifBlock');
+      waBlock.style.display = esWa ? 'block' : 'none';
+      if(esWa){
+        document.getElementById('aptVerifPhone').textContent=aptData.contactoValor;
+        document.getElementById('aptWaVerifBtn').style.display='flex';
+        document.getElementById('aptWaVerifSent').style.display='none';
+        aptWaSent=false;
+      } else {
+        aptWaSent=true; // Zoom no necesita verificar WhatsApp
+      }
+      document.getElementById('aptOtpErr').style.display='none';
+      aptOtpVerified=false;
+      aptInitOtpInputs();
+      aptStartResendTimer(60);
+      setTimeout(function(){ document.querySelector('.apt-otp-d').focus(); },100);
+    } else { aptShowAlert('Error enviando el código. Intenta de nuevo.'); }
+  }).catch(function(){ btn.disabled=false; btn.textContent='Continuar →'; aptShowAlert('Error de conexión.'); });
 }
 
 function aptStartResendTimer(secs){
@@ -933,12 +945,16 @@ function aptResendOtp(){
 
 function aptSendWaVerif(){
   var code=Array.from(document.querySelectorAll('.apt-otp-d')).map(function(d){ return d.value; }).join('');
+  if(code.length<6||/\s/.test(code)){
+    aptShowVerifAlert('Primero ingresa el codigo de 6 digitos de tu correo');
+    return;
+  }
   var floatEl=document.getElementById('floatWa');
   var num=(floatEl&&floatEl.href)?floatEl.href.replace(/.*wa\.me\//,'').replace(/\?.*/,''):'593000000000';
-  var msg='🔐 Verificación de WhatsApp — Puente Legal\n\n'
-    +'📱 Mi número: '+aptData.contactoValor+'\n'
-    +'🔑 Código: '+(code||'(ingresa el código primero)')+'\n\n'
-    +'Por favor confirmar mi número. Gracias.';
+  var msg='Verificacion WhatsApp - Puente Legal'
+    +'\nNumero: '+aptData.contactoValor
+    +'\nCodigo: '+code
+    +'\nPor favor confirmar mi numero. Gracias.';
   window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
   aptWaSent=true;
   document.getElementById('aptWaVerifBtn').style.display='none';
@@ -1204,7 +1220,7 @@ function sendForm(e){
             <span style="font-size:1.6rem">🔐</span>
             <div>
               <div class="apt-verif-title">Verifica tu identidad</div>
-              <div class="apt-verif-sub">Confirma tu correo y WhatsApp para continuar</div>
+              <div class="apt-verif-sub">Ingresa el código que enviamos a tu correo</div>
             </div>
           </div>
 
@@ -1226,8 +1242,8 @@ function sendForm(e){
             </div>
           </div>
 
-          <!-- Bloque WhatsApp verify -->
-          <div class="apt-verif-block">
+          <!-- Bloque WhatsApp verify (solo visible cuando tipo=whatsapp) -->
+          <div class="apt-verif-block" id="aptWaVerifBlock">
             <div class="apt-verif-blk-lbl">📱 Verificar WhatsApp — <strong id="aptVerifPhone"></strong></div>
             <p class="apt-verif-hint">Pulsa el botón para enviar tu código desde tu WhatsApp a nuestro número. Así confirmamos que el número es tuyo.</p>
             <button class="apt-btn apt-btn-wa" id="aptWaVerifBtn" onclick="aptSendWaVerif()" style="margin:0">
