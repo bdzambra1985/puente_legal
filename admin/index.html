@@ -239,6 +239,20 @@ a{text-decoration:none;color:inherit}
 
       <!-- CITAS -->
       <div class="panel-section" id="panel-citas">
+        <!-- Verificaciones WhatsApp pendientes -->
+        <div class="card" id="otpPendingCard" style="display:none;margin-bottom:20px;border-left:3px solid #25D366">
+          <div class="card-header" style="padding-bottom:8px">
+            <div><h2 style="font-size:.95rem">📱 Verificaciones WhatsApp pendientes</h2><p style="font-size:.75rem">Clientes esperando su código — envíaselo por WhatsApp</p></div>
+            <button class="btn btn-ghost" style="font-size:.72rem" onclick="loadOtpPending()">Actualizar</button>
+          </div>
+          <div class="card-body" style="padding-top:0">
+            <table class="table" style="font-size:.78rem">
+              <thead><tr><th>Correo</th><th>Número WhatsApp</th><th>Código</th><th>Expira</th><th></th></tr></thead>
+              <tbody id="otpPendingBody"></tbody>
+            </table>
+          </div>
+        </div>
+
         <div class="card">
           <div class="card-header">
             <div><h2>Agenda de Citas</h2><p>Citas agendadas desde el sitio web</p></div>
@@ -424,8 +438,14 @@ a{text-decoration:none;color:inherit}
         </div>
         <div style="font-size:.75rem;color:var(--muted);margin-top:6px">Se enviará este enlace al cliente en el correo de confirmación.</div>
       </div>
-      <div id="confirmCitaWaInfo" style="display:none;background:#f0fdf4;border:1px solid rgba(22,163,74,.2);border-radius:var(--r8);padding:14px;font-size:.82rem;color:#166534">
-        📱 Se notificará al cliente por correo que le contactarás por WhatsApp a la hora de la cita.
+      <div id="confirmCitaWaInfo" style="display:none">
+        <div style="background:#f0fdf4;border:1px solid rgba(22,163,74,.2);border-radius:var(--r8);padding:14px;font-size:.82rem;color:#166534;margin-bottom:10px">
+          📱 El cliente recibirá un correo confirmando su cita. Además puedes notificarle directamente por WhatsApp:
+        </div>
+        <button id="confirmCitaWaBtn" class="btn" style="background:#25D366;color:#fff;width:100%;justify-content:center;gap:8px;font-size:.82rem" onclick="abrirWaConfirmacion()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.533 5.867L0 24l6.301-1.651A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.518-5.163-1.422l-.371-.219-3.742.981.998-3.642-.24-.375A9.939 9.939 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+          Abrir WhatsApp Web con datos de la cita
+        </button>
       </div>
     </div>
     <div class="modal-footer">
@@ -505,7 +525,7 @@ function nav(el){
   document.getElementById('panel-'+panel).classList.add('active');
   document.getElementById('topbarTitle').textContent=PANEL_TITLES[panel]||panel;
   document.getElementById('topbarSub').textContent=PANEL_SUBS[panel]||'';
-  if(panel==='citas') loadCitas();
+  if(panel==='citas'){ loadCitas(); loadOtpPending(); }
 }
 
 /* ────────────────────────────────────────────────── */
@@ -900,6 +920,39 @@ function deleteCita(id){
   api('DELETE','/api/admin/citas/'+id).then(function(r){
     if(r.ok){ toast('Cita eliminada'); loadCitas(); }
     else toast('Error al eliminar','error');
+  });
+}
+
+function abrirWaConfirmacion(){
+  var cita = citasData.find(function(c){ return c.id === confirmCitaId; });
+  if(!cita) return;
+  var num = cita.contacto_valor.replace(/\D/g,'');
+  var msg = 'Hola '+cita.nombre+', su cita con Puente Legal ha sido CONFIRMADA.'
+    +'\n\nDetalles:'
+    +'\nFecha: '+cita.fecha
+    +'\nHora: '+cita.hora+' (hora Ecuador)'
+    +'\nMedio: WhatsApp'
+    +'\n\nNos pondremos en contacto a la hora indicada. Gracias por confiar en nosotros.';
+  window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+function loadOtpPending(){
+  api('GET','/api/admin/otp-pending').then(function(rows){
+    var card = document.getElementById('otpPendingCard');
+    var tbody = document.getElementById('otpPendingBody');
+    if(!rows||rows.length===0){ card.style.display='none'; tbody.innerHTML=''; return; }
+    card.style.display='block';
+    tbody.innerHTML = rows.map(function(r){
+      var num = r.phone.replace(/\D/g,'');
+      var waUrl = 'https://wa.me/'+num+'?text='+encodeURIComponent('Hola, tu codigo de verificacion para Puente Legal es: '+r.code+'\nValido por 10 minutos.');
+      return '<tr>'
+        +'<td>'+escH(r.email)+'</td>'
+        +'<td>'+escH(r.phone)+'</td>'
+        +'<td><strong style="font-family:monospace;font-size:1rem;letter-spacing:3px">'+escH(r.code)+'</strong></td>'
+        +'<td style="font-size:.72rem;color:var(--muted)">'+escH(r.expires_at.slice(11,16))+'</td>'
+        +'<td><a href="'+waUrl+'" target="_blank" class="btn" style="background:#25D366;color:#fff;font-size:.7rem;padding:4px 10px">Enviar por WA</a></td>'
+        +'</tr>';
+    }).join('');
   });
 }
 </script>

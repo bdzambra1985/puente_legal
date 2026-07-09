@@ -63,6 +63,13 @@ router.get('/citas', (req, res) => {
   res.json(getDB().prepare('SELECT * FROM citas ORDER BY fecha DESC, hora ASC').all());
 });
 
+router.get('/otp-pending', (req, res) => {
+  const rows = getDB().prepare(
+    "SELECT email, phone, code, expires_at FROM otp_verifications WHERE used=0 AND expires_at > datetime('now') ORDER BY expires_at ASC"
+  ).all();
+  res.json(rows);
+});
+
 router.put('/citas/:id', async (req, res) => {
   const { estado, zoom_link } = req.body;
   const db = getDB();
