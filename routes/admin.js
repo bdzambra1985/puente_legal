@@ -57,6 +57,22 @@ router.put('/promo-cards/:id', (req, res) => {
   res.json({ ok: true });
 });
 
+/* ── CITAS ───────────────────────────────────────────────── */
+router.get('/citas', (req, res) => {
+  res.json(getDB().prepare('SELECT * FROM citas ORDER BY fecha DESC, hora ASC').all());
+});
+
+router.put('/citas/:id', (req, res) => {
+  const { estado } = req.body;
+  getDB().prepare('UPDATE citas SET estado=? WHERE id=?').run(estado, req.params.id);
+  res.json({ ok: true });
+});
+
+router.delete('/citas/:id', (req, res) => {
+  getDB().prepare('DELETE FROM citas WHERE id=?').run(req.params.id);
+  res.json({ ok: true });
+});
+
 /* ── CONTENIDO GENERAL ───────────────────────────────────── */
 router.get('/contenido', (req, res) => {
   res.json(Object.fromEntries(

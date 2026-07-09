@@ -138,6 +138,14 @@ a{text-decoration:none;color:inherit}
 /* ── ALERTS ── */
 .info-box{background:rgba(201,162,39,.1);border:1px solid rgba(201,162,39,.25);border-radius:var(--r8);padding:14px 18px;font-size:.8rem;color:#78611a;margin-bottom:20px;display:flex;gap:10px;align-items:flex-start}
 .info-box svg{width:16px;height:16px;fill:#C9A227;flex-shrink:0;margin-top:1px}
+
+/* ── CITAS ── */
+.badge-pendiente{background:rgba(201,162,39,.12);color:#78611a;font-size:.62rem;font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:20px;border:1px solid rgba(201,162,39,.3)}
+.badge-confirmada{background:rgba(22,163,74,.1);color:var(--green);font-size:.62rem;font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:20px;border:1px solid rgba(22,163,74,.2)}
+.badge-cancelada{background:rgba(220,38,38,.08);color:var(--red);font-size:.62rem;font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:20px;border:1px solid rgba(220,38,38,.15)}
+.citas-filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.filter-btn{padding:6px 16px;border-radius:20px;border:1.5px solid var(--border);background:none;font-family:'Inter',sans-serif;font-size:.78rem;font-weight:600;color:var(--muted);cursor:pointer;transition:border-color .2s,color .2s,background .2s}
+.filter-btn.active,.filter-btn:hover{border-color:var(--navy);color:var(--navy);background:var(--off)}
 </style>
 </head>
 <body>
@@ -164,6 +172,9 @@ a{text-decoration:none;color:inherit}
       <div class="sb-label">Panel</div>
       <div class="sb-item active" data-panel="inicio" onclick="nav(this)">
         <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Inicio
+      </div>
+      <div class="sb-item" data-panel="citas" onclick="nav(this)">
+        <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>Agenda de Citas
       </div>
       <div class="sb-label">Contenido</div>
       <div class="sb-item" data-panel="testimonios" onclick="nav(this)">
@@ -207,9 +218,9 @@ a{text-decoration:none;color:inherit}
       <!-- INICIO -->
       <div class="panel-section active" id="panel-inicio">
         <div class="stat-cards">
-          <div class="stat-card"><div class="stat-card-num" id="dashT">—</div><div class="stat-card-label">Testimonios activos</div></div>
+          <div class="stat-card"><div class="stat-card-num" id="dashCitasPend">—</div><div class="stat-card-label">Citas pendientes</div></div>
+          <div class="stat-card"><div class="stat-card-num" id="dashCitasTotal">—</div><div class="stat-card-label">Total de citas</div></div>
           <div class="stat-card"><div class="stat-card-num" id="dashS">6</div><div class="stat-card-label">Servicios</div></div>
-          <div class="stat-card"><div class="stat-card-num" id="dashC">—</div><div class="stat-card-label">Claves de contenido</div></div>
           <div class="stat-card"><div class="stat-card-num">✓</div><div class="stat-card-label">Sistema operativo</div></div>
         </div>
         <div class="card">
@@ -222,6 +233,30 @@ a{text-decoration:none;color:inherit}
               <div style="padding:20px;background:var(--off);border-radius:var(--r8);border:1px solid var(--border)"><div style="font-size:.8rem;font-weight:700;margin-bottom:6px">Textos generales</div><div style="font-size:.75rem;color:var(--muted)">Hero, estadísticas, FAQ y banner principal.</div></div>
               <div style="padding:20px;background:var(--off);border-radius:var(--r8);border:1px solid var(--border)"><div style="font-size:.8rem;font-weight:700;margin-bottom:6px">Datos de contacto</div><div style="font-size:.75rem;color:var(--muted)">WhatsApp, email y cobertura del servicio.</div></div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CITAS -->
+      <div class="panel-section" id="panel-citas">
+        <div class="card">
+          <div class="card-header">
+            <div><h2>Agenda de Citas</h2><p>Citas agendadas desde el sitio web</p></div>
+            <button class="btn btn-ghost" onclick="loadCitas()"><svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>Actualizar</button>
+          </div>
+          <div class="card-body" style="padding-bottom:0">
+            <div class="citas-filters">
+              <button class="filter-btn active" onclick="filterCitas('todas',this)">Todas</button>
+              <button class="filter-btn" onclick="filterCitas('pendiente',this)">Pendientes</button>
+              <button class="filter-btn" onclick="filterCitas('confirmada',this)">Confirmadas</button>
+              <button class="filter-btn" onclick="filterCitas('cancelada',this)">Canceladas</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="table" id="citasTable">
+              <thead><tr><th>#</th><th>Nombre</th><th>Correo</th><th>Fecha</th><th>Hora</th><th>Estado</th><th>Registrada</th><th>Acciones</th></tr></thead>
+              <tbody id="citasBody"></tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -381,12 +416,13 @@ var TOKEN = localStorage.getItem('pl_token');
 var ME    = localStorage.getItem('pl_user') || 'admin';
 
 var PANEL_TITLES = {
-  inicio:'Inicio', testimonios:'Testimonios', servicios:'Servicios',
+  inicio:'Inicio', citas:'Agenda de Citas', testimonios:'Testimonios', servicios:'Servicios',
   promo:'Soluciones Complementarias', contenido:'Textos generales',
   contacto:'Datos de contacto', cuenta:'Mi cuenta'
 };
 var PANEL_SUBS = {
-  inicio:'Resumen del panel', testimonios:'Gestión de reseñas de clientes',
+  inicio:'Resumen del panel', citas:'Citas agendadas desde el sitio web',
+  testimonios:'Gestión de reseñas de clientes',
   servicios:'Edición de servicios', promo:'Firma electrónica, tributario, facturación',
   contenido:'Hero, estadísticas y FAQ', contacto:'WhatsApp, email y cobertura', cuenta:'Seguridad'
 };
@@ -439,6 +475,7 @@ function nav(el){
   document.getElementById('panel-'+panel).classList.add('active');
   document.getElementById('topbarTitle').textContent=PANEL_TITLES[panel]||panel;
   document.getElementById('topbarSub').textContent=PANEL_SUBS[panel]||'';
+  if(panel==='citas') loadCitas();
 }
 
 /* ────────────────────────────────────────────────── */
@@ -469,16 +506,18 @@ function loadAll(){
     api('GET','/api/admin/servicios'),
     api('GET','/api/admin/contenido'),
     api('GET','/api/admin/contacto'),
-    api('GET','/api/admin/promo-cards')
+    api('GET','/api/admin/promo-cards'),
+    api('GET','/api/admin/citas')
   ]).then(function(results){
     loadTestimonios(results[0]);
     loadServicios(results[1]);
     loadContenido(results[2]);
     loadContacto(results[3]);
     loadPromoCards(results[4]);
-    var active=(results[0]||[]).filter(function(t){ return t.active; });
-    document.getElementById('dashT').textContent=active.length;
-    document.getElementById('dashC').textContent=Object.keys(results[2]||{}).length;
+    var citas = results[5] || [];
+    citasData = citas;
+    document.getElementById('dashCitasPend').textContent=citas.filter(function(c){ return c.estado==='pendiente'; }).length;
+    document.getElementById('dashCitasTotal').textContent=citas.length;
   });
 }
 
@@ -723,6 +762,69 @@ function changePassword(){
 /* ────────────────────────────────────────────────── */
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
+
+/* ────────────────────────────────────────────────── */
+/*  CITAS                                             */
+/* ────────────────────────────────────────────────── */
+var citasData = [];
+var citasFiltro = 'todas';
+
+function loadCitas(){
+  api('GET','/api/admin/citas').then(function(data){
+    citasData = data || [];
+    renderCitas();
+  });
+}
+
+function filterCitas(filtro, btn){
+  citasFiltro = filtro;
+  document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
+  renderCitas();
+}
+
+function renderCitas(){
+  var tbody = document.getElementById('citasBody');
+  if(!tbody) return;
+  var lista = citasFiltro === 'todas' ? citasData : citasData.filter(function(c){ return c.estado === citasFiltro; });
+  if(!lista.length){
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:32px">No hay citas</td></tr>';
+    return;
+  }
+  tbody.innerHTML = '';
+  lista.forEach(function(c){
+    var badgeClass = 'badge-'+c.estado;
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td style="font-size:.8rem">'+c.id+'</td>'
+      +'<td><strong>'+escH(c.nombre)+'</strong></td>'
+      +'<td style="font-size:.8rem;color:var(--muted)">'+escH(c.email)+'</td>'
+      +'<td style="font-size:.82rem;font-weight:600">'+escH(c.fecha)+'</td>'
+      +'<td style="font-size:.82rem;font-weight:600">'+escH(c.hora)+'</td>'
+      +'<td><span class="'+badgeClass+'">'+escH(c.estado)+'</span></td>'
+      +'<td style="font-size:.72rem;color:var(--muted)">'+escH((c.created_at||'').substring(0,16))+'</td>'
+      +'<td><div class="row-actions">'
+        +(c.estado!=='confirmada'?'<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 10px" onclick="setCitaEstado('+c.id+',\'confirmada\')">Confirmar</button>':'')
+        +(c.estado!=='cancelada'?'<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 10px;color:var(--red)" onclick="setCitaEstado('+c.id+',\'cancelada\')">Cancelar</button>':'')
+        +'<button class="btn btn-danger" style="font-size:.72rem;padding:5px 10px" onclick="deleteCita('+c.id+')">Eliminar</button>'
+      +'</div></td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function setCitaEstado(id, estado){
+  api('PUT','/api/admin/citas/'+id,{estado:estado}).then(function(r){
+    if(r.ok){ toast('Estado actualizado'); loadCitas(); }
+    else toast('Error al actualizar','error');
+  });
+}
+
+function deleteCita(id){
+  if(!confirm('¿Eliminar esta cita?')) return;
+  api('DELETE','/api/admin/citas/'+id).then(function(r){
+    if(r.ok){ toast('Cita eliminada'); loadCitas(); }
+    else toast('Error al eliminar','error');
+  });
+}
 </script>
 </body>
 </html>

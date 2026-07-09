@@ -192,31 +192,6 @@ nav.scrolled{box-shadow:0 4px 24px rgba(15,30,56,.08)}
 .step-box p{font-size:.80rem;color:var(--muted);line-height:1.8}
 .step-box .step-tag{display:inline-block;margin-top:20px;font-size:.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);background:var(--gold-dim);padding:4px 12px;border-radius:20px}
 
-/* TESTIMONIALS */
-.testimonials-sec{padding:104px 0;background:var(--white)}
-.testimonials-top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:32px;gap:40px}
-.trust-bar{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;background:var(--navy);border-radius:var(--r12);padding:18px 32px;margin-bottom:40px}
-.trust-bar-stars{font-size:1.1rem;color:var(--gold);letter-spacing:3px}
-.trust-bar-label{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--white)}
-.trust-bar-sep{color:rgba(255,255,255,.2);font-size:1.2rem}
-.trust-bar-rating{font-size:.85rem;color:rgba(255,255,255,.6)}
-.trust-bar-rating strong{color:var(--gold);font-size:1.05rem}
-.trust-bar-count{font-size:.82rem;color:rgba(255,255,255,.5)}
-.trust-bar-count strong{color:rgba(255,255,255,.85)}
-.reviews-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
-.review-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:28px;display:flex;flex-direction:column;box-shadow:0 4px 20px rgba(15,30,56,.06);transition:box-shadow .3s,transform .3s,border-color .3s}
-.review-card:hover{box-shadow:0 12px 40px rgba(15,30,56,.12);transform:translateY(-3px);border-color:rgba(201,162,39,.3)}
-.review-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.review-stars{font-size:1rem;color:var(--gold);letter-spacing:2px;line-height:1}
-.review-source{font-size:.62rem;font-weight:700;letter-spacing:.4px;color:var(--green);background:rgba(22,163,74,.09);padding:3px 9px;border-radius:20px;border:1px solid rgba(22,163,74,.15)}
-.review-text{font-size:.875rem;color:#374151;line-height:1.8;flex:1;margin-bottom:20px}
-.review-divider{height:1px;background:var(--border);margin-bottom:18px}
-.review-author{display:flex;align-items:center;gap:12px}
-.review-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;flex-shrink:0}
-.review-author-info{flex:1;min-width:0}
-.review-name{font-size:.875rem;font-weight:700;color:var(--navy);line-height:1.3}
-.review-loc{font-size:.72rem;color:var(--muted);margin-top:2px}
-.review-service-tag{display:inline-block;margin-top:16px;align-self:flex-start;font-size:.60rem;font-weight:800;letter-spacing:.7px;text-transform:uppercase;background:var(--gold-dim);color:var(--gold);padding:3px 10px;border-radius:20px;border:1px solid rgba(201,162,39,.2)}
 
 /* FAQ */
 .faq-sec{padding:104px 0;background:var(--off)}
@@ -396,6 +371,7 @@ footer{background:var(--navy);padding:72px 32px 36px}
 .apt-slot{padding:7px 14px;border:1.5px solid var(--border);border-radius:20px;font-size:.76rem;font-weight:600;color:var(--navy);cursor:pointer;transition:border-color .2s,background .2s,color .2s}
 .apt-slot:hover{border-color:var(--navy);background:var(--off)}
 .apt-slot.sel{background:var(--gold);border-color:var(--gold);color:var(--navy);font-weight:800}
+.apt-slot.dis{opacity:.38;cursor:not-allowed;text-decoration:line-through;pointer-events:none}
 .apt-summary{background:var(--off);border-radius:12px;padding:18px;margin-bottom:18px}
 .apt-sum-row{display:flex;gap:11px;align-items:flex-start;margin-bottom:11px}
 .apt-sum-row:last-child{margin-bottom:0}
@@ -420,7 +396,6 @@ footer{background:var(--navy);padding:72px 32px 36px}
 <div class="top-banner">
   <span class="top-banner-dot"></span>
   <span id="bannerTexto">Cargando...</span>
-  <a id="bannerWa" href="#" target="_blank">Empezar →</a>
 </div>
 
 <!-- NAV -->
@@ -431,7 +406,6 @@ footer{background:var(--navy);padding:72px 32px 36px}
       <a href="#servicios">Servicios</a>
       <a href="#soluciones">Soluciones</a>
       <a href="#proceso">Cómo funciona</a>
-      <a href="#testimonios">Testimonios</a>
       <a href="#faq">Preguntas</a>
       <a href="#contacto">Contacto</a>
     </div>
@@ -542,25 +516,6 @@ footer{background:var(--navy);padding:72px 32px 36px}
       <div class="step-box reveal delay-2"><div class="step-num">2</div><div><h3>Propuesta y acuerdo</h3><p>Te enviamos una propuesta con honorarios claros, plazos definidos y estrategia legal. Sin sorpresas ni costos ocultos.</p><span class="step-tag">Transparente · Fijo</span></div></div>
       <div class="step-box reveal delay-3"><div class="step-num">3</div><div><h3>Gestión y resultados</h3><p>Ejecutamos todas las gestiones y te mantenemos informado en cada etapa hasta obtener el resultado esperado.</p><span class="step-tag">100% Remoto</span></div></div>
     </div>
-  </div>
-</section>
-
-<!-- TESTIMONIALS -->
-<section class="testimonials-sec" id="testimonios">
-  <div class="sec-wrap">
-    <div class="testimonials-top">
-      <div class="reveal"><span class="sec-label">Testimonios</span><h2 class="sec-title">Lo que dicen nuestros clientes</h2><p class="sec-sub">Historias reales de personas que confiaron en Puente Legal desde cualquier parte del mundo.</p></div>
-      <a href="#contacto" class="btn-navy reveal delay-2">Leer más reseñas →</a>
-    </div>
-    <div class="trust-bar reveal">
-      <div class="trust-bar-stars">★★★★★</div>
-      <div class="trust-bar-label">Excelente</div>
-      <div class="trust-bar-sep">·</div>
-      <div class="trust-bar-rating"><strong id="trustRating">4.9</strong> / 5</div>
-      <div class="trust-bar-sep">·</div>
-      <div class="trust-bar-count">Más de <strong id="trustReviews">200</strong> reseñas verificadas</div>
-    </div>
-    <div class="reviews-grid" id="reviewsGrid"></div>
   </div>
 </section>
 
@@ -688,9 +643,6 @@ var SVC_ICONS = [
   '<path d="M4 10v7h3v-7H4zm6 0v7h3v-7h-3zM2 22h19v-3H2v3zm14-12v7h3v-7h-3zM11.5 1L2 6v2h19V6l-9.5-5z"/>',
   '<path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>'
 ];
-var AVATAR_COLORS = ['#0f1e38','#1B2B4B','#243456','#C9A227'];
-var AVATAR_TEXT   = ['#C9A227','#C9A227','#e8bb2e','#0f1e38'];
-
 /* ── RENDER FUNCTIONS ────────────────────────────────────── */
 function waUrl(num, msg){ return 'https://wa.me/'+num+'?text='+encodeURIComponent(msg); }
 
@@ -718,8 +670,6 @@ function applyContenido(con){
     ht.innerHTML = lines.map(function(l,i){ return i===lines.length-1 ? '<em>'+l+'</em>' : l; }).join('<br>');
   }
   var hs = document.getElementById('heroSub'); if(hs) hs.textContent = con.hero_sub||'';
-  var tr = document.getElementById('trustRating'); if(tr) tr.textContent = con.trust_rating||'4.9';
-  var trv = document.getElementById('trustReviews'); if(trv) trv.textContent = con.trust_reviews||'200';
   // hero mini stats
   ['Casos','Paises','Anos','Resp'].forEach(function(k){
     var dbKey = 'stat_'+k.toLowerCase();
@@ -753,24 +703,6 @@ function renderServices(servicios){
   });
 }
 
-function renderTestimonios(testimonios){
-  var grid = document.getElementById('reviewsGrid');
-  if(!grid) return;
-  grid.innerHTML = '';
-  testimonios.forEach(function(t, i){
-    var ci = i % AVATAR_COLORS.length;
-    var card = document.createElement('div');
-    card.className = 'review-card reveal delay-'+((i%3)+1);
-    card.innerHTML = '<div class="review-card-top"><div class="review-stars">★★★★★</div><span class="review-source">● Verificado</span></div>'
-      +'<p class="review-text">'+t.text+'</p>'
-      +'<div class="review-divider"></div>'
-      +'<div class="review-author"><div class="review-avatar" style="background:'+AVATAR_COLORS[ci]+';color:'+AVATAR_TEXT[ci]+'">'+t.initials+'</div>'
-      +'<div class="review-author-info"><div class="review-name">'+t.name+'</div><div class="review-loc">'+t.flag+' '+t.location+'</div></div></div>'
-      +'<div class="review-service-tag">'+t.service+'</div>';
-    grid.appendChild(card);
-    revealObs.observe(card);
-  });
-}
 
 function renderFAQ(con){
   var list = document.getElementById('faqList');
@@ -827,7 +759,6 @@ fetch('/api/content').then(function(r){ return r.json(); }).then(function(d){
   applyContenido(d.contenido || {});
   renderServices(d.servicios || []);
   renderPromoCards(d.promoCards || []);
-  renderTestimonios(d.testimonios || []);
   renderFAQ(d.contenido || {});
   initReveal();
 }).catch(function(e){ console.error('Error cargando contenido:', e); });
@@ -890,17 +821,36 @@ function aptStep3(){
 
 function aptConfirm(){
   var d=aptData.date;
+  var iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   var ds=DIAS[d.getDay()]+', '+d.getDate()+' de '+MESES[d.getMonth()]+' '+d.getFullYear();
-  var msg='Hola, quiero agendar una cita:\n\n'+
-    '👤 Nombre: '+aptData.nombre+'\n'+
-    '📧 Correo: '+aptData.email+'\n'+
-    '📅 Fecha: '+ds+'\n'+
-    '🕐 Hora: '+aptData.time+'\n\n'+
-    'Quedo en espera de confirmación. Gracias.';
-  var floatEl=document.getElementById('floatWa');
-  var num=(floatEl&&floatEl.href)?floatEl.href.replace(/.*wa\.me\//,'').replace(/\?.*/,''):'593000000000';
-  window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
-  closeApt();
+  var btn=document.querySelector('.apt-btn-wa');
+  if(btn){ btn.disabled=true; btn.textContent='Reservando...'; }
+  fetch('/api/citas',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({nombre:aptData.nombre,email:aptData.email,fecha:iso,hora:aptData.time})
+  }).then(function(r){ return r.json().then(function(j){ return {status:r.status,body:j}; }); })
+  .then(function(res){
+    if(btn){ btn.disabled=false; btn.textContent='Confirmar por WhatsApp'; }
+    if(res.status===409){
+      aptShowAlert('Ese horario ya fue reservado. Por favor elige otro.');
+      aptRenderSlots(); return;
+    }
+    if(!res.body.ok){ aptShowAlert('Error al registrar la cita. Intenta de nuevo.'); return; }
+    var msg='Hola, quiero confirmar mi cita agendada:\n\n'+
+      '👤 Nombre: '+aptData.nombre+'\n'+
+      '📧 Correo: '+aptData.email+'\n'+
+      '📅 Fecha: '+ds+'\n'+
+      '🕐 Hora: '+aptData.time+'\n\n'+
+      'Quedo en espera de confirmación. Gracias.';
+    var floatEl=document.getElementById('floatWa');
+    var num=(floatEl&&floatEl.href)?floatEl.href.replace(/.*wa\.me\//,'').replace(/\?.*/,''):'593000000000';
+    window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+    closeApt();
+  }).catch(function(){
+    if(btn){ btn.disabled=false; btn.textContent='Confirmar por WhatsApp'; }
+    aptShowAlert('Error de conexión. Intenta de nuevo.');
+  });
 }
 
 function aptRenderCal(){
@@ -938,12 +888,22 @@ function aptCalNext(){ aptCalRef.setMonth(aptCalRef.getMonth()+1); aptRenderCal(
 function aptRenderSlots(){
   var cont=document.getElementById('aptSlots'); cont.innerHTML='';
   if(!aptData.date){ cont.innerHTML='<span class="apt-no-date">Selecciona primero una fecha</span>'; return; }
-  SLOTS.forEach(function(t){
-    var el=document.createElement('div');
-    el.className='apt-slot'+(aptData.time===t?' sel':'');
-    el.textContent=t;
-    el.onclick=function(){ aptData.time=t; aptRenderSlots(); };
-    cont.appendChild(el);
+  cont.innerHTML='<span class="apt-no-date">Cargando horarios...</span>';
+  var d=aptData.date;
+  var iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  fetch('/api/citas/disponibles?fecha='+iso).then(function(r){ return r.json(); }).then(function(data){
+    var disponibles=data.disponibles||[];
+    cont.innerHTML='';
+    SLOTS.forEach(function(t){
+      var el=document.createElement('div');
+      var libre=disponibles.includes(t);
+      el.className='apt-slot'+(aptData.time===t?' sel':'')+(libre?'':' dis');
+      el.textContent=t+(libre?'':' ✗');
+      if(libre) el.onclick=function(){ aptData.time=t; aptRenderSlots(); };
+      cont.appendChild(el);
+    });
+  }).catch(function(){
+    cont.innerHTML='<span class="apt-no-date">Error cargando horarios</span>';
   });
 }
 

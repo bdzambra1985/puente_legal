@@ -65,6 +65,17 @@ function initDB() {
       sort_order INTEGER NOT NULL DEFAULT 0,
       active INTEGER NOT NULL DEFAULT 1
     );
+
+    CREATE TABLE IF NOT EXISTS citas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nombre TEXT NOT NULL,
+      email TEXT NOT NULL,
+      fecha TEXT NOT NULL,
+      hora TEXT NOT NULL,
+      estado TEXT NOT NULL DEFAULT 'pendiente',
+      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+      UNIQUE(fecha, hora)
+    );
   `);
 
   // Admin por defecto
