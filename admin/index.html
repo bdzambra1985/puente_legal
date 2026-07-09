@@ -254,7 +254,7 @@ a{text-decoration:none;color:inherit}
           </div>
           <div style="overflow-x:auto">
             <table class="table" id="citasTable">
-              <thead><tr><th>#</th><th>Nombre</th><th>Correo</th><th>Fecha</th><th>Hora</th><th>Estado</th><th>Registrada</th><th>Acciones</th></tr></thead>
+              <thead><tr><th>#</th><th>Cliente</th><th>Fecha</th><th>Hora</th><th>Medio</th><th>Estado</th><th>Registrada</th><th>Acciones</th></tr></thead>
               <tbody id="citasBody"></tbody>
             </table>
           </div>
@@ -407,6 +407,36 @@ a{text-decoration:none;color:inherit}
 
 <!-- TOAST CONTAINER -->
 <div id="toast"></div>
+
+<!-- MODAL CONFIRMAR CITA -->
+<div class="overlay" id="confirmCitaOverlay" onclick="closeConfirmCita(event)">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <h3>Confirmar cita</h3>
+      <button class="modal-close" onclick="closeConfirmCita(true)"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div id="confirmCitaInfo" style="background:var(--off);border-radius:var(--r8);padding:16px;margin-bottom:20px;font-size:.85rem;line-height:1.7"></div>
+      <div id="confirmCitaZoomWrap">
+        <div class="fg">
+          <label>Enlace de reunión Zoom</label>
+          <input type="url" id="confirmCitaZoomLink" placeholder="https://zoom.us/j/..." style="font-size:.85rem">
+        </div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:6px">Se enviará este enlace al cliente en el correo de confirmación.</div>
+      </div>
+      <div id="confirmCitaWaInfo" style="display:none;background:#f0fdf4;border:1px solid rgba(22,163,74,.2);border-radius:var(--r8);padding:14px;font-size:.82rem;color:#166534">
+        📱 Se notificará al cliente por correo que le contactarás por WhatsApp a la hora de la cita.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeConfirmCita(true)">Cancelar</button>
+      <button class="btn btn-gold" onclick="submitConfirmCita()">
+        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+        Confirmar y enviar correo
+      </button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ────────────────────────────────────────────────── */
@@ -788,26 +818,73 @@ function renderCitas(){
   if(!tbody) return;
   var lista = citasFiltro === 'todas' ? citasData : citasData.filter(function(c){ return c.estado === citasFiltro; });
   if(!lista.length){
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:32px">No hay citas</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:32px">No hay citas</td></tr>';
     return;
   }
   tbody.innerHTML = '';
   lista.forEach(function(c){
     var badgeClass = 'badge-'+c.estado;
+    var esZoom = c.contacto_tipo === 'zoom';
+    var medioHtml = esZoom
+      ? '💻 <span style="font-size:.75rem">Zoom</span>'
+      : '📱 <span style="font-size:.75rem">'+escH(c.contacto_valor)+'</span>';
     var tr = document.createElement('tr');
     tr.innerHTML = '<td style="font-size:.8rem">'+c.id+'</td>'
-      +'<td><strong>'+escH(c.nombre)+'</strong></td>'
-      +'<td style="font-size:.8rem;color:var(--muted)">'+escH(c.email)+'</td>'
+      +'<td><strong>'+escH(c.nombre)+'</strong><br><span style="font-size:.72rem;color:var(--muted)">'+escH(c.email)+'</span></td>'
       +'<td style="font-size:.82rem;font-weight:600">'+escH(c.fecha)+'</td>'
       +'<td style="font-size:.82rem;font-weight:600">'+escH(c.hora)+'</td>'
+      +'<td>'+medioHtml+'</td>'
       +'<td><span class="'+badgeClass+'">'+escH(c.estado)+'</span></td>'
       +'<td style="font-size:.72rem;color:var(--muted)">'+escH((c.created_at||'').substring(0,16))+'</td>'
       +'<td><div class="row-actions">'
-        +(c.estado!=='confirmada'?'<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 10px" onclick="setCitaEstado('+c.id+',\'confirmada\')">Confirmar</button>':'')
+        +(c.estado!=='confirmada'?'<button class="btn btn-gold" style="font-size:.72rem;padding:5px 10px" onclick="openConfirmCita('+c.id+')">Confirmar</button>':'')
         +(c.estado!=='cancelada'?'<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 10px;color:var(--red)" onclick="setCitaEstado('+c.id+',\'cancelada\')">Cancelar</button>':'')
         +'<button class="btn btn-danger" style="font-size:.72rem;padding:5px 10px" onclick="deleteCita('+c.id+')">Eliminar</button>'
       +'</div></td>';
     tbody.appendChild(tr);
+  });
+}
+
+var confirmCitaId = null;
+
+function openConfirmCita(id){
+  var cita = citasData.find(function(c){ return c.id === id; });
+  if(!cita) return;
+  confirmCitaId = id;
+  var esZoom = cita.contacto_tipo === 'zoom';
+  document.getElementById('confirmCitaInfo').innerHTML =
+    '<strong>'+escH(cita.nombre)+'</strong><br>'+escH(cita.email)+'<br>'
+    +'📅 '+escH(cita.fecha)+' · 🕐 '+escH(cita.hora)+'<br>'
+    +(esZoom?'💻 Videollamada Zoom':'📱 WhatsApp: '+escH(cita.contacto_valor));
+  document.getElementById('confirmCitaZoomWrap').style.display = esZoom ? 'block' : 'none';
+  document.getElementById('confirmCitaWaInfo').style.display = esZoom ? 'none' : 'block';
+  if(esZoom) document.getElementById('confirmCitaZoomLink').value = cita.zoom_link || '';
+  document.getElementById('confirmCitaOverlay').classList.add('open');
+}
+
+function closeConfirmCita(force){
+  if(force===true || (force&&force.target===document.getElementById('confirmCitaOverlay')))
+    document.getElementById('confirmCitaOverlay').classList.remove('open');
+}
+
+function submitConfirmCita(){
+  if(!confirmCitaId) return;
+  var cita = citasData.find(function(c){ return c.id === confirmCitaId; });
+  var body = { estado: 'confirmada' };
+  if(cita && cita.contacto_tipo === 'zoom'){
+    var link = document.getElementById('confirmCitaZoomLink').value.trim();
+    if(!link){ alert('Por favor ingresa el enlace de Zoom'); return; }
+    body.zoom_link = link;
+  }
+  var btn = document.querySelector('#confirmCitaOverlay .btn-gold');
+  if(btn){ btn.disabled=true; btn.textContent='Enviando...'; }
+  api('PUT','/api/admin/citas/'+confirmCitaId, body).then(function(r){
+    if(btn){ btn.disabled=false; btn.innerHTML='<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Confirmar y enviar correo'; }
+    if(r.ok){
+      toast('Cita confirmada — correo enviado al cliente');
+      document.getElementById('confirmCitaOverlay').classList.remove('open');
+      loadCitas();
+    } else toast('Error al confirmar','error');
   });
 }
 

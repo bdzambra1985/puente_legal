@@ -15,12 +15,15 @@ router.get('/citas/disponibles', (req, res) => {
 
 /* Crear cita (POST /api/citas) */
 router.post('/citas', (req, res) => {
-  const { nombre, email, fecha, hora } = req.body;
+  const { nombre, email, fecha, hora, contacto_tipo, contacto_valor } = req.body;
   if (!nombre || !email || !fecha || !hora) return res.status(400).json({ error: 'Faltan campos' });
   if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha) || !SLOTS_ALL.includes(hora))
     return res.status(400).json({ error: 'Fecha u hora inválida' });
+  const tipo = contacto_tipo === 'whatsapp' ? 'whatsapp' : 'zoom';
+  const valor = String(contacto_valor || '').trim();
   try {
-    getDB().prepare('INSERT INTO citas (nombre,email,fecha,hora) VALUES (?,?,?,?)').run(nombre, email, fecha, hora);
+    getDB().prepare('INSERT INTO citas (nombre,email,fecha,hora,contacto_tipo,contacto_valor) VALUES (?,?,?,?,?,?)')
+      .run(nombre, email, fecha, hora, tipo, valor);
     res.json({ ok: true });
   } catch (e) {
     if (e.code === 'SQLITE_CONSTRAINT_UNIQUE') return res.status(409).json({ error: 'SLOT_TAKEN' });

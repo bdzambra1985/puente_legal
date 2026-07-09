@@ -1,6 +1,7 @@
 const express = require('express');
 const { getDB } = require('../database');
 const auth = require('../middleware/auth');
+const { sendCitaConfirmada } = require('../utils/email');
 
 const router = express.Router();
 router.use(auth);
@@ -62,9 +63,20 @@ router.get('/citas', (req, res) => {
   res.json(getDB().prepare('SELECT * FROM citas ORDER BY fecha DESC, hora ASC').all());
 });
 
-router.put('/citas/:id', (req, res) => {
-  const { estado } = req.body;
-  getDB().prepare('UPDATE citas SET estado=? WHERE id=?').run(estado, req.params.id);
+router.put('/citas/:id', async (req, res) => {
+  const { estado, zoom_link } = req.body;
+  const db = getDB();
+  if (zoom_link !== undefined) {
+    db.prepare('UPDATE citas SET zoom_link=? WHERE id=?').run(zoom_link, req.params.id);
+  }
+  db.prepare('UPDATE citas SET estado=? WHERE id=?').run(estado, req.params.id);
+  if (estado === 'confirmada') {
+    const cita = db.prepare('SELECT * FROM citas WHERE id=?').get(req.params.id);
+    if (cita) {
+      try { await sendCitaConfirmada(cita); }
+      catch (e) { console.error('[email] Error enviando confirmación:', e.message); }
+    }
+  }
   res.json({ ok: true });
 });
 

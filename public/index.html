@@ -387,7 +387,17 @@ footer{background:var(--navy);padding:72px 32px 36px}
 .apt-btn-ghost{background:none;border:1.5px solid var(--border);color:var(--muted)}
 .apt-btn-ghost:hover{border-color:var(--navy);color:var(--navy)}
 .apt-no-date{font-size:.78rem;color:var(--muted);padding:4px 0}
-@media(max-width:480px){.apt-body{padding:22px 18px}.apt-header{padding:22px 18px 18px}}
+.apt-contact-types{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.apt-ctype{border:2px solid var(--border);border-radius:10px;padding:13px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:border-color .2s,background .2s;user-select:none}
+.apt-ctype.sel{border-color:var(--gold);background:rgba(201,162,39,.07)}
+.apt-ctype-icon{font-size:1.4rem;flex-shrink:0}
+.apt-ctype-name{font-size:.84rem;font-weight:700;color:var(--navy)}
+.apt-ctype-sub{font-size:.68rem;color:var(--muted)}
+.apt-phone-row{display:flex;gap:8px}
+.apt-phone-row select{width:172px;flex-shrink:0;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:.8rem;color:var(--navy);background:var(--white);outline:none}
+.apt-phone-row input{flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:.88rem;color:var(--navy);outline:none}
+.apt-phone-row select:focus,.apt-phone-row input:focus{border-color:var(--navy)}
+@media(max-width:480px){.apt-body{padding:22px 18px}.apt-header{padding:22px 18px 18px}.apt-contact-types{grid-template-columns:1fr 1fr}.apt-phone-row{flex-direction:column}.apt-phone-row select{width:100%}}
 </style>
 </head>
 <body>
@@ -764,7 +774,7 @@ fetch('/api/content').then(function(r){ return r.json(); }).then(function(d){
 }).catch(function(e){ console.error('Error cargando contenido:', e); });
 
 /* ── APPOINTMENT MODAL ───────────────────────────────────── */
-var aptData = { nombre:'', email:'', date:null, time:'' };
+var aptData = { nombre:'', email:'', contactoTipo:'zoom', contactoValor:'', date:null, time:'' };
 var aptCalRef = new Date();
 var MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 var DIAS  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
@@ -773,10 +783,19 @@ var SLOTS = ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00'];
 function openApt(){
   document.getElementById('aptOverlay').classList.add('open');
   document.body.style.overflow='hidden';
+  aptSelectTipo('zoom');
   aptGoStep(1);
   aptCalRef = new Date(); aptCalRef.setDate(1);
   aptData.date=null; aptData.time='';
   aptRenderCal(); aptRenderSlots();
+}
+
+function aptSelectTipo(tipo){
+  aptData.contactoTipo=tipo;
+  document.getElementById('aptCtypeZoom').classList.toggle('sel', tipo==='zoom');
+  document.getElementById('aptCtypeWa').classList.toggle('sel', tipo==='whatsapp');
+  var wrap=document.getElementById('aptPhoneWrap');
+  wrap.style.display = tipo==='whatsapp' ? 'block' : 'none';
 }
 function closeApt(){
   document.getElementById('aptOverlay').classList.remove('open');
@@ -802,6 +821,16 @@ function aptStep2(){
   fgN.classList.toggle('has-error',!nombre);
   fgE.classList.toggle('has-error',!email||!validEmail);
   if(!nombre||!email||!validEmail) return;
+  if(aptData.contactoTipo==='whatsapp'){
+    var phone=document.getElementById('aptPhone').value.trim().replace(/\D/g,'');
+    var errEl=document.getElementById('aptPhoneErr');
+    if(!phone){ errEl.style.display='block'; return; }
+    errEl.style.display='none';
+    var code=document.getElementById('aptCountryCode').value;
+    aptData.contactoValor=code+' '+phone;
+  } else {
+    aptData.contactoValor='';
+  }
   aptData.nombre=nombre; aptData.email=email;
   aptGoStep(2);
 }
@@ -811,11 +840,16 @@ function aptStep3(){
   if(!aptData.time){ aptShowAlert('Por favor selecciona un horario'); return; }
   var d=aptData.date;
   var ds=DIAS[d.getDay()]+', '+d.getDate()+' de '+MESES[d.getMonth()]+' '+d.getFullYear();
+  var esZoom=aptData.contactoTipo==='zoom';
+  var contactoRow='<div class="apt-sum-row"><div class="apt-sum-ico">'+(esZoom?'💻':'📱')+'</div><div><div class="apt-sum-lbl">Contacto</div><div class="apt-sum-val">'+(esZoom?'Videollamada Zoom':aptData.contactoValor)+'</div></div></div>';
   document.getElementById('aptSummary').innerHTML=
     '<div class="apt-sum-row"><div class="apt-sum-ico">👤</div><div><div class="apt-sum-lbl">Nombre</div><div class="apt-sum-val">'+aptData.nombre+'</div></div></div>'+
     '<div class="apt-sum-row"><div class="apt-sum-ico">📧</div><div><div class="apt-sum-lbl">Correo</div><div class="apt-sum-val">'+aptData.email+'</div></div></div>'+
     '<div class="apt-sum-row"><div class="apt-sum-ico">📅</div><div><div class="apt-sum-lbl">Fecha</div><div class="apt-sum-val">'+ds+'</div></div></div>'+
-    '<div class="apt-sum-row"><div class="apt-sum-ico">🕐</div><div><div class="apt-sum-lbl">Hora (Ecuador)</div><div class="apt-sum-val">'+aptData.time+'</div></div></div>';
+    '<div class="apt-sum-row"><div class="apt-sum-ico">🕐</div><div><div class="apt-sum-lbl">Hora (Ecuador)</div><div class="apt-sum-val">'+aptData.time+'</div></div></div>'+
+    contactoRow;
+  var waBtn=document.querySelector('.apt-btn-wa');
+  if(waBtn){ waBtn.innerHTML='<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.533 5.867L0 24l6.301-1.651A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.518-5.163-1.422l-.371-.219-3.742.981.998-3.642-.24-.375A9.939 9.939 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>'+(esZoom?'Confirmar cita':'Confirmar por WhatsApp'); }
   aptGoStep(3);
 }
 
@@ -823,32 +857,36 @@ function aptConfirm(){
   var d=aptData.date;
   var iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   var ds=DIAS[d.getDay()]+', '+d.getDate()+' de '+MESES[d.getMonth()]+' '+d.getFullYear();
+  var esZoom=aptData.contactoTipo==='zoom';
   var btn=document.querySelector('.apt-btn-wa');
   if(btn){ btn.disabled=true; btn.textContent='Reservando...'; }
   fetch('/api/citas',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({nombre:aptData.nombre,email:aptData.email,fecha:iso,hora:aptData.time})
+    body:JSON.stringify({nombre:aptData.nombre,email:aptData.email,fecha:iso,hora:aptData.time,
+      contacto_tipo:aptData.contactoTipo,contacto_valor:aptData.contactoValor})
   }).then(function(r){ return r.json().then(function(j){ return {status:r.status,body:j}; }); })
   .then(function(res){
-    if(btn){ btn.disabled=false; btn.textContent='Confirmar por WhatsApp'; }
+    if(btn){ btn.disabled=false; btn.textContent=esZoom?'Confirmar cita':'Confirmar por WhatsApp'; }
     if(res.status===409){
       aptShowAlert('Ese horario ya fue reservado. Por favor elige otro.');
       aptRenderSlots(); return;
     }
     if(!res.body.ok){ aptShowAlert('Error al registrar la cita. Intenta de nuevo.'); return; }
-    var msg='Hola, quiero confirmar mi cita agendada:\n\n'+
+    var contactoLinea=esZoom?'💻 Medio: Videollamada Zoom':'📱 WhatsApp: '+aptData.contactoValor;
+    var msg='Hola, nueva cita agendada:\n\n'+
       '👤 Nombre: '+aptData.nombre+'\n'+
       '📧 Correo: '+aptData.email+'\n'+
       '📅 Fecha: '+ds+'\n'+
-      '🕐 Hora: '+aptData.time+'\n\n'+
-      'Quedo en espera de confirmación. Gracias.';
+      '🕐 Hora: '+aptData.time+'\n'+
+      contactoLinea+'\n\n'+
+      'Por favor confirmar la cita. Gracias.';
     var floatEl=document.getElementById('floatWa');
     var num=(floatEl&&floatEl.href)?floatEl.href.replace(/.*wa\.me\//,'').replace(/\?.*/,''):'593000000000';
     window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
     closeApt();
   }).catch(function(){
-    if(btn){ btn.disabled=false; btn.textContent='Confirmar por WhatsApp'; }
+    if(btn){ btn.disabled=false; btn.textContent=esZoom?'Confirmar cita':'Confirmar por WhatsApp'; }
     aptShowAlert('Error de conexión. Intenta de nuevo.');
   });
 }
@@ -960,6 +998,54 @@ function sendForm(e){
           <label>Correo electrónico</label>
           <input type="email" id="aptEmail" placeholder="tu@correo.com" autocomplete="email">
           <div class="apt-err">Por favor ingresa un correo válido</div>
+        </div>
+        <div class="apt-fg">
+          <label>Forma de contacto para la cita</label>
+          <div class="apt-contact-types">
+            <div class="apt-ctype sel" id="aptCtypeZoom" onclick="aptSelectTipo('zoom')">
+              <span class="apt-ctype-icon">💻</span>
+              <div><div class="apt-ctype-name">ZOOM</div><div class="apt-ctype-sub">Videollamada</div></div>
+            </div>
+            <div class="apt-ctype" id="aptCtypeWa" onclick="aptSelectTipo('whatsapp')">
+              <span class="apt-ctype-icon">📱</span>
+              <div><div class="apt-ctype-name">WhatsApp</div><div class="apt-ctype-sub">Llamada/Mensaje</div></div>
+            </div>
+          </div>
+          <div id="aptPhoneWrap" style="display:none">
+            <div class="apt-phone-row">
+              <select id="aptCountryCode">
+                <option value="+593">🇪🇨 Ecuador +593</option>
+                <option value="+34">🇪🇸 España +34</option>
+                <option value="+1">🇺🇸 EE.UU. +1</option>
+                <option value="+57">🇨🇴 Colombia +57</option>
+                <option value="+51">🇵🇪 Perú +51</option>
+                <option value="+54">🇦🇷 Argentina +54</option>
+                <option value="+52">🇲🇽 México +52</option>
+                <option value="+56">🇨🇱 Chile +56</option>
+                <option value="+58">🇻🇪 Venezuela +58</option>
+                <option value="+591">🇧🇴 Bolivia +591</option>
+                <option value="+598">🇺🇾 Uruguay +598</option>
+                <option value="+595">🇵🇾 Paraguay +595</option>
+                <option value="+55">🇧🇷 Brasil +55</option>
+                <option value="+506">🇨🇷 Costa Rica +506</option>
+                <option value="+507">🇵🇦 Panamá +507</option>
+                <option value="+502">🇬🇹 Guatemala +502</option>
+                <option value="+504">🇭🇳 Honduras +504</option>
+                <option value="+503">🇸🇻 El Salvador +503</option>
+                <option value="+505">🇳🇮 Nicaragua +505</option>
+                <option value="+53">🇨🇺 Cuba +53</option>
+                <option value="+1-809">🇩🇴 R. Dominicana +1-809</option>
+                <option value="+39">🇮🇹 Italia +39</option>
+                <option value="+33">🇫🇷 Francia +33</option>
+                <option value="+49">🇩🇪 Alemania +49</option>
+                <option value="+44">🇬🇧 Reino Unido +44</option>
+                <option value="+1-1">🇨🇦 Canadá +1</option>
+                <option value="+61">🇦🇺 Australia +61</option>
+              </select>
+              <input type="tel" id="aptPhone" placeholder="Número sin código de país" autocomplete="tel">
+            </div>
+            <div class="apt-err" id="aptPhoneErr" style="display:none">Por favor ingresa tu número de WhatsApp</div>
+          </div>
         </div>
         <button class="apt-btn apt-btn-primary" onclick="aptStep2()">Continuar →</button>
       </div>

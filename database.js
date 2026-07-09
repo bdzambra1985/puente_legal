@@ -72,11 +72,23 @@ function initDB() {
       email TEXT NOT NULL,
       fecha TEXT NOT NULL,
       hora TEXT NOT NULL,
+      contacto_tipo TEXT NOT NULL DEFAULT 'zoom',
+      contacto_valor TEXT NOT NULL DEFAULT '',
+      zoom_link TEXT NOT NULL DEFAULT '',
       estado TEXT NOT NULL DEFAULT 'pendiente',
       created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
       UNIQUE(fecha, hora)
     );
   `);
+
+  // Migración: agregar columnas nuevas si no existen (para DBs existentes en producción)
+  const citasCols = db.prepare('PRAGMA table_info(citas)').all().map(c => c.name);
+  if (!citasCols.includes('contacto_tipo'))
+    db.exec("ALTER TABLE citas ADD COLUMN contacto_tipo TEXT NOT NULL DEFAULT 'zoom'");
+  if (!citasCols.includes('contacto_valor'))
+    db.exec("ALTER TABLE citas ADD COLUMN contacto_valor TEXT NOT NULL DEFAULT ''");
+  if (!citasCols.includes('zoom_link'))
+    db.exec("ALTER TABLE citas ADD COLUMN zoom_link TEXT NOT NULL DEFAULT ''");
 
   // Admin por defecto
   const adminExists = db.prepare('SELECT id FROM admin_users WHERE username = ?').get('admin');
