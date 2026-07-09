@@ -1,9 +1,41 @@
 const express = require('express');
 const { getDB } = require('../database');
+const { sendOTP } = require('../utils/email');
 
 const router = express.Router();
 
 const SLOTS_ALL = ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00'];
+
+/* Enviar OTP (POST /api/citas/send-otp) */
+router.post('/citas/send-otp', async (req, res) => {
+  const { email, phone } = req.body;
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    return res.status(400).json({ error: 'Email inválido' });
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const expires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+  const db = getDB();
+  db.prepare('DELETE FROM otp_verifications WHERE email=?').run(email);
+  db.prepare('INSERT INTO otp_verifications (email,phone,code,expires_at) VALUES (?,?,?,?)').run(email, phone || '', code, expires);
+  try {
+    await sendOTP(email, code);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('[otp] Error enviando email:', e.message);
+    res.status(500).json({ error: 'Error al enviar el correo' });
+  }
+});
+
+/* Verificar OTP (POST /api/citas/verify-otp) */
+router.post('/citas/verify-otp', (req, res) => {
+  const { email, code } = req.body;
+  if (!email || !code) return res.status(400).json({ error: 'Faltan campos' });
+  const db = getDB();
+  const otp = db.prepare('SELECT * FROM otp_verifications WHERE email=? AND code=? AND used=0').get(email, code.trim());
+  if (!otp) return res.status(400).json({ error: 'INVALID_CODE' });
+  if (new Date(otp.expires_at) < new Date()) return res.status(400).json({ error: 'EXPIRED' });
+  db.prepare('UPDATE otp_verifications SET used=1 WHERE id=?').run(otp.id);
+  res.json({ ok: true });
+});
 
 /* Slots disponibles para una fecha (GET /api/citas/disponibles?fecha=YYYY-MM-DD) */
 router.get('/citas/disponibles', (req, res) => {

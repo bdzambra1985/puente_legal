@@ -397,7 +397,21 @@ footer{background:var(--navy);padding:72px 32px 36px}
 .apt-phone-row select{width:172px;flex-shrink:0;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:.8rem;color:var(--navy);background:var(--white);outline:none}
 .apt-phone-row input{flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:.88rem;color:var(--navy);outline:none}
 .apt-phone-row select:focus,.apt-phone-row input:focus{border-color:var(--navy)}
-@media(max-width:480px){.apt-body{padding:22px 18px}.apt-header{padding:22px 18px 18px}.apt-contact-types{grid-template-columns:1fr 1fr}.apt-phone-row{flex-direction:column}.apt-phone-row select{width:100%}}
+/* Verification panel */
+.apt-verif-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:20px;padding:14px 16px;background:var(--off);border-radius:10px;border:1px solid var(--border)}
+.apt-verif-title{font-size:.9rem;font-weight:700;color:var(--navy);margin-bottom:2px}
+.apt-verif-sub{font-size:.74rem;color:var(--muted)}
+.apt-verif-block{border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px}
+.apt-verif-blk-lbl{font-size:.78rem;font-weight:600;color:var(--navy);margin-bottom:12px}
+.apt-otp-row{display:flex;gap:8px;justify-content:flex-start;margin-bottom:8px}
+.apt-otp-d{width:42px;height:48px;border:2px solid var(--border);border-radius:8px;text-align:center;font-size:1.2rem;font-weight:700;color:var(--navy);font-family:'Inter',sans-serif;outline:none;transition:border-color .2s;-webkit-appearance:none}
+.apt-otp-d:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(15,30,56,.08)}
+.apt-otp-d.filled{border-color:var(--gold)}
+.apt-resend-cd{font-size:.73rem;color:var(--muted)}
+.apt-resend-btn{background:none;border:none;color:var(--navy);font-size:.73rem;font-weight:700;cursor:pointer;text-decoration:underline;padding:0;font-family:'Inter',sans-serif}
+.apt-verif-hint{font-size:.74rem;color:var(--muted);margin-bottom:12px;line-height:1.6}
+.apt-wa-sent{font-size:.8rem;font-weight:600;color:#16a34a;margin-top:10px;display:flex;align-items:center;gap:6px}
+@media(max-width:480px){.apt-body{padding:22px 18px}.apt-header{padding:22px 18px 18px}.apt-contact-types{grid-template-columns:1fr 1fr}.apt-phone-row{flex-direction:column}.apt-phone-row select{width:100%}.apt-otp-d{width:36px;height:44px;font-size:1.1rem}}
 </style>
 </head>
 <body>
@@ -780,6 +794,10 @@ var MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','
 var DIAS  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 var SLOTS = ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00'];
 
+var aptOtpVerified = false;
+var aptWaSent = false;
+var aptResendTimer = null;
+
 function openApt(){
   document.getElementById('aptOverlay').classList.add('open');
   document.body.style.overflow='hidden';
@@ -787,7 +805,40 @@ function openApt(){
   aptGoStep(1);
   aptCalRef = new Date(); aptCalRef.setDate(1);
   aptData.date=null; aptData.time='';
+  aptOtpVerified=false; aptWaSent=false;
+  aptShowMainForm();
+  aptInitOtpInputs();
   aptRenderCal(); aptRenderSlots();
+}
+
+function aptShowMainForm(){
+  document.getElementById('aptMainForm').style.display='block';
+  document.getElementById('aptVerifPanel').style.display='none';
+}
+
+function aptInitOtpInputs(){
+  var inputs=Array.from(document.querySelectorAll('.apt-otp-d'));
+  inputs.forEach(function(inp,i){
+    inp.value='';
+    inp.classList.remove('filled');
+    inp.oninput=function(){
+      var v=inp.value.replace(/\D/g,'');
+      inp.value=v.slice(-1);
+      inp.classList.toggle('filled',!!inp.value);
+      if(v&&i<inputs.length-1) inputs[i+1].focus();
+      document.getElementById('aptOtpErr').style.display='none';
+    };
+    inp.onkeydown=function(e){
+      if(e.key==='Backspace'&&!inp.value&&i>0){ inputs[i-1].focus(); }
+    };
+    inp.onpaste=function(e){
+      e.preventDefault();
+      var paste=(e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'');
+      inputs.forEach(function(d,j){ d.value=paste[j]||''; d.classList.toggle('filled',!!d.value); });
+      var last=Math.min(paste.length,inputs.length)-1;
+      if(last>=0) inputs[last].focus();
+    };
+  });
 }
 
 function aptSelectTipo(tipo){
@@ -821,18 +872,112 @@ function aptStep2(){
   fgN.classList.toggle('has-error',!nombre);
   fgE.classList.toggle('has-error',!email||!validEmail);
   if(!nombre||!email||!validEmail) return;
+  aptData.nombre=nombre; aptData.email=email;
   if(aptData.contactoTipo==='whatsapp'){
     var phone=document.getElementById('aptPhone').value.trim().replace(/\D/g,'');
     var errEl=document.getElementById('aptPhoneErr');
     if(!phone){ errEl.style.display='block'; return; }
     errEl.style.display='none';
-    var code=document.getElementById('aptCountryCode').value;
-    aptData.contactoValor=code+' '+phone;
+    aptData.contactoValor=document.getElementById('aptCountryCode').value+' '+phone;
+    // Enviar OTP y mostrar panel de verificación
+    var btn=document.getElementById('aptContinuarBtn');
+    btn.disabled=true; btn.textContent='Enviando código...';
+    fetch('/api/citas/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email:email,phone:aptData.contactoValor})
+    }).then(function(r){ return r.json(); }).then(function(d){
+      btn.disabled=false; btn.textContent='Continuar →';
+      if(d.ok){
+        document.getElementById('aptMainForm').style.display='none';
+        document.getElementById('aptVerifPanel').style.display='block';
+        document.getElementById('aptVerifEmail').textContent=email;
+        document.getElementById('aptVerifPhone').textContent=aptData.contactoValor;
+        document.getElementById('aptOtpErr').style.display='none';
+        document.getElementById('aptWaVerifBtn').style.display='flex';
+        document.getElementById('aptWaVerifSent').style.display='none';
+        aptWaSent=false; aptOtpVerified=false;
+        aptInitOtpInputs();
+        aptStartResendTimer(60);
+        setTimeout(function(){ document.querySelector('.apt-otp-d').focus(); },100);
+      } else { aptShowAlert('Error enviando el código. Intenta de nuevo.'); }
+    }).catch(function(){ btn.disabled=false; btn.textContent='Continuar →'; aptShowAlert('Error de conexión.'); });
   } else {
     aptData.contactoValor='';
+    aptGoStep(2);
   }
-  aptData.nombre=nombre; aptData.email=email;
-  aptGoStep(2);
+}
+
+function aptStartResendTimer(secs){
+  if(aptResendTimer) clearInterval(aptResendTimer);
+  var left=secs;
+  var cd=document.getElementById('aptResendCd'), btn=document.getElementById('aptResendBtn');
+  btn.style.display='none';
+  cd.textContent='Reenviar en '+left+'s';
+  aptResendTimer=setInterval(function(){
+    left--;
+    if(left<=0){ clearInterval(aptResendTimer); cd.textContent=''; btn.style.display='inline'; }
+    else cd.textContent='Reenviar en '+left+'s';
+  },1000);
+}
+
+function aptResendOtp(){
+  var btn=document.getElementById('aptResendBtn');
+  btn.style.display='none';
+  fetch('/api/citas/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email:aptData.email,phone:aptData.contactoValor})
+  }).then(function(r){ return r.json(); }).then(function(){
+    aptInitOtpInputs();
+    aptStartResendTimer(60);
+    setTimeout(function(){ document.querySelector('.apt-otp-d').focus(); },50);
+  }).catch(function(){ btn.style.display='inline'; });
+}
+
+function aptSendWaVerif(){
+  var code=Array.from(document.querySelectorAll('.apt-otp-d')).map(function(d){ return d.value; }).join('');
+  var floatEl=document.getElementById('floatWa');
+  var num=(floatEl&&floatEl.href)?floatEl.href.replace(/.*wa\.me\//,'').replace(/\?.*/,''):'593000000000';
+  var msg='🔐 Verificación de WhatsApp — Puente Legal\n\n'
+    +'📱 Mi número: '+aptData.contactoValor+'\n'
+    +'🔑 Código: '+(code||'(ingresa el código primero)')+'\n\n'
+    +'Por favor confirmar mi número. Gracias.';
+  window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+  aptWaSent=true;
+  document.getElementById('aptWaVerifBtn').style.display='none';
+  document.getElementById('aptWaVerifSent').style.display='flex';
+}
+
+function aptVerifSubmit(){
+  if(!aptWaSent){ aptShowVerifAlert('Primero envía el código de verificación por WhatsApp'); return; }
+  var code=Array.from(document.querySelectorAll('.apt-otp-d')).map(function(d){ return d.value; }).join('');
+  if(code.length<6||code.includes(' ')){ aptShowVerifAlert('Ingresa el código completo de 6 dígitos'); return; }
+  var btn=document.getElementById('aptVerifSubmitBtn');
+  btn.disabled=true; btn.textContent='Verificando...';
+  fetch('/api/citas/verify-otp',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email:aptData.email,code:code})
+  }).then(function(r){ return r.json().then(function(j){ return {s:r.status,b:j}; }); })
+  .then(function(res){
+    btn.disabled=false; btn.textContent='Verificar y continuar →';
+    if(res.b.ok){
+      if(aptResendTimer) clearInterval(aptResendTimer);
+      aptOtpVerified=true;
+      aptShowMainForm();
+      aptGoStep(2);
+    } else {
+      var msg=res.b.error==='EXPIRED'?'El código expiró. Por favor reenvía.':'Código incorrecto. Intenta de nuevo.';
+      document.getElementById('aptOtpErr').textContent=msg;
+      document.getElementById('aptOtpErr').style.display='block';
+    }
+  }).catch(function(){ btn.disabled=false; btn.textContent='Verificar y continuar →'; aptShowVerifAlert('Error de conexión.'); });
+}
+
+function aptShowVerifAlert(msg){
+  var err=document.getElementById('aptOtpErr');
+  err.textContent=msg; err.style.display='block';
+  setTimeout(function(){ err.style.display='none'; },3500);
+}
+
+function aptCancelVerif(){
+  if(aptResendTimer) clearInterval(aptResendTimer);
+  aptShowMainForm();
 }
 
 function aptStep3(){
@@ -989,65 +1134,113 @@ function sendForm(e){
 
       <!-- Paso 1: datos personales -->
       <div class="apt-panel active" id="apanel1">
-        <div class="apt-fg" id="aptFgNombre">
-          <label>Nombre completo</label>
-          <input type="text" id="aptNombre" placeholder="Tu nombre completo" autocomplete="name">
-          <div class="apt-err">Por favor ingresa tu nombre</div>
-        </div>
-        <div class="apt-fg" id="aptFgEmail">
-          <label>Correo electrónico</label>
-          <input type="email" id="aptEmail" placeholder="tu@correo.com" autocomplete="email">
-          <div class="apt-err">Por favor ingresa un correo válido</div>
-        </div>
-        <div class="apt-fg">
-          <label>Forma de contacto para la cita</label>
-          <div class="apt-contact-types">
-            <div class="apt-ctype sel" id="aptCtypeZoom" onclick="aptSelectTipo('zoom')">
-              <span class="apt-ctype-icon">💻</span>
-              <div><div class="apt-ctype-name">ZOOM</div><div class="apt-ctype-sub">Videollamada</div></div>
+
+        <!-- Formulario principal -->
+        <div id="aptMainForm">
+          <div class="apt-fg" id="aptFgNombre">
+            <label>Nombre completo</label>
+            <input type="text" id="aptNombre" placeholder="Tu nombre completo" autocomplete="name">
+            <div class="apt-err">Por favor ingresa tu nombre</div>
+          </div>
+          <div class="apt-fg" id="aptFgEmail">
+            <label>Correo electrónico</label>
+            <input type="email" id="aptEmail" placeholder="tu@correo.com" autocomplete="email">
+            <div class="apt-err">Por favor ingresa un correo válido</div>
+          </div>
+          <div class="apt-fg">
+            <label>Forma de contacto para la cita</label>
+            <div class="apt-contact-types">
+              <div class="apt-ctype sel" id="aptCtypeZoom" onclick="aptSelectTipo('zoom')">
+                <span class="apt-ctype-icon">💻</span>
+                <div><div class="apt-ctype-name">ZOOM</div><div class="apt-ctype-sub">Videollamada</div></div>
+              </div>
+              <div class="apt-ctype" id="aptCtypeWa" onclick="aptSelectTipo('whatsapp')">
+                <span class="apt-ctype-icon">📱</span>
+                <div><div class="apt-ctype-name">WhatsApp</div><div class="apt-ctype-sub">Llamada/Mensaje</div></div>
+              </div>
             </div>
-            <div class="apt-ctype" id="aptCtypeWa" onclick="aptSelectTipo('whatsapp')">
-              <span class="apt-ctype-icon">📱</span>
-              <div><div class="apt-ctype-name">WhatsApp</div><div class="apt-ctype-sub">Llamada/Mensaje</div></div>
+            <div id="aptPhoneWrap" style="display:none">
+              <div class="apt-phone-row">
+                <select id="aptCountryCode">
+                  <option value="+593">🇪🇨 Ecuador +593</option>
+                  <option value="+34">🇪🇸 España +34</option>
+                  <option value="+1">🇺🇸 EE.UU. +1</option>
+                  <option value="+57">🇨🇴 Colombia +57</option>
+                  <option value="+51">🇵🇪 Perú +51</option>
+                  <option value="+54">🇦🇷 Argentina +54</option>
+                  <option value="+52">🇲🇽 México +52</option>
+                  <option value="+56">🇨🇱 Chile +56</option>
+                  <option value="+58">🇻🇪 Venezuela +58</option>
+                  <option value="+591">🇧🇴 Bolivia +591</option>
+                  <option value="+598">🇺🇾 Uruguay +598</option>
+                  <option value="+595">🇵🇾 Paraguay +595</option>
+                  <option value="+55">🇧🇷 Brasil +55</option>
+                  <option value="+506">🇨🇷 Costa Rica +506</option>
+                  <option value="+507">🇵🇦 Panamá +507</option>
+                  <option value="+502">🇬🇹 Guatemala +502</option>
+                  <option value="+504">🇭🇳 Honduras +504</option>
+                  <option value="+503">🇸🇻 El Salvador +503</option>
+                  <option value="+505">🇳🇮 Nicaragua +505</option>
+                  <option value="+53">🇨🇺 Cuba +53</option>
+                  <option value="+1-809">🇩🇴 R. Dominicana +1-809</option>
+                  <option value="+39">🇮🇹 Italia +39</option>
+                  <option value="+33">🇫🇷 Francia +33</option>
+                  <option value="+49">🇩🇪 Alemania +49</option>
+                  <option value="+44">🇬🇧 Reino Unido +44</option>
+                  <option value="+1-1">🇨🇦 Canadá +1</option>
+                  <option value="+61">🇦🇺 Australia +61</option>
+                </select>
+                <input type="tel" id="aptPhone" placeholder="Número sin código de país" autocomplete="tel">
+              </div>
+              <div class="apt-err" id="aptPhoneErr" style="display:none">Por favor ingresa tu número de WhatsApp</div>
             </div>
           </div>
-          <div id="aptPhoneWrap" style="display:none">
-            <div class="apt-phone-row">
-              <select id="aptCountryCode">
-                <option value="+593">🇪🇨 Ecuador +593</option>
-                <option value="+34">🇪🇸 España +34</option>
-                <option value="+1">🇺🇸 EE.UU. +1</option>
-                <option value="+57">🇨🇴 Colombia +57</option>
-                <option value="+51">🇵🇪 Perú +51</option>
-                <option value="+54">🇦🇷 Argentina +54</option>
-                <option value="+52">🇲🇽 México +52</option>
-                <option value="+56">🇨🇱 Chile +56</option>
-                <option value="+58">🇻🇪 Venezuela +58</option>
-                <option value="+591">🇧🇴 Bolivia +591</option>
-                <option value="+598">🇺🇾 Uruguay +598</option>
-                <option value="+595">🇵🇾 Paraguay +595</option>
-                <option value="+55">🇧🇷 Brasil +55</option>
-                <option value="+506">🇨🇷 Costa Rica +506</option>
-                <option value="+507">🇵🇦 Panamá +507</option>
-                <option value="+502">🇬🇹 Guatemala +502</option>
-                <option value="+504">🇭🇳 Honduras +504</option>
-                <option value="+503">🇸🇻 El Salvador +503</option>
-                <option value="+505">🇳🇮 Nicaragua +505</option>
-                <option value="+53">🇨🇺 Cuba +53</option>
-                <option value="+1-809">🇩🇴 R. Dominicana +1-809</option>
-                <option value="+39">🇮🇹 Italia +39</option>
-                <option value="+33">🇫🇷 Francia +33</option>
-                <option value="+49">🇩🇪 Alemania +49</option>
-                <option value="+44">🇬🇧 Reino Unido +44</option>
-                <option value="+1-1">🇨🇦 Canadá +1</option>
-                <option value="+61">🇦🇺 Australia +61</option>
-              </select>
-              <input type="tel" id="aptPhone" placeholder="Número sin código de país" autocomplete="tel">
-            </div>
-            <div class="apt-err" id="aptPhoneErr" style="display:none">Por favor ingresa tu número de WhatsApp</div>
-          </div>
+          <button class="apt-btn apt-btn-primary" id="aptContinuarBtn" onclick="aptStep2()">Continuar →</button>
         </div>
-        <button class="apt-btn apt-btn-primary" onclick="aptStep2()">Continuar →</button>
+
+        <!-- Panel de verificación (aparece solo si tipo=whatsapp) -->
+        <div id="aptVerifPanel" style="display:none">
+          <div class="apt-verif-header">
+            <span style="font-size:1.6rem">🔐</span>
+            <div>
+              <div class="apt-verif-title">Verifica tu identidad</div>
+              <div class="apt-verif-sub">Confirma tu correo y WhatsApp para continuar</div>
+            </div>
+          </div>
+
+          <!-- Bloque email OTP -->
+          <div class="apt-verif-block">
+            <div class="apt-verif-blk-lbl">📧 Código enviado a <strong id="aptVerifEmail"></strong></div>
+            <div class="apt-otp-row" id="aptOtpRow">
+              <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code">
+              <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
+              <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
+              <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
+              <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
+              <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
+            </div>
+            <div class="apt-err" id="aptOtpErr" style="display:none">Código incorrecto. Intenta de nuevo.</div>
+            <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <span class="apt-resend-cd" id="aptResendCd"></span>
+              <button class="apt-resend-btn" id="aptResendBtn" style="display:none" onclick="aptResendOtp()">Reenviar código</button>
+            </div>
+          </div>
+
+          <!-- Bloque WhatsApp verify -->
+          <div class="apt-verif-block">
+            <div class="apt-verif-blk-lbl">📱 Verificar WhatsApp — <strong id="aptVerifPhone"></strong></div>
+            <p class="apt-verif-hint">Pulsa el botón para enviar tu código desde tu WhatsApp a nuestro número. Así confirmamos que el número es tuyo.</p>
+            <button class="apt-btn apt-btn-wa" id="aptWaVerifBtn" onclick="aptSendWaVerif()" style="margin:0">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.533 5.867L0 24l6.301-1.651A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.518-5.163-1.422l-.371-.219-3.742.981.998-3.642-.24-.375A9.939 9.939 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+              Enviar código por WhatsApp
+            </button>
+            <div id="aptWaVerifSent" style="display:none" class="apt-wa-sent">✓ Código enviado — ya puedes continuar</div>
+          </div>
+
+          <button class="apt-btn apt-btn-primary" id="aptVerifSubmitBtn" onclick="aptVerifSubmit()">Verificar y continuar →</button>
+          <button class="apt-btn apt-btn-ghost" onclick="aptCancelVerif()">← Volver</button>
+        </div>
+
       </div>
 
       <!-- Paso 2: calendario + hora -->

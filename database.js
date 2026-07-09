@@ -81,6 +81,17 @@ function initDB() {
     );
   `);
 
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS otp_verifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL,
+      phone TEXT NOT NULL DEFAULT '',
+      code TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      used INTEGER NOT NULL DEFAULT 0
+    );
+  `);
+
   // Migración: agregar columnas nuevas si no existen (para DBs existentes en producción)
   const citasCols = db.prepare('PRAGMA table_info(citas)').all().map(c => c.name);
   if (!citasCols.includes('contacto_tipo'))

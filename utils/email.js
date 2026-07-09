@@ -87,4 +87,46 @@ function escHtml(s) {
   return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-module.exports = { sendCitaConfirmada };
+async function sendOTP(email, code) {
+  if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
+    console.log(`[email] OTP para ${email}: ${code}`);
+    return;
+  }
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:32px 16px;background:#f8f7f4;font-family:'Helvetica Neue',Arial,sans-serif">
+  <div style="max-width:420px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08)">
+    <div style="background:#0f1e38;padding:28px 36px;text-align:center">
+      <div style="font-size:1.2rem;font-weight:800;color:#C9A227;letter-spacing:2px">PUENTE LEGAL</div>
+      <div style="font-size:.68rem;color:rgba(255,255,255,.3);margin-top:3px;letter-spacing:1px">INTERNACIONAL EC</div>
+    </div>
+    <div style="padding:36px">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="font-size:2.2rem;margin-bottom:10px">🔐</div>
+        <h1 style="font-size:1.1rem;color:#0f1e38;margin:0 0 6px;font-weight:700">Código de verificación</h1>
+        <p style="color:#64748b;font-size:.84rem;margin:0">Ingresa este código en el formulario de cita</p>
+      </div>
+      <div style="background:#f8f7f4;border-radius:12px;padding:28px;text-align:center;margin:0 0 24px">
+        <div style="font-size:2.6rem;font-weight:800;color:#0f1e38;letter-spacing:12px;font-family:'Courier New',monospace">${code}</div>
+        <div style="font-size:.72rem;color:#94a3b8;margin-top:10px">Válido por 10 minutos</div>
+      </div>
+      <p style="font-size:.75rem;color:#94a3b8;text-align:center;line-height:1.6">Si no solicitaste este código, ignora este mensaje.</p>
+    </div>
+    <div style="background:#f8f7f4;padding:16px 36px;text-align:center;border-top:1px solid #e2e8f0">
+      <div style="font-size:.68rem;color:#94a3b8">Puente Legal Internacional EC</div>
+    </div>
+  </div>
+</body>
+</html>`;
+  await createTransport().sendMail({
+    from: `"Puente Legal" <${from}>`,
+    to: email,
+    subject: `🔐 Tu código: ${code} — Puente Legal`,
+    html
+  });
+  console.log(`[email] OTP enviado a ${email}`);
+}
+
+module.exports = { sendCitaConfirmada, sendOTP };
