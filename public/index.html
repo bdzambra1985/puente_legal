@@ -411,6 +411,7 @@ footer{background:var(--navy);padding:72px 32px 36px}
 .apt-resend-btn{background:none;border:none;color:var(--navy);font-size:.73rem;font-weight:700;cursor:pointer;text-decoration:underline;padding:0;font-family:'Inter',sans-serif}
 .apt-verif-hint{font-size:.74rem;color:var(--muted);margin-bottom:12px;line-height:1.6}
 .apt-wa-sent{font-size:.8rem;font-weight:600;color:#16a34a;margin-top:10px;display:flex;align-items:center;gap:6px}
+.apt-wa-code-box{font-size:2.2rem;font-weight:800;letter-spacing:10px;font-family:'Courier New',monospace;color:var(--navy);background:var(--off);border-radius:10px;padding:18px 20px;text-align:center;margin-bottom:14px;border:2px solid var(--gold)}
 @media(max-width:480px){.apt-body{padding:22px 18px}.apt-header{padding:22px 18px 18px}.apt-contact-types{grid-template-columns:1fr 1fr}.apt-phone-row{flex-direction:column}.apt-phone-row select{width:100%}.apt-otp-d{width:36px;height:44px;font-size:1.1rem}}
 </style>
 </head>
@@ -882,39 +883,46 @@ function aptStep2(){
   } else {
     aptData.contactoValor='';
   }
-  // Ambos tipos (zoom y whatsapp) verifican por correo
   aptLaunchOtp();
 }
+
+var aptWaCode = '';
 
 function aptLaunchOtp(){
   var esWa = aptData.contactoTipo==='whatsapp';
   var btn=document.getElementById('aptContinuarBtn');
-  btn.disabled=true; btn.textContent='Enviando código...';
-  fetch('/api/citas/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},
+  btn.disabled=true; btn.textContent='Enviando...';
+  var url = esWa ? '/api/citas/gen-code' : '/api/citas/send-otp';
+  fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({email:aptData.email,phone:aptData.contactoValor})
   }).then(function(r){ return r.json(); }).then(function(d){
     btn.disabled=false; btn.textContent='Continuar →';
     if(d.ok){
       document.getElementById('aptMainForm').style.display='none';
       document.getElementById('aptVerifPanel').style.display='block';
-      document.getElementById('aptVerifEmail').textContent=aptData.email;
-      // Mostrar/ocultar bloque WhatsApp según tipo
-      var waBlock=document.getElementById('aptWaVerifBlock');
-      waBlock.style.display = esWa ? 'block' : 'none';
+      document.getElementById('aptVerifErr').style.display='none';
+      aptOtpVerified=false;
+      aptWaSent=false;
       if(esWa){
-        document.getElementById('aptVerifPhone').textContent=aptData.contactoValor;
+        // Mostrar modo WhatsApp, ocultar modo email
+        document.getElementById('aptVerifModoEmail').style.display='none';
+        document.getElementById('aptVerifModoWa').style.display='block';
+        aptWaCode = d.code || '';
+        document.getElementById('aptWaCodeDisplay').textContent = aptWaCode;
+        document.getElementById('aptVerifPhone').textContent = aptData.contactoValor;
         document.getElementById('aptWaVerifBtn').style.display='flex';
         document.getElementById('aptWaVerifSent').style.display='none';
-        aptWaSent=false;
       } else {
-        aptWaSent=true; // Zoom no necesita verificar WhatsApp
+        // Mostrar modo email, ocultar modo WhatsApp
+        document.getElementById('aptVerifModoEmail').style.display='block';
+        document.getElementById('aptVerifModoWa').style.display='none';
+        document.getElementById('aptVerifEmail').textContent=aptData.email;
+        document.getElementById('aptOtpErr').style.display='none';
+        aptInitOtpInputs();
+        aptStartResendTimer(60);
+        setTimeout(function(){ document.querySelector('.apt-otp-d').focus(); },100);
       }
-      document.getElementById('aptOtpErr').style.display='none';
-      aptOtpVerified=false;
-      aptInitOtpInputs();
-      aptStartResendTimer(60);
-      setTimeout(function(){ document.querySelector('.apt-otp-d').focus(); },100);
-    } else { aptShowAlert('Error enviando el código. Intenta de nuevo.'); }
+    } else { aptShowAlert('Error al iniciar verificación. Intenta de nuevo.'); }
   }).catch(function(){ btn.disabled=false; btn.textContent='Continuar →'; aptShowAlert('Error de conexión.'); });
 }
 
@@ -944,49 +952,52 @@ function aptResendOtp(){
 }
 
 function aptSendWaVerif(){
-  var code=Array.from(document.querySelectorAll('.apt-otp-d')).map(function(d){ return d.value; }).join('');
-  if(code.length<6||/\s/.test(code)){
-    aptShowVerifAlert('Primero ingresa el codigo de 6 digitos de tu correo');
-    return;
-  }
-  var floatEl=document.getElementById('floatWa');
-  var num=(floatEl&&floatEl.href)?floatEl.href.replace(/.*wa\.me\//,'').replace(/\?.*/,''):'593000000000';
   var msg='Verificacion WhatsApp - Puente Legal'
     +'\nNumero: '+aptData.contactoValor
-    +'\nCodigo: '+code
+    +'\nCodigo: '+aptWaCode
     +'\nPor favor confirmar mi numero. Gracias.';
-  window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+  window.open('https://wa.me/593996526419?text='+encodeURIComponent(msg),'_blank');
   aptWaSent=true;
   document.getElementById('aptWaVerifBtn').style.display='none';
   document.getElementById('aptWaVerifSent').style.display='flex';
 }
 
 function aptVerifSubmit(){
-  if(!aptWaSent){ aptShowVerifAlert('Primero envía el código de verificación por WhatsApp'); return; }
-  var code=Array.from(document.querySelectorAll('.apt-otp-d')).map(function(d){ return d.value; }).join('');
-  if(code.length<6||code.includes(' ')){ aptShowVerifAlert('Ingresa el código completo de 6 dígitos'); return; }
-  var btn=document.getElementById('aptVerifSubmitBtn');
-  btn.disabled=true; btn.textContent='Verificando...';
-  fetch('/api/citas/verify-otp',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({email:aptData.email,code:code})
-  }).then(function(r){ return r.json().then(function(j){ return {s:r.status,b:j}; }); })
-  .then(function(res){
-    btn.disabled=false; btn.textContent='Verificar y continuar →';
-    if(res.b.ok){
-      if(aptResendTimer) clearInterval(aptResendTimer);
-      aptOtpVerified=true;
-      aptShowMainForm();
-      aptGoStep(2);
-    } else {
-      var msg=res.b.error==='EXPIRED'?'El código expiró. Por favor reenvía.':'Código incorrecto. Intenta de nuevo.';
-      document.getElementById('aptOtpErr').textContent=msg;
-      document.getElementById('aptOtpErr').style.display='block';
-    }
-  }).catch(function(){ btn.disabled=false; btn.textContent='Verificar y continuar →'; aptShowVerifAlert('Error de conexión.'); });
+  var esWa = aptData.contactoTipo==='whatsapp';
+  if(esWa){
+    // WhatsApp: solo verificar que el usuario abrió el chat
+    if(!aptWaSent){ aptShowVerifAlert('Primero abre WhatsApp y envía el código'); return; }
+    if(aptResendTimer) clearInterval(aptResendTimer);
+    aptOtpVerified=true;
+    aptShowMainForm();
+    aptGoStep(2);
+  } else {
+    // Zoom: verificar OTP por correo
+    var code=Array.from(document.querySelectorAll('.apt-otp-d')).map(function(d){ return d.value; }).join('');
+    if(code.length<6||code.includes(' ')){ aptShowVerifAlert('Ingresa el código completo de 6 dígitos'); return; }
+    var btn=document.getElementById('aptVerifSubmitBtn');
+    btn.disabled=true; btn.textContent='Verificando...';
+    fetch('/api/citas/verify-otp',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email:aptData.email,code:code})
+    }).then(function(r){ return r.json().then(function(j){ return {s:r.status,b:j}; }); })
+    .then(function(res){
+      btn.disabled=false; btn.textContent='Verificar y continuar →';
+      if(res.b.ok){
+        if(aptResendTimer) clearInterval(aptResendTimer);
+        aptOtpVerified=true;
+        aptShowMainForm();
+        aptGoStep(2);
+      } else {
+        var msg=res.b.error==='EXPIRED'?'El código expiró. Por favor reenvía.':'Código incorrecto. Intenta de nuevo.';
+        document.getElementById('aptOtpErr').textContent=msg;
+        document.getElementById('aptOtpErr').style.display='block';
+      }
+    }).catch(function(){ btn.disabled=false; btn.textContent='Verificar y continuar →'; aptShowVerifAlert('Error de conexión.'); });
+  }
 }
 
 function aptShowVerifAlert(msg){
-  var err=document.getElementById('aptOtpErr');
+  var err=document.getElementById('aptVerifErr');
   err.textContent=msg; err.style.display='block';
   setTimeout(function(){ err.style.display='none'; },3500);
 }
@@ -1214,47 +1225,59 @@ function sendForm(e){
           <button class="apt-btn apt-btn-primary" id="aptContinuarBtn" onclick="aptStep2()">Continuar →</button>
         </div>
 
-        <!-- Panel de verificación (aparece solo si tipo=whatsapp) -->
+        <!-- Panel de verificación -->
         <div id="aptVerifPanel" style="display:none">
-          <div class="apt-verif-header">
-            <span style="font-size:1.6rem">🔐</span>
-            <div>
-              <div class="apt-verif-title">Verifica tu identidad</div>
-              <div class="apt-verif-sub">Ingresa el código que enviamos a tu correo</div>
+
+          <!-- MODO ZOOM: verificar por correo -->
+          <div id="aptVerifModoEmail">
+            <div class="apt-verif-header">
+              <span style="font-size:1.5rem">📧</span>
+              <div>
+                <div class="apt-verif-title">Verifica tu correo</div>
+                <div class="apt-verif-sub">Ingresa el código que enviamos a <strong id="aptVerifEmail"></strong></div>
+              </div>
+            </div>
+            <div class="apt-verif-block">
+              <div class="apt-otp-row" id="aptOtpRow">
+                <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code">
+                <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
+                <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
+                <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
+                <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
+                <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
+              </div>
+              <div class="apt-err" id="aptOtpErr" style="display:none">Código incorrecto. Intenta de nuevo.</div>
+              <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <span class="apt-resend-cd" id="aptResendCd"></span>
+                <button class="apt-resend-btn" id="aptResendBtn" style="display:none" onclick="aptResendOtp()">Reenviar código</button>
+              </div>
             </div>
           </div>
 
-          <!-- Bloque email OTP -->
-          <div class="apt-verif-block">
-            <div class="apt-verif-blk-lbl">📧 Código enviado a <strong id="aptVerifEmail"></strong></div>
-            <div class="apt-otp-row" id="aptOtpRow">
-              <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code">
-              <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
-              <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
-              <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
-              <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
-              <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
+          <!-- MODO WHATSAPP: mostrar código y abrir WhatsApp -->
+          <div id="aptVerifModoWa">
+            <div class="apt-verif-header">
+              <span style="font-size:1.5rem">📱</span>
+              <div>
+                <div class="apt-verif-title">Verifica tu WhatsApp</div>
+                <div class="apt-verif-sub">Número: <strong id="aptVerifPhone"></strong></div>
+              </div>
             </div>
-            <div class="apt-err" id="aptOtpErr" style="display:none">Código incorrecto. Intenta de nuevo.</div>
-            <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-              <span class="apt-resend-cd" id="aptResendCd"></span>
-              <button class="apt-resend-btn" id="aptResendBtn" style="display:none" onclick="aptResendOtp()">Reenviar código</button>
+            <div class="apt-verif-block">
+              <div class="apt-verif-blk-lbl" style="margin-bottom:6px">Tu código de verificación</div>
+              <div class="apt-wa-code-box" id="aptWaCodeDisplay">------</div>
+              <p class="apt-verif-hint">Pulsa el botón para abrir WhatsApp. El mensaje con tu código ya estará listo — solo envíalo.</p>
+              <button class="apt-btn apt-btn-wa" id="aptWaVerifBtn" onclick="aptSendWaVerif()" style="margin:0">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.533 5.867L0 24l6.301-1.651A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.518-5.163-1.422l-.371-.219-3.742.981.998-3.642-.24-.375A9.939 9.939 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                Abrir WhatsApp y enviar código
+              </button>
+              <div id="aptWaVerifSent" style="display:none" class="apt-wa-sent">&#10003; Mensaje enviado — puedes continuar</div>
             </div>
           </div>
 
-          <!-- Bloque WhatsApp verify (solo visible cuando tipo=whatsapp) -->
-          <div class="apt-verif-block" id="aptWaVerifBlock">
-            <div class="apt-verif-blk-lbl">📱 Verificar WhatsApp — <strong id="aptVerifPhone"></strong></div>
-            <p class="apt-verif-hint">Pulsa el botón para enviar tu código desde tu WhatsApp a nuestro número. Así confirmamos que el número es tuyo.</p>
-            <button class="apt-btn apt-btn-wa" id="aptWaVerifBtn" onclick="aptSendWaVerif()" style="margin:0">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.533 5.867L0 24l6.301-1.651A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.518-5.163-1.422l-.371-.219-3.742.981.998-3.642-.24-.375A9.939 9.939 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-              Enviar código por WhatsApp
-            </button>
-            <div id="aptWaVerifSent" style="display:none" class="apt-wa-sent">✓ Código enviado — ya puedes continuar</div>
-          </div>
-
-          <button class="apt-btn apt-btn-primary" id="aptVerifSubmitBtn" onclick="aptVerifSubmit()">Verificar y continuar →</button>
-          <button class="apt-btn apt-btn-ghost" onclick="aptCancelVerif()">← Volver</button>
+          <div id="aptVerifErr" class="apt-err" style="display:none;margin-bottom:10px"></div>
+          <button class="apt-btn apt-btn-primary" id="aptVerifSubmitBtn" onclick="aptVerifSubmit()">Verificar y continuar &#8594;</button>
+          <button class="apt-btn apt-btn-ghost" onclick="aptCancelVerif()">&#8592; Volver</button>
         </div>
 
       </div>

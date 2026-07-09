@@ -37,6 +37,19 @@ router.post('/citas/verify-otp', (req, res) => {
   res.json({ ok: true });
 });
 
+/* Generar código WhatsApp sin enviar email (POST /api/citas/gen-code) */
+router.post('/citas/gen-code', (req, res) => {
+  const { email, phone } = req.body;
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    return res.status(400).json({ error: 'Email inválido' });
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const expires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+  const db = getDB();
+  db.prepare('DELETE FROM otp_verifications WHERE email=?').run(email);
+  db.prepare('INSERT INTO otp_verifications (email,phone,code,expires_at) VALUES (?,?,?,?)').run(email, phone || '', code, expires);
+  res.json({ ok: true, code });
+});
+
 /* Slots disponibles para una fecha (GET /api/citas/disponibles?fecha=YYYY-MM-DD) */
 router.get('/citas/disponibles', (req, res) => {
   const { fecha } = req.query;
