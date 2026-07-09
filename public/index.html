@@ -1052,17 +1052,15 @@ function aptConfirm(){
       aptRenderSlots(); return;
     }
     if(!res.body.ok){ aptShowAlert('Error al registrar la cita. Intenta de nuevo.'); return; }
-    var contactoLinea=esZoom?'💻 Medio: Videollamada Zoom':'📱 WhatsApp: '+aptData.contactoValor;
-    var msg='Hola, nueva cita agendada:\n\n'+
-      '👤 Nombre: '+aptData.nombre+'\n'+
-      '📧 Correo: '+aptData.email+'\n'+
-      '📅 Fecha: '+ds+'\n'+
-      '🕐 Hora: '+aptData.time+'\n'+
-      contactoLinea+'\n\n'+
-      'Por favor confirmar la cita. Gracias.';
-    var floatEl=document.getElementById('floatWa');
-    var num=(floatEl&&floatEl.href)?floatEl.href.replace(/.*wa\.me\//,'').replace(/\?.*/,''):'593000000000';
-    window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+    var contactoLinea=esZoom?'Medio: Videollamada Zoom':'WhatsApp: '+aptData.contactoValor;
+    var msg='Hola, he agendado una cita:'
+      +'\nNombre: '+aptData.nombre
+      +'\nCorreo: '+aptData.email
+      +'\nFecha: '+ds
+      +'\nHora: '+aptData.time
+      +'\n'+contactoLinea
+      +'\nPor favor confirmar la cita. Gracias.';
+    window.open('https://wa.me/593996526419?text='+encodeURIComponent(msg),'_blank');
     closeApt();
   }).catch(function(){
     if(btn){ btn.disabled=false; btn.textContent=esZoom?'Confirmar cita':'Confirmar por WhatsApp'; }
