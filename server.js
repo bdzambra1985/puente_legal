@@ -1,11 +1,17 @@
 const express = require('express');
 const path = require('path');
 const { initDB } = require('./database');
+const securityHeaders = require('./middleware/securityHeaders');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+// Detrás del proxy de Railway: necesario para obtener la IP real (rate limiting)
+app.set('trust proxy', 1);
+app.disable('x-powered-by');
+
+app.use(securityHeaders);
+app.use(express.json({ limit: '256kb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/img', express.static(path.join(__dirname, 'img')));
 

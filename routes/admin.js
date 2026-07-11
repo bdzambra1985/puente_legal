@@ -27,7 +27,9 @@ router.get('/p12-status', (req, res) => {
 /* ── SRI CONFIG (GET config actual) ───────────────────────────────── */
 router.get('/sri-config', (req, res) => {
   const cfg = getSRIConfig(getDB());
-  res.json(cfg);
+  // Nunca exponer la contraseña del certificado por API; solo si está configurada.
+  const { p12Password, ...safe } = cfg;
+  res.json({ ...safe, p12PasswordSet: !!p12Password });
 });
 
 router.put('/sri-config', (req, res) => {
@@ -140,10 +142,19 @@ router.get('/facturas/:id', (req, res) => {
 });
 
 /* Servir comprobante (GET /api/admin/comprobante/:filename) */
+const COMPROBANTE_TYPES = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.pdf': 'application/pdf', '.webp': 'image/webp' };
 router.get('/comprobante/:filename', (req, res) => {
   const uploadsDir = path.join(path.dirname(process.env.DB_PATH || path.join(__dirname, '..', 'data.db')), 'comprobantes');
-  const file = path.join(uploadsDir, path.basename(req.params.filename));
+  const safeName = path.basename(req.params.filename);
+  const file = path.join(uploadsDir, safeName);
   if (!fs.existsSync(file)) return res.status(404).send('No encontrado');
+  // Content-Type fijo por extensión y descarga (no render inline) para evitar
+  // que un archivo malicioso se ejecute como HTML/SVG en el navegador del admin.
+  const ext = path.extname(safeName).toLowerCase();
+  const type = COMPROBANTE_TYPES[ext] || 'application/octet-stream';
+  res.setHeader('Content-Type', type);
+  res.setHeader('Content-Disposition', `inline; filename="${safeName}"`);
+  res.setHeader('X-Content-Type-Options', 'nosniff');
   res.sendFile(file);
 });
 
@@ -252,7 +263,10 @@ router.get('/contenido', (req, res) => {
 
 router.put('/contenido', (req, res) => {
   const upd = getDB().prepare('UPDATE contenido SET value=? WHERE key=?');
-  Object.entries(req.body).forEach(([k,v]) => upd.run(v, k));
+  // Solo actualiza claves ya existentes; coerciona a string.
+  Object.entries(req.body || {}).forEach(([k, v]) => {
+    if (v !== null && typeof v !== 'object') upd.run(String(v), k);
+  });
   res.json({ ok: true });
 });
 
@@ -263,9 +277,18 @@ router.get('/contacto', (req, res) => {
   ));
 });
 
+// Claves de `contacto` editables desde el panel de contacto. La config SRI y
+// la contraseña del .p12 se gestionan aparte (por /sri-config, con validación).
+const CONTACTO_EDITABLE = new Set([
+  'whatsapp', 'telefono', 'email', 'cobertura',
+  'banco_nombre', 'banco_titular', 'banco_tipo', 'banco_cuenta', 'banco_nota',
+]);
+
 router.put('/contacto', (req, res) => {
   const upd = getDB().prepare('UPDATE contacto SET value=? WHERE key=?');
-  Object.entries(req.body).forEach(([k,v]) => upd.run(v, k));
+  Object.entries(req.body || {}).forEach(([k, v]) => {
+    if (CONTACTO_EDITABLE.has(k) && v !== null && typeof v !== 'object') upd.run(String(v), k);
+  });
   res.json({ ok: true });
 });
 

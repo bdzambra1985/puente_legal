@@ -90,7 +90,8 @@ function escHtml(s) {
 
 async function sendOTP(email, code) {
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
-    console.log(`[email] OTP para ${email}: ${code}`);
+    // No registrar el código en logs de producción
+    if (process.env.NODE_ENV !== 'production') console.log(`[email] OTP para ${email}: ${code}`);
     return;
   }
   const from = process.env.SMTP_FROM || process.env.SMTP_USER;

@@ -665,6 +665,7 @@ a{text-decoration:none;color:inherit}
 /* ────────────────────────────────────────────────── */
 var TOKEN = localStorage.getItem('pl_token');
 var ME    = localStorage.getItem('pl_user') || 'admin';
+var MUST_CHANGE = false;
 
 var PANEL_TITLES = {
   inicio:'Inicio', citas:'Agenda de Citas', facturacion:'Facturación', testimonios:'Testimonios', servicios:'Servicios',
@@ -700,7 +701,7 @@ function doLogin(){
   fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pass})})
     .then(function(r){ return r.json(); })
     .then(function(d){
-      if(d.token){ TOKEN=d.token; ME=d.username; localStorage.setItem('pl_token',TOKEN); localStorage.setItem('pl_user',ME); showApp(); }
+      if(d.token){ TOKEN=d.token; ME=d.username; MUST_CHANGE=!!d.mustChangePassword; localStorage.setItem('pl_token',TOKEN); localStorage.setItem('pl_user',ME); showApp(); }
       else{ document.getElementById('loginErr').style.display='block'; btn.textContent='Entrar'; btn.disabled=false; }
     })
     .catch(function(){ document.getElementById('loginErr').style.display='block'; btn.textContent='Entrar'; btn.disabled=false; });
@@ -715,6 +716,11 @@ function showApp(){
     document.getElementById('resumenCharCount').textContent=this.value.length;
   });
   loadAll();
+  if(MUST_CHANGE){
+    var cuentaItem=document.querySelector('.sb-item[data-panel="cuenta"]');
+    if(cuentaItem) nav(cuentaItem);
+    toast('Por seguridad, cambia la contraseña por defecto antes de continuar','error');
+  }
 }
 
 function logout(){ TOKEN=null; localStorage.removeItem('pl_token'); localStorage.removeItem('pl_user'); location.reload(); }
@@ -1021,10 +1027,14 @@ function saveBanco(){
 /* ────────────────────────────────────────────────── */
 function changePassword(){
   var p1=document.getElementById('newPass').value, p2=document.getElementById('newPass2').value;
-  if(p1.length<6){ toast('Mínimo 6 caracteres','error'); return; }
+  if(p1.length<8){ toast('Mínimo 8 caracteres','error'); return; }
   if(p1!==p2){ toast('Las contraseñas no coinciden','error'); return; }
   api('POST','/api/auth/change-password',{newPassword:p1}).then(function(d){
-    if(d.ok){ toast('Contraseña actualizada'); document.getElementById('newPass').value=''; document.getElementById('newPass2').value=''; }
+    if(d.ok){
+      MUST_CHANGE=false;
+      toast('Contraseña actualizada');
+      document.getElementById('newPass').value=''; document.getElementById('newPass2').value='';
+    }
     else toast(d.error||'Error','error');
   });
 }

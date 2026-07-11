@@ -139,6 +139,10 @@ function initDB() {
   const existingContacto = db.prepare('SELECT key FROM contacto').all().map(r => r.key);
   const insContacto = db.prepare('INSERT OR IGNORE INTO contacto (key,value) VALUES (?,?)');
   const contactoDefaults = {
+    whatsapp:              '593000000000',
+    telefono:              '+593 00 000 0000',
+    email:                 'info@puentelegal.ec',
+    cobertura:             'Ecuador · Nacional e Internacional',
     banco_nombre:          'Banco Pichincha',
     banco_titular:         'Puente Legal Internacional EC',
     banco_tipo:            'Corriente',
@@ -158,12 +162,27 @@ function initDB() {
     if (!existingContacto.includes(k)) insContacto.run(k, v);
   });
 
+  // Migración: flag para forzar cambio de contraseña en el primer acceso
+  const adminCols = db.prepare('PRAGMA table_info(admin_users)').all().map(c => c.name);
+  if (!adminCols.includes('must_change_password'))
+    db.exec('ALTER TABLE admin_users ADD COLUMN must_change_password INTEGER NOT NULL DEFAULT 0');
+
+  // Migración: contador de intentos para limitar fuerza bruta de OTP
+  const otpCols = db.prepare('PRAGMA table_info(otp_verifications)').all().map(c => c.name);
+  if (!otpCols.includes('attempts'))
+    db.exec('ALTER TABLE otp_verifications ADD COLUMN attempts INTEGER NOT NULL DEFAULT 0');
+
   // Admin por defecto
   const adminExists = db.prepare('SELECT id FROM admin_users WHERE username = ?').get('admin');
   if (!adminExists) {
-    const hash = bcrypt.hashSync('puentelegal2026', 10);
-    db.prepare('INSERT INTO admin_users (username, password_hash) VALUES (?, ?)').run('admin', hash);
-    console.log('✓ Usuario admin creado  →  admin / puentelegal2026');
+    // La contraseña inicial se toma de ADMIN_INITIAL_PASSWORD si está definida.
+    // Si no, se usa una temporal y se OBLIGA a cambiarla en el primer login.
+    const initialPass = process.env.ADMIN_INITIAL_PASSWORD || 'puentelegal2026';
+    const mustChange  = process.env.ADMIN_INITIAL_PASSWORD ? 0 : 1;
+    const hash = bcrypt.hashSync(initialPass, 10);
+    db.prepare('INSERT INTO admin_users (username, password_hash, must_change_password) VALUES (?, ?, ?)')
+      .run('admin', hash, mustChange);
+    console.log('✓ Usuario admin creado' + (mustChange ? ' (deberá cambiar la contraseña en el primer acceso)' : ''));
   }
 
   // Testimonios iniciales
@@ -226,31 +245,8 @@ function initDB() {
     ].forEach(([k,v]) => ins.run(k,v));
   }
 
-  // Contacto inicial
-  const kc = db.prepare('SELECT COUNT(*) as c FROM contacto').get();
-  if (kc.c === 0) {
-    const ins = db.prepare('INSERT INTO contacto (key,value) VALUES (?,?)');
-    [
-      ['whatsapp',        '593000000000'],
-      ['telefono',        '+593 00 000 0000'],
-      ['email',           'info@puentelegal.ec'],
-      ['cobertura',       'Ecuador · Nacional e Internacional'],
-      ['banco_nombre',    'Banco Pichincha'],
-      ['banco_titular',   'Puente Legal Internacional EC'],
-      ['banco_tipo',      'Corriente'],
-      ['banco_cuenta',    '0000000000'],
-      ['banco_nota',           'Envía el comprobante por WhatsApp al +593 99 652 6419 indicando tu número de cita. Procesamos la confirmación en menos de 2 horas hábiles.'],
-      ['sri_ambiente',          '1'],
-      ['sri_ruc',               ''],
-      ['sri_razon_social',      ''],
-      ['sri_nombre_comercial',  ''],
-      ['sri_direccion',         ''],
-      ['sri_estab',             '001'],
-      ['sri_pto_emi',           '001'],
-      ['sri_iva_rate',          '15'],
-      ['p12_password',          ''],
-    ].forEach(([k,v]) => ins.run(k,v));
-  }
+  // (Los valores por defecto de `contacto` se siembran arriba de forma idempotente
+  //  con INSERT OR IGNORE, cubriendo tanto bases nuevas como existentes.)
 
   // Promo cards iniciales
   const pc = db.prepare('SELECT COUNT(*) as c FROM promo_cards').get();
