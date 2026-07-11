@@ -67,13 +67,23 @@ router.post('/citas', (req, res) => {
   const tipo = contacto_tipo === 'whatsapp' ? 'whatsapp' : 'zoom';
   const valor = String(contacto_valor || '').trim();
   try {
-    getDB().prepare('INSERT INTO citas (nombre,email,fecha,hora,contacto_tipo,contacto_valor) VALUES (?,?,?,?,?,?)')
+    const result = getDB()
+      .prepare('INSERT INTO citas (nombre,email,fecha,hora,contacto_tipo,contacto_valor) VALUES (?,?,?,?,?,?)')
       .run(nombre, email, fecha, hora, tipo, valor);
-    res.json({ ok: true });
+    res.json({ ok: true, id: result.lastInsertRowid });
   } catch (e) {
     if (e.code === 'SQLITE_CONSTRAINT_UNIQUE') return res.status(409).json({ error: 'SLOT_TAKEN' });
     res.status(500).json({ error: 'Error interno' });
   }
+});
+
+/* Buscar cita por ID (GET /api/citas/:id) — público */
+router.get('/citas/:id', (req, res) => {
+  const cita = getDB()
+    .prepare('SELECT id,nombre,fecha,hora,contacto_tipo,estado FROM citas WHERE id=?')
+    .get(req.params.id);
+  if (!cita) return res.status(404).json({ error: 'NOT_FOUND' });
+  res.json(cita);
 });
 
 router.get('/content', (req, res) => {

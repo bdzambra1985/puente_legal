@@ -412,6 +412,44 @@ footer{background:var(--navy);padding:72px 32px 36px}
 .apt-verif-hint{font-size:.74rem;color:var(--muted);margin-bottom:12px;line-height:1.6}
 .apt-wa-sent{font-size:.8rem;font-weight:600;color:#16a34a;margin-top:10px;display:flex;align-items:center;gap:6px}
 .apt-wa-code-box{font-size:2.2rem;font-weight:800;letter-spacing:10px;font-family:'Courier New',monospace;color:var(--navy);background:var(--off);border-radius:10px;padding:18px 20px;text-align:center;margin-bottom:14px;border:2px solid var(--gold)}
+/* ¡YA! tengo cita */
+.nav-cta-ya{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:1.5px solid var(--gold);background:transparent;color:var(--gold);font-family:'Inter',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;transition:background .18s,color .18s;white-space:nowrap}
+.nav-cta-ya:hover{background:var(--gold);color:#fff}
+/* Modal ya-tengo-cita */
+.ytc-overlay{position:fixed;inset:0;background:rgba(15,30,56,.6);backdrop-filter:blur(5px);z-index:1200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.ytc-overlay.open{opacity:1;pointer-events:auto}
+.ytc-box{background:#fff;border-radius:16px;width:min(440px,92vw);box-shadow:0 24px 64px rgba(15,30,56,.25);overflow:hidden}
+.ytc-head{background:var(--navy);padding:24px 28px 20px;color:#fff}
+.ytc-head h3{font-size:1rem;font-weight:700;margin:0 0 4px;font-family:'Playfair Display',serif}
+.ytc-head p{font-size:.78rem;color:rgba(255,255,255,.55);margin:0}
+.ytc-body{padding:24px 28px}
+.ytc-input-row{display:flex;gap:8px;margin-bottom:10px}
+.ytc-input-row input{flex:1;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:.9rem;color:var(--navy);outline:none;transition:border-color .2s}
+.ytc-input-row input:focus{border-color:var(--navy)}
+.ytc-input-row button{padding:11px 18px;border-radius:8px;background:var(--navy);color:#fff;border:none;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .18s}
+.ytc-input-row button:hover{background:#1B2B4B}
+.ytc-err{font-size:.75rem;color:#dc2626;margin-bottom:8px;display:none}
+.ytc-cita-info{background:var(--off);border-radius:10px;padding:14px 16px;font-size:.82rem;line-height:1.7;display:none;margin-bottom:16px}
+/* Modal de pago */
+.pago-overlay{position:fixed;inset:0;background:rgba(15,30,56,.6);backdrop-filter:blur(5px);z-index:1300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.pago-overlay.open{opacity:1;pointer-events:auto}
+.pago-box{background:#fff;border-radius:16px;width:min(500px,94vw);max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(15,30,56,.25)}
+.pago-head{background:var(--navy);padding:24px 28px 20px;display:flex;justify-content:space-between;align-items:flex-start}
+.pago-head h3{font-size:1rem;font-weight:700;color:#fff;margin:0;font-family:'Playfair Display',serif}
+.pago-close{background:none;border:none;cursor:pointer;padding:2px;line-height:1}
+.pago-close svg{width:20px;height:20px;fill:rgba(255,255,255,.6)}
+.pago-tabs{display:flex;border-bottom:1px solid var(--border)}
+.pago-tab{flex:1;padding:14px;border:none;background:none;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:color .18s,border-color .18s}
+.pago-tab.active{color:var(--navy);border-bottom-color:var(--gold)}
+.pago-panel{padding:24px 28px;display:none}
+.pago-panel.active{display:block}
+.pago-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--off)}
+.pago-row:last-child{border:none}
+.pago-lbl{font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.pago-val{font-size:.85rem;font-weight:700;color:var(--navy);text-align:right}
+.pago-copy{background:none;border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:.7rem;color:var(--muted);cursor:pointer;margin-left:8px;transition:border-color .15s}
+.pago-copy:hover{border-color:var(--navy);color:var(--navy)}
+.pago-nota{font-size:.75rem;color:var(--muted);line-height:1.6;margin-top:16px;background:var(--off);border-radius:8px;padding:12px 14px}
 @media(max-width:480px){.apt-body{padding:22px 18px}.apt-header{padding:22px 18px 18px}.apt-contact-types{grid-template-columns:1fr 1fr}.apt-phone-row{flex-direction:column}.apt-phone-row select{width:100%}.apt-otp-d{width:36px;height:44px;font-size:1.1rem}}
 </style>
 </head>
@@ -435,13 +473,12 @@ footer{background:var(--navy);padding:72px 32px 36px}
       <a href="#contacto">Contacto</a>
     </div>
     <div class="nav-right">
-      <div class="nav-phone">
-        <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
-        <span id="navTelefono">+593 00 000 0000</span>
-      </div>
       <a id="navCtaWa" href="#" class="nav-cta" onclick="openApt();return false;">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="flex-shrink:0"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zM9 14H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg>
         Agendar cita</a>
+      <button class="nav-cta-ya" onclick="openYaTengoCita()">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style="flex-shrink:0"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+        ¡YA! tengo cita</button>
     </div>
     <button class="hamburger" id="hamburger" aria-label="Menú">
       <span></span><span></span><span></span>
@@ -1052,8 +1089,10 @@ function aptConfirm(){
       aptRenderSlots(); return;
     }
     if(!res.body.ok){ aptShowAlert('Error al registrar la cita. Intenta de nuevo.'); return; }
+    var citaId = res.body.id || '';
     var contactoLinea=esZoom?'Medio: Videollamada Zoom':'WhatsApp: '+aptData.contactoValor;
     var msg='Hola, he agendado una cita:'
+      +'\nN. de cita: '+citaId
       +'\nNombre: '+aptData.nombre
       +'\nCorreo: '+aptData.email
       +'\nFecha: '+ds
@@ -1143,6 +1182,97 @@ function sendForm(e){
     e.target.reset();
     setTimeout(function(){ btn.textContent='Enviar consulta'; btn.style.background=''; btn.disabled=false; }, 4500);
   }, 1100);
+}
+
+/* ── ¡YA! TENGO CITA ─────────────────────────────── */
+var ytcCita = null;
+
+function openYaTengoCita(){
+  document.getElementById('ytcNumero').value='';
+  document.getElementById('ytcErr').style.display='none';
+  document.getElementById('ytcInfo').style.display='none';
+  document.getElementById('ytcPagarBtn').style.display='none';
+  ytcCita=null;
+  document.getElementById('ytcOverlay').classList.add('open');
+  setTimeout(function(){ document.getElementById('ytcNumero').focus(); },150);
+}
+
+function closeYaTengoCita(e){
+  if(e===true||e.target===document.getElementById('ytcOverlay'))
+    document.getElementById('ytcOverlay').classList.remove('open');
+}
+
+function buscarCita(){
+  var num=document.getElementById('ytcNumero').value.trim();
+  var errEl=document.getElementById('ytcErr');
+  var infoEl=document.getElementById('ytcInfo');
+  var pagarBtn=document.getElementById('ytcPagarBtn');
+  if(!num||isNaN(num)||Number(num)<1){
+    errEl.textContent='Ingresa un número de cita válido.';
+    errEl.style.display='block';
+    infoEl.style.display='none';
+    pagarBtn.style.display='none';
+    return;
+  }
+  errEl.style.display='none';
+  infoEl.style.display='none';
+  pagarBtn.style.display='none';
+  pagarBtn.textContent='Buscando...';
+  fetch('/api/citas/'+encodeURIComponent(num))
+    .then(function(r){ return r.json().then(function(j){ return {s:r.status,b:j}; }); })
+    .then(function(res){
+      if(res.s!==200||!res.b.id){
+        errEl.textContent='No se encontró ninguna cita con ese número. Verifica el número que recibiste por correo o WhatsApp.';
+        errEl.style.display='block';
+        return;
+      }
+      ytcCita=res.b;
+      var tipoStr=ytcCita.contacto_tipo==='zoom'?'Videollamada Zoom':'WhatsApp';
+      infoEl.innerHTML='<strong>Cita #'+ytcCita.id+'</strong><br>'
+        +ytcCita.nombre+'<br>'
+        +ytcCita.fecha+' a las '+ytcCita.hora+'<br>'
+        +'Medio: '+tipoStr+'<br>'
+        +'Estado: <strong>'+ytcCita.estado+'</strong>';
+      infoEl.style.display='block';
+      pagarBtn.textContent='Ver opciones de pago →';
+      pagarBtn.style.display='block';
+    })
+    .catch(function(){
+      errEl.textContent='Error de conexión. Intenta de nuevo.';
+      errEl.style.display='block';
+    });
+}
+
+function abrirPago(){
+  if(!ytcCita) return;
+  document.getElementById('pagoCitaResumen').innerHTML=
+    '<strong>Cita #'+ytcCita.id+'</strong> &nbsp;·&nbsp; '+ytcCita.nombre
+    +' &nbsp;·&nbsp; '+ytcCita.fecha+' '+ytcCita.hora;
+  document.getElementById('pagoRef').innerHTML='Cita #'+ytcCita.id
+    +'<button class="pago-copy" onclick="copiar(\'Cita #'+ytcCita.id+'\')">Copiar</button>';
+  document.getElementById('ytcOverlay').classList.remove('open');
+  pagoTab('transferencia', document.querySelector('.pago-tab'));
+  document.getElementById('pagoOverlay').classList.add('open');
+}
+
+function cerrarPago(e){
+  if(e===true||e.target===document.getElementById('pagoOverlay'))
+    document.getElementById('pagoOverlay').classList.remove('open');
+}
+
+function pagoTab(tab, btn){
+  document.querySelectorAll('.pago-tab').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelectorAll('.pago-panel').forEach(function(p){ p.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
+  document.getElementById('pago'+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add('active');
+}
+
+function copiar(txt){
+  navigator.clipboard.writeText(txt).catch(function(){
+    var el=document.createElement('textarea');
+    el.value=txt; document.body.appendChild(el); el.select();
+    document.execCommand('copy'); document.body.removeChild(el);
+  });
 }
 </script>
 
@@ -1318,6 +1448,60 @@ function sendForm(e){
         <button class="apt-btn apt-btn-ghost" onclick="aptGoStep(2)">← Cambiar fecha u hora</button>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ¡YA! tengo cita -->
+<div class="ytc-overlay" id="ytcOverlay" onclick="closeYaTengoCita(event)">
+  <div class="ytc-box">
+    <div class="ytc-head">
+      <h3>¡YA! tengo cita</h3>
+      <p>Ingresa tu número de cita para ver las opciones de pago</p>
+    </div>
+    <div class="ytc-body">
+      <div class="ytc-input-row">
+        <input type="number" id="ytcNumero" placeholder="Número de cita (ej: 12)" min="1" onkeydown="if(event.key==='Enter')buscarCita()">
+        <button onclick="buscarCita()">Buscar</button>
+      </div>
+      <div class="ytc-err" id="ytcErr">No se encontró ninguna cita con ese número.</div>
+      <div class="ytc-cita-info" id="ytcInfo"></div>
+      <button id="ytcPagarBtn" style="display:none;width:100%;padding:12px;border-radius:8px;background:var(--gold);color:#fff;border:none;font-family:'Inter',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:background .18s" onclick="abrirPago()">Ver opciones de pago →</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Opciones de pago -->
+<div class="pago-overlay" id="pagoOverlay" onclick="cerrarPago(event)">
+  <div class="pago-box">
+    <div class="pago-head">
+      <h3>Opciones de pago</h3>
+      <button class="pago-close" onclick="cerrarPago(true)"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+    </div>
+    <div id="pagoCitaResumen" style="padding:14px 28px;background:rgba(15,30,56,.04);font-size:.8rem;color:var(--navy);border-bottom:1px solid var(--border)"></div>
+    <div class="pago-tabs">
+      <button class="pago-tab active" onclick="pagoTab('transferencia',this)">Transferencia bancaria</button>
+      <button class="pago-tab" onclick="pagoTab('tarjeta',this)">Tarjeta de crédito/débito</button>
+    </div>
+    <div class="pago-panel active" id="pagoTransferencia">
+      <div class="pago-row"><span class="pago-lbl">Banco</span><span class="pago-val">Banco Pichincha<button class="pago-copy" onclick="copiar('Banco Pichincha')">Copiar</button></span></div>
+      <div class="pago-row"><span class="pago-lbl">Titular</span><span class="pago-val">Puente Legal Internacional EC<button class="pago-copy" onclick="copiar('Puente Legal Internacional EC')">Copiar</button></span></div>
+      <div class="pago-row"><span class="pago-lbl">Tipo de cuenta</span><span class="pago-val">Corriente</span></div>
+      <div class="pago-row"><span class="pago-lbl">N° de cuenta</span><span class="pago-val" id="pagoCuenta">0000000000<button class="pago-copy" onclick="copiar(document.getElementById('pagoCuenta').firstChild.textContent)">Copiar</button></span></div>
+      <div class="pago-row"><span class="pago-lbl">Referencia</span><span class="pago-val" id="pagoRef">Cita #—<button class="pago-copy" onclick="copiar(document.getElementById('pagoRef').firstChild.textContent)">Copiar</button></span></div>
+      <div class="pago-nota">Una vez realizada la transferencia envía el comprobante por WhatsApp al <strong>+593 99 652 6419</strong> indicando tu número de cita. Procesamos la confirmación en menos de 2 horas hábiles.</div>
+    </div>
+    <div class="pago-panel" id="pagoTarjeta">
+      <div style="text-align:center;padding:10px 0 20px">
+        <div style="font-size:2.4rem;margin-bottom:12px">💳</div>
+        <p style="font-size:.88rem;color:var(--navy);font-weight:600;margin-bottom:8px">Pago seguro con tarjeta</p>
+        <p style="font-size:.78rem;color:var(--muted);margin-bottom:20px;line-height:1.6">Te enviaremos un enlace de pago seguro por WhatsApp o email a la hora de confirmar tu cita.</p>
+        <a href="https://wa.me/593996526419?text=Hola%2C%20quiero%20pagar%20con%20tarjeta%20mi%20cita" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:#25D366;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:.85rem">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.533 5.867L0 24l6.301-1.651A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.518-5.163-1.422l-.371-.219-3.742.981.998-3.642-.24-.375A9.939 9.939 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+          Solicitar enlace de pago
+        </a>
+      </div>
+      <div class="pago-nota">También aceptamos Paypal, Western Union y transferencia internacional. Escríbenos para coordinar el método que mejor se adapte a tu país.</div>
     </div>
   </div>
 </div>

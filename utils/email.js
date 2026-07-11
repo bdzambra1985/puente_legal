@@ -47,6 +47,7 @@ async function sendCitaConfirmada(cita) {
       </div>
 
       <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:4px">
+        ${detalle('🔖', 'N° Cita', String(cita.id))}
         ${detalle('📅', 'Fecha', cita.fecha)}
         ${detalle('🕐', 'Hora', cita.hora + ' (hora Ecuador)')}
         ${detalle(esZoom ? '💻' : '📱', 'Medio', esZoom ? 'Videollamada Zoom' : 'WhatsApp')}
