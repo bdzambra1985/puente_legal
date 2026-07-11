@@ -92,6 +92,32 @@ function initDB() {
     );
   `);
 
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS facturas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      cita_id INTEGER,
+      cliente_nombre TEXT NOT NULL DEFAULT '',
+      cliente_email  TEXT NOT NULL DEFAULT '',
+      cliente_doc    TEXT NOT NULL DEFAULT '',
+      monto          REAL NOT NULL DEFAULT 0,
+      subtotal       REAL NOT NULL DEFAULT 0,
+      iva            REAL NOT NULL DEFAULT 0,
+      iva_rate       REAL NOT NULL DEFAULT 15,
+      concepto       TEXT NOT NULL DEFAULT '',
+      forma_pago     TEXT NOT NULL DEFAULT '20',
+      estab          TEXT NOT NULL DEFAULT '',
+      pto_emi        TEXT NOT NULL DEFAULT '',
+      secuencial     INTEGER NOT NULL DEFAULT 0,
+      fecha_emision  TEXT NOT NULL DEFAULT '',
+      numero_factura TEXT NOT NULL DEFAULT '',
+      clave_acceso   TEXT NOT NULL DEFAULT '',
+      sri_estado     TEXT NOT NULL DEFAULT 'pendiente',
+      sri_data       TEXT NOT NULL DEFAULT '{}',
+      created_at     TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+    );
+  `);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_facturas_estab_ptoemi ON facturas(estab, pto_emi)`);
+
   // Migración: agregar columnas nuevas si no existen (para DBs existentes en producción)
   const citasCols = db.prepare('PRAGMA table_info(citas)').all().map(c => c.name);
   if (!citasCols.includes('contacto_tipo'))
@@ -109,18 +135,28 @@ function initDB() {
   if (!citasCols.includes('comprobante_estado'))
     db.exec("ALTER TABLE citas ADD COLUMN comprobante_estado TEXT NOT NULL DEFAULT ''");
 
-  // Migración: agregar datos bancarios a contacto si no existen
-  const bancoKeys = ['banco_nombre','banco_titular','banco_tipo','banco_cuenta','banco_nota'];
+  // Migración: agregar datos bancarios y SRI a contacto si no existen
   const existingContacto = db.prepare('SELECT key FROM contacto').all().map(r => r.key);
-  const insBanco = db.prepare('INSERT OR IGNORE INTO contacto (key,value) VALUES (?,?)');
-  const bancoDefaults = {
-    banco_nombre:  'Banco Pichincha',
-    banco_titular: 'Puente Legal Internacional EC',
-    banco_tipo:    'Corriente',
-    banco_cuenta:  '0000000000',
-    banco_nota:    'Envía el comprobante por WhatsApp al +593 99 652 6419 indicando tu número de cita. Procesamos la confirmación en menos de 2 horas hábiles.'
+  const insContacto = db.prepare('INSERT OR IGNORE INTO contacto (key,value) VALUES (?,?)');
+  const contactoDefaults = {
+    banco_nombre:          'Banco Pichincha',
+    banco_titular:         'Puente Legal Internacional EC',
+    banco_tipo:            'Corriente',
+    banco_cuenta:          '0000000000',
+    banco_nota:            'Envía el comprobante por WhatsApp al +593 99 652 6419 indicando tu número de cita. Procesamos la confirmación en menos de 2 horas hábiles.',
+    sri_ambiente:          '1',
+    sri_ruc:               '',
+    sri_razon_social:      '',
+    sri_nombre_comercial:  '',
+    sri_direccion:         '',
+    sri_estab:             '001',
+    sri_pto_emi:           '001',
+    sri_iva_rate:          '15',
+    p12_password:          '',
   };
-  bancoKeys.forEach(k => { if (!existingContacto.includes(k)) insBanco.run(k, bancoDefaults[k]); });
+  Object.entries(contactoDefaults).forEach(([k, v]) => {
+    if (!existingContacto.includes(k)) insContacto.run(k, v);
+  });
 
   // Admin por defecto
   const adminExists = db.prepare('SELECT id FROM admin_users WHERE username = ?').get('admin');
@@ -203,7 +239,16 @@ function initDB() {
       ['banco_titular',   'Puente Legal Internacional EC'],
       ['banco_tipo',      'Corriente'],
       ['banco_cuenta',    '0000000000'],
-      ['banco_nota',      'Envía el comprobante por WhatsApp al +593 99 652 6419 indicando tu número de cita. Procesamos la confirmación en menos de 2 horas hábiles.'],
+      ['banco_nota',           'Envía el comprobante por WhatsApp al +593 99 652 6419 indicando tu número de cita. Procesamos la confirmación en menos de 2 horas hábiles.'],
+      ['sri_ambiente',          '1'],
+      ['sri_ruc',               ''],
+      ['sri_razon_social',      ''],
+      ['sri_nombre_comercial',  ''],
+      ['sri_direccion',         ''],
+      ['sri_estab',             '001'],
+      ['sri_pto_emi',           '001'],
+      ['sri_iva_rate',          '15'],
+      ['p12_password',          ''],
     ].forEach(([k,v]) => ins.run(k,v));
   }
 

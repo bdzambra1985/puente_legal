@@ -190,6 +190,9 @@ a{text-decoration:none;color:inherit}
       <div class="sb-item" data-panel="citas" onclick="nav(this)">
         <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>Agenda de Citas
       </div>
+      <div class="sb-item" data-panel="facturacion" onclick="nav(this)">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zM8 13h8v2H8v-2zm0 4h8v2H8v-2z"/></svg>Facturación
+      </div>
       <div class="sb-label">Contenido</div>
       <div class="sb-item" data-panel="testimonios" onclick="nav(this)">
         <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>Testimonios
@@ -290,6 +293,62 @@ a{text-decoration:none;color:inherit}
               <tbody id="citasBody"></tbody>
             </table>
           </div>
+        </div>
+      </div>
+
+      <!-- FACTURACIÓN -->
+      <div class="panel-section" id="panel-facturacion">
+        <div style="display:flex;flex-direction:column;gap:20px">
+
+          <div class="card">
+            <div class="card-header"><div><h2>Configuración SRI</h2><p>Datos del emisor para la facturación electrónica</p></div></div>
+            <div class="card-body">
+              <div class="info-box"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg><div>Mientras el ambiente esté en <strong>Pruebas</strong>, las facturas se envían al SRI de certificación (no válidas fiscalmente). Cambia a <strong>Producción</strong> solo cuando el RUC y el certificado estén verificados.</div></div>
+              <div class="form-grid form-grid-2">
+                <div class="fg"><label>RUC</label><input type="text" id="sri_ruc" placeholder="1790000000001" maxlength="13"></div>
+                <div class="fg"><label>Ambiente</label><select id="sri_ambiente"><option value="1">Pruebas (certificación)</option><option value="2">Producción</option></select></div>
+                <div class="fg"><label>Razón social</label><input type="text" id="sri_razon_social" placeholder="Puente Legal Internacional EC"></div>
+                <div class="fg"><label>Nombre comercial</label><input type="text" id="sri_nombre_comercial" placeholder="Puente Legal"></div>
+                <div class="fg" style="grid-column:1/-1"><label>Dirección matriz</label><input type="text" id="sri_direccion" placeholder="Av. Ejemplo N00-00 y Calle, Quito"></div>
+                <div class="fg"><label>Establecimiento</label><input type="text" id="sri_estab" placeholder="001" maxlength="3"></div>
+                <div class="fg"><label>Punto de emisión</label><input type="text" id="sri_pto_emi" placeholder="001" maxlength="3"></div>
+                <div class="fg"><label>% IVA</label><input type="number" id="sri_iva_rate" placeholder="15"></div>
+              </div>
+              <div style="margin-top:20px">
+                <button class="btn btn-primary" onclick="saveSriConfig()"><svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>Guardar configuración</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div><h2>Certificado digital (.p12)</h2><p>Firma electrónica usada para autorizar comprobantes ante el SRI</p></div></div>
+            <div class="card-body">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+                <span id="p12StatusBadge" class="badge-inactive">Sin certificado</span>
+              </div>
+              <div class="form-grid form-grid-2">
+                <div class="fg"><label>Archivo .p12</label><input type="file" id="p12File" accept=".p12,.pfx"></div>
+                <div class="fg"><label>Contraseña del certificado</label><input type="password" id="sri_p12_password" placeholder="••••••••"></div>
+              </div>
+              <div style="margin-top:20px">
+                <button class="btn btn-primary" onclick="uploadP12()">Subir certificado</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div><h2>Facturas emitidas</h2><p>Historial de comprobantes enviados al SRI</p></div>
+              <button class="btn btn-gold" onclick="openFacturaModal()"><svg viewBox="0 0 24 24"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Nueva factura</button>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="table" id="facturasTable">
+                <thead><tr><th>N° Factura</th><th>Cliente</th><th>Monto</th><th>Estado</th><th>Emitida</th><th>Acciones</th></tr></thead>
+                <tbody id="facturasBody"></tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -455,6 +514,61 @@ a{text-decoration:none;color:inherit}
   </div>
 </div>
 
+<!-- MODAL NUEVA FACTURA -->
+<div class="overlay" id="facturaModalOverlay" onclick="closeFacturaModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Nueva factura electrónica</h3>
+      <button class="modal-close" onclick="closeFacturaModal(true)"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-grid form-grid-2">
+          <div class="fg"><label>Nombre del cliente</label><input type="text" id="f_cliente_nombre" placeholder="Juan Pérez"></div>
+          <div class="fg"><label>Cédula / RUC / Pasaporte</label><input type="text" id="f_cliente_doc" placeholder="0102030405"></div>
+        </div>
+        <div class="form-grid form-grid-2">
+          <div class="fg"><label>Email (opcional)</label><input type="email" id="f_cliente_email" placeholder="cliente@email.com"></div>
+          <div class="fg"><label>N° de cita (opcional, solo referencia)</label><input type="number" id="f_cita_id" placeholder="123"></div>
+        </div>
+        <div class="fg"><label>Concepto / descripción del servicio</label><input type="text" id="f_concepto" placeholder="Asesoría legal — Poder notarial"></div>
+        <div class="form-grid form-grid-2">
+          <div class="fg"><label>Monto total (incluye IVA)</label><input type="number" id="f_monto" placeholder="112.00" step="0.01"></div>
+          <div class="fg"><label>Forma de pago</label>
+            <select id="f_forma_pago">
+              <option value="20">Transferencia bancaria</option>
+              <option value="01">Efectivo</option>
+              <option value="19">Tarjeta de crédito</option>
+              <option value="16">Tarjeta de débito</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeFacturaModal(true)">Cancelar</button>
+      <button class="btn btn-gold" id="facturaSaveBtn" onclick="saveFactura()">Emitir factura</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALLE FACTURA -->
+<div class="overlay" id="facturaDetalleOverlay" onclick="closeFacturaDetalle(event)">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <h3>Detalle de factura</h3>
+      <button class="modal-close" onclick="closeFacturaDetalle(true)"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div id="facturaDetalleBody" style="font-size:.85rem;line-height:1.8"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeFacturaDetalle(true)">Cerrar</button>
+      <button class="btn btn-gold" id="facturaReintentarBtn" style="display:none" onclick="reintentarFacturaDesdeDetalle()">Reintentar envío</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST CONTAINER -->
 <div id="toast"></div>
 
@@ -553,12 +667,13 @@ var TOKEN = localStorage.getItem('pl_token');
 var ME    = localStorage.getItem('pl_user') || 'admin';
 
 var PANEL_TITLES = {
-  inicio:'Inicio', citas:'Agenda de Citas', testimonios:'Testimonios', servicios:'Servicios',
+  inicio:'Inicio', citas:'Agenda de Citas', facturacion:'Facturación', testimonios:'Testimonios', servicios:'Servicios',
   promo:'Soluciones Complementarias', contenido:'Textos generales',
   contacto:'Datos de contacto', cuenta:'Mi cuenta'
 };
 var PANEL_SUBS = {
   inicio:'Resumen del panel', citas:'Citas agendadas desde el sitio web',
+  facturacion:'Facturación electrónica SRI',
   testimonios:'Gestión de reseñas de clientes',
   servicios:'Edición de servicios', promo:'Firma electrónica, tributario, facturación',
   contenido:'Hero, estadísticas y FAQ', contacto:'WhatsApp, email y cobertura', cuenta:'Seguridad'
@@ -616,6 +731,7 @@ function nav(el){
   document.getElementById('topbarTitle').textContent=PANEL_TITLES[panel]||panel;
   document.getElementById('topbarSub').textContent=PANEL_SUBS[panel]||'';
   if(panel==='citas'){ loadCitas(); loadOtpPending(); }
+  if(panel==='facturacion'){ loadSriConfig(); loadP12Status(); loadFacturas(); }
 }
 
 /* ────────────────────────────────────────────────── */
@@ -918,6 +1034,182 @@ function changePassword(){
 /* ────────────────────────────────────────────────── */
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
+
+/* ────────────────────────────────────────────────── */
+/*  FACTURACIÓN (SRI)                                 */
+/* ────────────────────────────────────────────────── */
+var facturasData = [];
+var facturaDetalleId = null;
+var SRI_ESTADO_BADGE = { autorizada:'badge-active', error:'badge-inactive' };
+
+function loadSriConfig(){
+  api('GET','/api/admin/sri-config').then(function(cfg){
+    if(!cfg) return;
+    document.getElementById('sri_ruc').value = cfg.ruc || '';
+    document.getElementById('sri_ambiente').value = cfg.ambiente || '1';
+    document.getElementById('sri_razon_social').value = cfg.razonSocial || '';
+    document.getElementById('sri_nombre_comercial').value = cfg.nombreComercial || '';
+    document.getElementById('sri_direccion').value = cfg.direccion || '';
+    document.getElementById('sri_estab').value = cfg.estab || '001';
+    document.getElementById('sri_pto_emi').value = cfg.ptoEmi || '001';
+    document.getElementById('sri_iva_rate').value = cfg.ivaRate || 15;
+  });
+}
+
+function saveSriConfig(){
+  var body = {
+    sri_ruc: document.getElementById('sri_ruc').value.trim(),
+    sri_ambiente: document.getElementById('sri_ambiente').value,
+    sri_razon_social: document.getElementById('sri_razon_social').value.trim(),
+    sri_nombre_comercial: document.getElementById('sri_nombre_comercial').value.trim(),
+    sri_direccion: document.getElementById('sri_direccion').value.trim(),
+    sri_estab: document.getElementById('sri_estab').value.trim(),
+    sri_pto_emi: document.getElementById('sri_pto_emi').value.trim(),
+    sri_iva_rate: document.getElementById('sri_iva_rate').value
+  };
+  api('PUT','/api/admin/sri-config', body).then(function(d){
+    if(d.ok){ toast('Configuración SRI guardada'); loadSriConfig(); }
+    else toast(d.error || 'Error al guardar', 'error');
+  });
+}
+
+function loadP12Status(){
+  api('GET','/api/admin/p12-status').then(function(d){
+    var badge = document.getElementById('p12StatusBadge');
+    if(d && d.exists){ badge.className='badge-active'; badge.textContent='Certificado cargado'; }
+    else{ badge.className='badge-inactive'; badge.textContent='Sin certificado'; }
+  });
+}
+
+function uploadP12(){
+  var fileInput = document.getElementById('p12File');
+  var password = document.getElementById('sri_p12_password').value;
+  var tasks = [];
+  if(fileInput.files && fileInput.files[0]){
+    var fd = new FormData();
+    fd.append('p12', fileInput.files[0]);
+    tasks.push(fetch('/api/admin/p12-upload', { method:'POST', headers:{ 'Authorization':'Bearer '+TOKEN }, body: fd }).then(function(r){ return r.json(); }));
+  }
+  if(password){
+    tasks.push(api('PUT','/api/admin/sri-config', { p12_password: password }));
+  }
+  if(!tasks.length){ toast('Selecciona un archivo o ingresa la contraseña', 'error'); return; }
+  Promise.all(tasks).then(function(results){
+    var failed = results.find(function(r){ return r && r.error; });
+    if(failed){ toast(failed.error, 'error'); return; }
+    toast('Certificado actualizado');
+    document.getElementById('p12File').value = '';
+    document.getElementById('sri_p12_password').value = '';
+    loadP12Status();
+  });
+}
+
+function loadFacturas(){
+  api('GET','/api/admin/facturas').then(function(data){
+    facturasData = data || [];
+    renderFacturas();
+  });
+}
+
+function renderFacturas(){
+  var tbody = document.getElementById('facturasBody');
+  if(!tbody) return;
+  if(!facturasData.length){
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px">No hay facturas emitidas</td></tr>';
+    return;
+  }
+  tbody.innerHTML = '';
+  facturasData.forEach(function(f){
+    var badgeClass = SRI_ESTADO_BADGE[f.sri_estado] || 'badge-pendiente';
+    var acciones = '<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px" onclick="viewFacturaDetalle('+f.id+')">Ver</button>';
+    if(f.sri_estado === 'error'){
+      acciones += '<button class="btn btn-gold" style="font-size:.72rem;padding:5px 12px;margin-left:4px" onclick="reintentarFactura('+f.id+')">Reintentar</button>';
+    }
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td style="font-size:.8rem;font-weight:600">'+escH(f.numero_factura)+'</td>'
+      +'<td><strong style="font-size:.83rem">'+escH(f.cliente_nombre)+'</strong><br><span style="font-size:.71rem;color:var(--muted)">'+escH(f.cliente_doc)+'</span></td>'
+      +'<td style="font-size:.82rem;font-weight:600">$'+parseFloat(f.monto).toFixed(2)+'</td>'
+      +'<td><span class="'+badgeClass+'">'+escH(f.sri_estado)+'</span></td>'
+      +'<td style="font-size:.71rem;color:var(--muted);white-space:nowrap">'+escH((f.created_at||'').substring(0,16))+'</td>'
+      +'<td>'+acciones+'</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function openFacturaModal(){
+  ['f_cliente_nombre','f_cliente_doc','f_cliente_email','f_cita_id','f_concepto','f_monto'].forEach(function(id){
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('f_forma_pago').value = '20';
+  document.getElementById('facturaModalOverlay').classList.add('open');
+}
+
+function closeFacturaModal(force){
+  if(force===true || (force && force.target===document.getElementById('facturaModalOverlay')))
+    document.getElementById('facturaModalOverlay').classList.remove('open');
+}
+
+function saveFactura(){
+  var body = {
+    cliente_nombre: document.getElementById('f_cliente_nombre').value.trim(),
+    cliente_doc: document.getElementById('f_cliente_doc').value.trim(),
+    cliente_email: document.getElementById('f_cliente_email').value.trim(),
+    cita_id: document.getElementById('f_cita_id').value || undefined,
+    concepto: document.getElementById('f_concepto').value.trim(),
+    monto: document.getElementById('f_monto').value,
+    forma_pago: document.getElementById('f_forma_pago').value
+  };
+  if(!body.cliente_nombre || !body.cliente_doc || !body.monto){
+    toast('Nombre, documento y monto son obligatorios', 'error'); return;
+  }
+  var btn = document.getElementById('facturaSaveBtn');
+  btn.disabled = true; btn.textContent = 'Emitiendo...';
+  api('POST','/api/admin/facturas', body).then(function(r){
+    btn.disabled = false; btn.textContent = 'Emitir factura';
+    if(r.error && !r.id){ toast(r.error, 'error'); return; }
+    closeFacturaModal(true);
+    loadFacturas();
+    if(r.ok) toast('Factura '+r.numero_factura+' autorizada por el SRI');
+    else toast('Factura '+r.numero_factura+' guardada, pero el SRI la rechazó: '+r.error, 'error');
+  });
+}
+
+function viewFacturaDetalle(id){
+  api('GET','/api/admin/facturas/'+id).then(function(f){
+    if(!f || f.error) return;
+    facturaDetalleId = id;
+    var html = '<strong>'+escH(f.numero_factura)+'</strong> &nbsp;·&nbsp; <span class="'+(SRI_ESTADO_BADGE[f.sri_estado]||'badge-pendiente')+'">'+escH(f.sri_estado)+'</span><br><br>'
+      +'Cliente: '+escH(f.cliente_nombre)+' ('+escH(f.cliente_doc)+')<br>'
+      +(f.cliente_email ? 'Email: '+escH(f.cliente_email)+'<br>' : '')
+      +'Concepto: '+escH(f.concepto)+'<br>'
+      +'Subtotal: $'+parseFloat(f.subtotal).toFixed(2)+' &nbsp;·&nbsp; IVA ('+f.iva_rate+'%): $'+parseFloat(f.iva).toFixed(2)+' &nbsp;·&nbsp; Total: $'+parseFloat(f.monto).toFixed(2)+'<br>'
+      +(f.clave_acceso ? 'Clave de acceso: <span style="font-family:monospace;font-size:.72rem;word-break:break-all">'+escH(f.clave_acceso)+'</span><br>' : '')
+      +(f.sri_data && f.sri_data.numeroAutorizacion ? 'N° Autorización: <span style="font-family:monospace;font-size:.72rem">'+escH(f.sri_data.numeroAutorizacion)+'</span><br>' : '')
+      +(f.sri_data && f.sri_data.error ? '<br><span style="color:var(--red)">Error SRI: '+escH(f.sri_data.error)+'</span>' : '');
+    document.getElementById('facturaDetalleBody').innerHTML = html;
+    document.getElementById('facturaReintentarBtn').style.display = f.sri_estado === 'error' ? 'inline-flex' : 'none';
+    document.getElementById('facturaDetalleOverlay').classList.add('open');
+  });
+}
+
+function closeFacturaDetalle(force){
+  if(force===true || (force && force.target===document.getElementById('facturaDetalleOverlay')))
+    document.getElementById('facturaDetalleOverlay').classList.remove('open');
+}
+
+function reintentarFactura(id){
+  api('POST','/api/admin/facturas/'+id+'/reintentar').then(function(r){
+    loadFacturas();
+    if(r.ok) toast('Factura '+r.numero_factura+' autorizada por el SRI');
+    else toast('Sigue sin autorizarse: '+(r.error||''), 'error');
+  });
+}
+
+function reintentarFacturaDesdeDetalle(){
+  if(!facturaDetalleId) return;
+  closeFacturaDetalle(true);
+  reintentarFactura(facturaDetalleId);
+}
 
 /* ────────────────────────────────────────────────── */
 /*  CITAS                                             */

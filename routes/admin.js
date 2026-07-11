@@ -1,12 +1,143 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const multer = require('multer');
 const { getDB } = require('../database');
 const auth = require('../middleware/auth');
 const { sendCitaConfirmada } = require('../utils/email');
+const { emitirFactura, getSRIConfig, getP12Path } = require('../sri/index');
 
 const router = express.Router();
 router.use(auth);
+
+/* ── P12 upload (multer en memoria) ────────────────────────────────── */
+const uploadP12 = multer({ storage: multer.memoryStorage(), limits: { fileSize: 2 * 1024 * 1024 } });
+
+router.post('/p12-upload', uploadP12.single('p12'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Sin archivo' });
+  fs.writeFileSync(getP12Path(), req.file.buffer, { mode: 0o600 });
+  res.json({ ok: true });
+});
+
+router.get('/p12-status', (req, res) => {
+  const p = getP12Path();
+  res.json({ exists: fs.existsSync(p) });
+});
+
+/* ── SRI CONFIG (GET config actual) ───────────────────────────────── */
+router.get('/sri-config', (req, res) => {
+  const cfg = getSRIConfig(getDB());
+  res.json(cfg);
+});
+
+router.put('/sri-config', (req, res) => {
+  const body = req.body || {};
+  const ALLOWED = ['sri_ambiente','sri_ruc','sri_razon_social','sri_nombre_comercial',
+                   'sri_direccion','sri_estab','sri_pto_emi','sri_iva_rate','p12_password'];
+
+  if ('sri_ruc' in body && body.sri_ruc !== '' && !/^\d{13}$/.test(String(body.sri_ruc)))
+    return res.status(400).json({ error: 'RUC debe tener 13 dígitos' });
+  if ('sri_ambiente' in body && !['1','2'].includes(String(body.sri_ambiente)))
+    return res.status(400).json({ error: 'Ambiente debe ser 1 (pruebas) o 2 (producción)' });
+  if ('sri_iva_rate' in body && isNaN(parseFloat(body.sri_iva_rate)))
+    return res.status(400).json({ error: 'iva_rate debe ser numérico' });
+  if ('sri_estab' in body && !/^\d{1,3}$/.test(String(body.sri_estab)))
+    return res.status(400).json({ error: 'Establecimiento inválido' });
+  if ('sri_pto_emi' in body && !/^\d{1,3}$/.test(String(body.sri_pto_emi)))
+    return res.status(400).json({ error: 'Punto de emisión inválido' });
+
+  const norm = { ...body };
+  if ('sri_estab' in norm)   norm.sri_estab   = String(norm.sri_estab).padStart(3, '0');
+  if ('sri_pto_emi' in norm) norm.sri_pto_emi = String(norm.sri_pto_emi).padStart(3, '0');
+
+  const db = getDB();
+  const upd = db.prepare('UPDATE contacto SET value=? WHERE key=?');
+  Object.entries(norm).filter(([k]) => ALLOWED.includes(k)).forEach(([k, v]) => upd.run(String(v), k));
+  res.json({ ok: true });
+});
+
+function nextSecuencial(db, estab, ptoEmi) {
+  const row = db.prepare('SELECT MAX(secuencial) as m FROM facturas WHERE estab=? AND pto_emi=?').get(estab, ptoEmi);
+  return (row.m || 0) + 1;
+}
+
+/* ── FACTURACIÓN ELECTRÓNICA (SRI) ─────────────────────────────────── */
+router.post('/facturas', async (req, res) => {
+  const { cita_id, cliente_nombre, cliente_email, cliente_doc, monto, concepto, forma_pago } = req.body || {};
+  const montoNum = parseFloat(monto);
+  if (!cliente_nombre || !cliente_doc || !monto || isNaN(montoNum) || montoNum <= 0)
+    return res.status(400).json({ error: 'Faltan campos o monto inválido' });
+
+  const db = getDB();
+  const cfg = getSRIConfig(db);
+  const ivaRate  = cfg.ivaRate || 15;
+  const subtotal = Math.round((montoNum / (1 + ivaRate / 100)) * 100) / 100;
+  const iva      = Math.round((montoNum - subtotal) * 100) / 100;
+
+  const secuencial    = nextSecuencial(db, cfg.estab, cfg.ptoEmi);
+  const fechaEmision  = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Guayaquil' });
+  const numeroFactura = `${cfg.estab}-${cfg.ptoEmi}-${String(secuencial).padStart(9, '0')}`;
+
+  const ins = db.prepare(`INSERT INTO facturas
+    (cita_id, cliente_nombre, cliente_email, cliente_doc, monto, subtotal, iva, iva_rate,
+     concepto, forma_pago, estab, pto_emi, secuencial, fecha_emision, numero_factura, sri_estado)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'procesando')`)
+    .run(cita_id || null, cliente_nombre, cliente_email || '', cliente_doc, montoNum, subtotal, iva,
+         ivaRate, concepto || '', forma_pago || '20', cfg.estab, cfg.ptoEmi, secuencial, fechaEmision, numeroFactura);
+  const facturaId = ins.lastInsertRowid;
+
+  try {
+    const result = await emitirFactura(db, {
+      nombre: cliente_nombre, email: cliente_email, doc: cliente_doc,
+      monto: montoNum, subtotal, iva, concepto, formaPago: forma_pago || '20',
+      fecha: fechaEmision, secuencial
+    });
+    db.prepare('UPDATE facturas SET clave_acceso=?, sri_estado=?, sri_data=? WHERE id=?')
+      .run(result.claveAcceso || '', result.ok ? 'autorizada' : 'error', JSON.stringify(result), facturaId);
+    res.json({ ok: result.ok, id: facturaId, numero_factura: numeroFactura,
+               ...(result.ok ? {} : { error: result.error }) });
+  } catch (e) {
+    db.prepare('UPDATE facturas SET sri_estado=?, sri_data=? WHERE id=?')
+      .run('error', JSON.stringify({ ok: false, error: e.message }), facturaId);
+    res.json({ ok: false, id: facturaId, numero_factura: numeroFactura, error: e.message });
+  }
+});
+
+router.post('/facturas/:id/reintentar', async (req, res) => {
+  const db  = getDB();
+  const row = db.prepare('SELECT * FROM facturas WHERE id=?').get(req.params.id);
+  if (!row) return res.status(404).json({ error: 'NOT_FOUND' });
+  if (row.sri_estado !== 'error')
+    return res.status(409).json({ error: 'Solo se puede reintentar una factura en estado error' });
+
+  db.prepare("UPDATE facturas SET sri_estado='procesando' WHERE id=?").run(row.id);
+  try {
+    const result = await emitirFactura(db, {
+      nombre: row.cliente_nombre, email: row.cliente_email, doc: row.cliente_doc,
+      monto: row.monto, subtotal: row.subtotal, iva: row.iva,
+      concepto: row.concepto, formaPago: row.forma_pago,
+      fecha: row.fecha_emision, secuencial: row.secuencial
+    });
+    db.prepare('UPDATE facturas SET clave_acceso=?, sri_estado=?, sri_data=? WHERE id=?')
+      .run(result.claveAcceso || '', result.ok ? 'autorizada' : 'error', JSON.stringify(result), row.id);
+    res.json({ ok: result.ok, id: row.id, numero_factura: row.numero_factura,
+               ...(result.ok ? {} : { error: result.error }) });
+  } catch (e) {
+    db.prepare('UPDATE facturas SET sri_estado=?, sri_data=? WHERE id=?')
+      .run('error', JSON.stringify({ ok: false, error: e.message }), row.id);
+    res.json({ ok: false, id: row.id, error: e.message });
+  }
+});
+
+router.get('/facturas', (req, res) => {
+  res.json(getDB().prepare('SELECT * FROM facturas ORDER BY id DESC').all());
+});
+
+router.get('/facturas/:id', (req, res) => {
+  const row = getDB().prepare('SELECT * FROM facturas WHERE id=?').get(req.params.id);
+  if (!row) return res.status(404).json({ error: 'NOT_FOUND' });
+  res.json({ ...row, sri_data: JSON.parse(row.sri_data || '{}') });
+});
 
 /* Servir comprobante (GET /api/admin/comprobante/:filename) */
 router.get('/comprobante/:filename', (req, res) => {
