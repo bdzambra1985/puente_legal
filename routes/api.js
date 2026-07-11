@@ -1,8 +1,30 @@
 const express = require('express');
+const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
 const { getDB } = require('../database');
 const { sendOTP } = require('../utils/email');
 
 const router = express.Router();
+
+const uploadsDir = path.join(path.dirname(process.env.DB_PATH || path.join(__dirname, '..', 'data.db')), 'comprobantes');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: uploadsDir,
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
+    cb(null, `cita-${req.params.id}-${Date.now()}${ext}`);
+  }
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const ok = /jpeg|jpg|png|pdf|webp/.test(file.mimetype);
+    cb(ok ? null : new Error('Tipo de archivo no permitido'), ok);
+  }
+});
 
 const SLOTS_ALL = ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00'];
 
@@ -80,10 +102,21 @@ router.post('/citas', (req, res) => {
 /* Buscar cita por ID (GET /api/citas/:id) — público */
 router.get('/citas/:id', (req, res) => {
   const cita = getDB()
-    .prepare('SELECT id,nombre,fecha,hora,contacto_tipo,estado FROM citas WHERE id=?')
+    .prepare('SELECT id,nombre,fecha,hora,contacto_tipo,estado,comprobante_estado FROM citas WHERE id=?')
     .get(req.params.id);
   if (!cita) return res.status(404).json({ error: 'NOT_FOUND' });
   res.json(cita);
+});
+
+/* Subir comprobante (POST /api/citas/:id/comprobante) — público */
+router.post('/citas/:id/comprobante', upload.single('comprobante'), (req, res) => {
+  const db = getDB();
+  const cita = db.prepare('SELECT id FROM citas WHERE id=?').get(req.params.id);
+  if (!cita) return res.status(404).json({ error: 'NOT_FOUND' });
+  if (!req.file) return res.status(400).json({ error: 'Sin archivo' });
+  db.prepare('UPDATE citas SET comprobante_path=?, comprobante_estado=? WHERE id=?')
+    .run(req.file.filename, 'pendiente', req.params.id);
+  res.json({ ok: true });
 });
 
 router.get('/content', (req, res) => {

@@ -104,6 +104,10 @@ function initDB() {
     db.exec("ALTER TABLE citas ADD COLUMN resumen_titulo TEXT NOT NULL DEFAULT ''");
   if (!citasCols.includes('resumen_texto'))
     db.exec("ALTER TABLE citas ADD COLUMN resumen_texto TEXT NOT NULL DEFAULT ''");
+  if (!citasCols.includes('comprobante_path'))
+    db.exec("ALTER TABLE citas ADD COLUMN comprobante_path TEXT NOT NULL DEFAULT ''");
+  if (!citasCols.includes('comprobante_estado'))
+    db.exec("ALTER TABLE citas ADD COLUMN comprobante_estado TEXT NOT NULL DEFAULT ''");
 
   // Migración: agregar datos bancarios a contacto si no existen
   const bancoKeys = ['banco_nombre','banco_titular','banco_tipo','banco_cuenta','banco_nota'];

@@ -1,6 +1,9 @@
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Wiki personal
+
+Cuando termines cambios importantes en este proyecto, actualizá también /home/dzc/Escritorio/wiki/log.md y la página correspondiente en wiki/proyectos/, siguiendo las convenciones de wiki/CLAUDE.md.
 
 ## Architecture
 

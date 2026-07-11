@@ -1258,6 +1258,15 @@ function abrirPago(){
     +'<button class="pago-copy" onclick="copiar(\'Cita #'+ytcCita.id+'\')">Copiar</button>';
   document.getElementById('ytcOverlay').classList.remove('open');
   pagoTab('transferencia', document.querySelector('.pago-tab'));
+  // Resetear upload
+  pagoArchivoSeleccionado = null;
+  document.getElementById('pagoFileInput').value = '';
+  document.getElementById('pagoUploadArea').style.display = 'block';
+  document.getElementById('pagoUploadArea').style.borderColor = '';
+  document.getElementById('pagoFileName').style.display = 'none';
+  document.getElementById('pagoEnviarBtn').style.display = 'none';
+  document.getElementById('pagoUploadOk').style.display = 'none';
+  document.getElementById('pagoUploadErr').style.display = 'none';
   document.getElementById('pagoOverlay').classList.add('open');
 }
 
@@ -1279,6 +1288,54 @@ function copiar(txt){
     el.value=txt; document.body.appendChild(el); el.select();
     document.execCommand('copy'); document.body.removeChild(el);
   });
+}
+
+var pagoArchivoSeleccionado = null;
+
+function pagoSeleccionarArchivo(file){
+  if(!file) return;
+  pagoArchivoSeleccionado = file;
+  document.getElementById('pagoFileName').textContent = '📄 '+file.name+' ('+Math.round(file.size/1024)+' KB)';
+  document.getElementById('pagoFileName').style.display = 'block';
+  document.getElementById('pagoEnviarBtn').style.display = 'block';
+  document.getElementById('pagoUploadErr').style.display = 'none';
+  document.getElementById('pagoUploadArea').style.borderColor = 'var(--gold)';
+}
+
+function pagoOnDrop(e){
+  e.preventDefault();
+  document.getElementById('pagoUploadArea').style.borderColor = '';
+  var file = e.dataTransfer.files[0];
+  if(file) pagoSeleccionarArchivo(file);
+}
+
+function pagoEnviarComprobante(){
+  if(!pagoArchivoSeleccionado || !ytcCita) return;
+  var btn = document.getElementById('pagoEnviarBtn');
+  var errEl = document.getElementById('pagoUploadErr');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  errEl.style.display = 'none';
+  var fd = new FormData();
+  fd.append('comprobante', pagoArchivoSeleccionado);
+  fetch('/api/citas/'+ytcCita.id+'/comprobante', { method:'POST', body:fd })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      btn.disabled = false; btn.textContent = 'Enviar comprobante';
+      if(d.ok){
+        document.getElementById('pagoUploadArea').style.display = 'none';
+        document.getElementById('pagoFileName').style.display = 'none';
+        btn.style.display = 'none';
+        document.getElementById('pagoUploadOk').style.display = 'block';
+      } else {
+        errEl.textContent = d.error || 'Error al enviar. Intenta de nuevo.';
+        errEl.style.display = 'block';
+      }
+    })
+    .catch(function(){
+      btn.disabled = false; btn.textContent = 'Enviar comprobante';
+      errEl.textContent = 'Error de conexión. Intenta de nuevo.';
+      errEl.style.display = 'block';
+    });
 }
 </script>
 
@@ -1495,7 +1552,19 @@ function copiar(txt){
       <div class="pago-row"><span class="pago-lbl">Tipo de cuenta</span><span class="pago-val"><span id="pagoBancoTipo">—</span></span></div>
       <div class="pago-row"><span class="pago-lbl">N° de cuenta</span><span class="pago-val"><span id="pagoBancoCuenta">—</span><button class="pago-copy" onclick="copiar(document.getElementById('pagoBancoCuenta').textContent)">Copiar</button></span></div>
       <div class="pago-row"><span class="pago-lbl">Referencia</span><span class="pago-val" id="pagoRef">Cita #—<button class="pago-copy" onclick="copiar(document.getElementById('pagoRef').firstChild.textContent)">Copiar</button></span></div>
-      <div class="pago-nota" id="pagoBancoNota"></div>
+      <div id="pagoComprobanteWrap" style="margin-top:20px">
+        <label style="font-size:.75rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">Adjuntar comprobante de transferencia</label>
+        <div id="pagoUploadArea" style="border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:border-color .2s" onclick="document.getElementById('pagoFileInput').click()" ondragover="event.preventDefault();this.style.borderColor='var(--gold)'" ondragleave="this.style.borderColor=''" ondrop="pagoOnDrop(event)">
+          <div style="font-size:1.6rem;margin-bottom:6px">📎</div>
+          <div style="font-size:.82rem;color:var(--muted)">Haz clic o arrastra el archivo aquí</div>
+          <div style="font-size:.72rem;color:var(--muted);margin-top:4px">JPG, PNG, PDF o WEBP · máx. 10 MB</div>
+        </div>
+        <input type="file" id="pagoFileInput" accept="image/*,.pdf" style="display:none" onchange="pagoSeleccionarArchivo(this.files[0])">
+        <div id="pagoFileName" style="font-size:.78rem;color:var(--navy);margin-top:8px;display:none"></div>
+        <div id="pagoUploadErr" style="font-size:.75rem;color:#dc2626;margin-top:6px;display:none"></div>
+        <button id="pagoEnviarBtn" onclick="pagoEnviarComprobante()" style="display:none;margin-top:12px;width:100%;padding:11px;border-radius:8px;background:var(--navy);color:#fff;border:none;font-family:'Inter',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;transition:background .18s">Enviar comprobante</button>
+        <div id="pagoUploadOk" style="display:none;background:#f0fdf4;border:1px solid rgba(22,163,74,.25);border-radius:8px;padding:12px 14px;font-size:.82rem;color:#166534;margin-top:12px;text-align:center">&#10003; Comprobante recibido — verificaremos tu pago y confirmaremos tu cita.</div>
+      </div>
     </div>
     <div class="pago-panel" id="pagoTarjeta">
       <div style="text-align:center;padding:10px 0 20px">

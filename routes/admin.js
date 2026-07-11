@@ -1,10 +1,20 @@
 const express = require('express');
+const path = require('path');
+const fs = require('fs');
 const { getDB } = require('../database');
 const auth = require('../middleware/auth');
 const { sendCitaConfirmada } = require('../utils/email');
 
 const router = express.Router();
 router.use(auth);
+
+/* Servir comprobante (GET /api/admin/comprobante/:filename) */
+router.get('/comprobante/:filename', (req, res) => {
+  const uploadsDir = path.join(path.dirname(process.env.DB_PATH || path.join(__dirname, '..', 'data.db')), 'comprobantes');
+  const file = path.join(uploadsDir, path.basename(req.params.filename));
+  if (!fs.existsSync(file)) return res.status(404).send('No encontrado');
+  res.sendFile(file);
+});
 
 /* ── TESTIMONIOS ─────────────────────────────────────────── */
 router.get('/testimonios', (req, res) => {
@@ -79,6 +89,11 @@ router.put('/citas/:id', async (req, res) => {
   if (resumen_titulo !== undefined || resumen_texto !== undefined) {
     db.prepare('UPDATE citas SET resumen_titulo=?, resumen_texto=? WHERE id=?')
       .run(resumen_titulo ?? '', resumen_texto ?? '', req.params.id);
+    return res.json({ ok: true });
+  }
+  if (req.body.comprobante_estado !== undefined) {
+    db.prepare('UPDATE citas SET comprobante_estado=? WHERE id=?')
+      .run(req.body.comprobante_estado, req.params.id);
     return res.json({ ok: true });
   }
   db.prepare('UPDATE citas SET estado=? WHERE id=?').run(estado, req.params.id);
