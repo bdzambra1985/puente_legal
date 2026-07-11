@@ -721,6 +721,12 @@ function applyContacto(c){
   var ce = document.getElementById('contactEmail'); if(ce) ce.textContent = c.email||'';
   var cc = document.getElementById('contactCobertura'); if(cc) cc.textContent = c.cobertura||'';
   var nt = document.getElementById('navTelefono'); if(nt) nt.textContent = c.telefono||'';
+  // Datos bancarios en modal de pago
+  if(c.banco_nombre)  document.getElementById('pagoBancoNombre').textContent  = c.banco_nombre;
+  if(c.banco_titular) document.getElementById('pagoBancoTitular').textContent = c.banco_titular;
+  if(c.banco_tipo)    document.getElementById('pagoBancoTipo').textContent    = c.banco_tipo;
+  if(c.banco_cuenta)  document.getElementById('pagoBancoCuenta').textContent  = c.banco_cuenta;
+  if(c.banco_nota)    document.getElementById('pagoBancoNota').textContent    = c.banco_nota;
 }
 
 function applyContenido(con){
@@ -1484,12 +1490,12 @@ function copiar(txt){
       <button class="pago-tab" onclick="pagoTab('tarjeta',this)">Tarjeta de crédito/débito</button>
     </div>
     <div class="pago-panel active" id="pagoTransferencia">
-      <div class="pago-row"><span class="pago-lbl">Banco</span><span class="pago-val">Banco Pichincha<button class="pago-copy" onclick="copiar('Banco Pichincha')">Copiar</button></span></div>
-      <div class="pago-row"><span class="pago-lbl">Titular</span><span class="pago-val">Puente Legal Internacional EC<button class="pago-copy" onclick="copiar('Puente Legal Internacional EC')">Copiar</button></span></div>
-      <div class="pago-row"><span class="pago-lbl">Tipo de cuenta</span><span class="pago-val">Corriente</span></div>
-      <div class="pago-row"><span class="pago-lbl">N° de cuenta</span><span class="pago-val" id="pagoCuenta">0000000000<button class="pago-copy" onclick="copiar(document.getElementById('pagoCuenta').firstChild.textContent)">Copiar</button></span></div>
+      <div class="pago-row"><span class="pago-lbl">Banco</span><span class="pago-val"><span id="pagoBancoNombre">—</span><button class="pago-copy" onclick="copiar(document.getElementById('pagoBancoNombre').textContent)">Copiar</button></span></div>
+      <div class="pago-row"><span class="pago-lbl">Titular</span><span class="pago-val"><span id="pagoBancoTitular">—</span><button class="pago-copy" onclick="copiar(document.getElementById('pagoBancoTitular').textContent)">Copiar</button></span></div>
+      <div class="pago-row"><span class="pago-lbl">Tipo de cuenta</span><span class="pago-val"><span id="pagoBancoTipo">—</span></span></div>
+      <div class="pago-row"><span class="pago-lbl">N° de cuenta</span><span class="pago-val"><span id="pagoBancoCuenta">—</span><button class="pago-copy" onclick="copiar(document.getElementById('pagoBancoCuenta').textContent)">Copiar</button></span></div>
       <div class="pago-row"><span class="pago-lbl">Referencia</span><span class="pago-val" id="pagoRef">Cita #—<button class="pago-copy" onclick="copiar(document.getElementById('pagoRef').firstChild.textContent)">Copiar</button></span></div>
-      <div class="pago-nota">Una vez realizada la transferencia envía el comprobante por WhatsApp al <strong>+593 99 652 6419</strong> indicando tu número de cita. Procesamos la confirmación en menos de 2 horas hábiles.</div>
+      <div class="pago-nota" id="pagoBancoNota"></div>
     </div>
     <div class="pago-panel" id="pagoTarjeta">
       <div style="text-align:center;padding:10px 0 20px">
