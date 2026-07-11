@@ -103,7 +103,7 @@ async function enviarComprobante(xmlSigned, ambiente) {
 
     const url      = URLS.recepcion[String(ambiente)] || URLS.recepcion['1'];
     const response = await soapPost(url, body);
-    console.log('SRI recepcion RAW:', response.slice(0, 2000));
+    if (process.env.SRI_DEBUG === 'true') console.log('SRI recepcion RAW:', response.slice(0, 2000));
 
     const estado   = tagValue(response, 'estado');
     const mensajes = parseMensajes(response);
@@ -123,7 +123,7 @@ async function autorizarComprobante(claveAcceso, ambiente) {
 
     const url      = URLS.autorizacion[String(ambiente)] || URLS.autorizacion['1'];
     const response = await soapPost(url, body);
-    console.log('SRI autorizacion RAW:', response.slice(0, 2000));
+    if (process.env.SRI_DEBUG === 'true') console.log('SRI autorizacion RAW:', response.slice(0, 2000));
 
     const autorizaciones = [];
     const re = /<autorizacion>([\s\S]*?)<\/autorizacion>/g;

@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const SECRET = process.env.JWT_SECRET || 'puente-legal-jwt-2026';
+const { SECRET } = require('../config');
 
 module.exports = function(req, res, next) {
   const header = req.headers.authorization || '';

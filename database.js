@@ -158,12 +158,27 @@ function initDB() {
     if (!existingContacto.includes(k)) insContacto.run(k, v);
   });
 
+  // Migración: flag para forzar cambio de contraseña en el primer acceso
+  const adminCols = db.prepare('PRAGMA table_info(admin_users)').all().map(c => c.name);
+  if (!adminCols.includes('must_change_password'))
+    db.exec('ALTER TABLE admin_users ADD COLUMN must_change_password INTEGER NOT NULL DEFAULT 0');
+
+  // Migración: contador de intentos para limitar fuerza bruta de OTP
+  const otpCols = db.prepare('PRAGMA table_info(otp_verifications)').all().map(c => c.name);
+  if (!otpCols.includes('attempts'))
+    db.exec('ALTER TABLE otp_verifications ADD COLUMN attempts INTEGER NOT NULL DEFAULT 0');
+
   // Admin por defecto
   const adminExists = db.prepare('SELECT id FROM admin_users WHERE username = ?').get('admin');
   if (!adminExists) {
-    const hash = bcrypt.hashSync('puentelegal2026', 10);
-    db.prepare('INSERT INTO admin_users (username, password_hash) VALUES (?, ?)').run('admin', hash);
-    console.log('✓ Usuario admin creado  →  admin / puentelegal2026');
+    // La contraseña inicial se toma de ADMIN_INITIAL_PASSWORD si está definida.
+    // Si no, se usa una temporal y se OBLIGA a cambiarla en el primer login.
+    const initialPass = process.env.ADMIN_INITIAL_PASSWORD || 'puentelegal2026';
+    const mustChange  = process.env.ADMIN_INITIAL_PASSWORD ? 0 : 1;
+    const hash = bcrypt.hashSync(initialPass, 10);
+    db.prepare('INSERT INTO admin_users (username, password_hash, must_change_password) VALUES (?, ?, ?)')
+      .run('admin', hash, mustChange);
+    console.log('✓ Usuario admin creado' + (mustChange ? ' (deberá cambiar la contraseña en el primer acceso)' : ''));
   }
 
   // Testimonios iniciales
