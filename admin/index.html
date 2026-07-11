@@ -143,9 +143,23 @@ a{text-decoration:none;color:inherit}
 .badge-pendiente{background:rgba(201,162,39,.12);color:#78611a;font-size:.62rem;font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:20px;border:1px solid rgba(201,162,39,.3)}
 .badge-confirmada{background:rgba(22,163,74,.1);color:var(--green);font-size:.62rem;font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:20px;border:1px solid rgba(22,163,74,.2)}
 .badge-cancelada{background:rgba(220,38,38,.08);color:var(--red);font-size:.62rem;font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:20px;border:1px solid rgba(220,38,38,.15)}
-.citas-filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.citas-filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
 .filter-btn{padding:6px 16px;border-radius:20px;border:1.5px solid var(--border);background:none;font-family:'Inter',sans-serif;font-size:.78rem;font-weight:600;color:var(--muted);cursor:pointer;transition:border-color .2s,color .2s,background .2s}
 .filter-btn.active,.filter-btn:hover{border-color:var(--navy);color:var(--navy);background:var(--off)}
+.sort-btn{padding:5px 13px;border-radius:20px;border:1.5px solid var(--border);background:none;font-family:'Inter',sans-serif;font-size:.75rem;font-weight:600;color:var(--muted);cursor:pointer;transition:border-color .2s,color .2s,background .2s;display:flex;align-items:center;gap:4px}
+.sort-btn.active{border-color:var(--gold);color:#78611a;background:rgba(201,162,39,.08)}
+.filters-sep{width:1px;height:22px;background:var(--border);margin:0 4px}
+.resumen-overlay{position:fixed;inset:0;background:rgba(15,30,56,.55);backdrop-filter:blur(4px);z-index:1100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.resumen-overlay.open{opacity:1;pointer-events:auto}
+.resumen-modal{background:#fff;border-radius:14px;width:min(640px,94vw);max-height:88vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(15,30,56,.22)}
+.resumen-modal .modal-header{padding:22px 28px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.resumen-modal .modal-body{padding:22px 28px;overflow-y:auto;flex:1}
+.resumen-modal .modal-footer{padding:16px 28px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;flex-shrink:0}
+#resumenTexto{width:100%;min-height:220px;max-height:400px;resize:vertical;border:1.5px solid var(--border);border-radius:8px;padding:12px 14px;font-family:'Inter',sans-serif;font-size:.85rem;line-height:1.6;color:var(--navy);outline:none;transition:border-color .2s;box-sizing:border-box}
+#resumenTexto:focus{border-color:var(--navy)}
+#resumenTitulo{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 14px;font-family:'Inter',sans-serif;font-size:.88rem;color:var(--navy);outline:none;transition:border-color .2s;box-sizing:border-box;margin-bottom:12px}
+#resumenTitulo:focus{border-color:var(--navy)}
+.resumen-char{font-size:.7rem;color:var(--muted);text-align:right;margin-top:4px}
 </style>
 </head>
 <body>
@@ -263,7 +277,11 @@ a{text-decoration:none;color:inherit}
               <button class="filter-btn active" onclick="filterCitas('todas',this)">Todas</button>
               <button class="filter-btn" onclick="filterCitas('pendiente',this)">Pendientes</button>
               <button class="filter-btn" onclick="filterCitas('confirmada',this)">Confirmadas</button>
-              <button class="filter-btn" onclick="filterCitas('cancelada',this)">Canceladas</button>
+              <div class="filters-sep"></div>
+              <button class="sort-btn active" id="sortFechaAsc" onclick="sortCitas('fecha','asc')">Fecha ↑</button>
+              <button class="sort-btn" id="sortFechaDesc" onclick="sortCitas('fecha','desc')">Fecha ↓</button>
+              <button class="sort-btn" id="sortHoraAsc" onclick="sortCitas('hora','asc')">Hora ↑</button>
+              <button class="sort-btn" id="sortHoraDesc" onclick="sortCitas('hora','desc')">Hora ↓</button>
             </div>
           </div>
           <div style="overflow-x:auto">
@@ -422,6 +440,31 @@ a{text-decoration:none;color:inherit}
 <!-- TOAST CONTAINER -->
 <div id="toast"></div>
 
+<!-- MODAL RESUMEN CITA -->
+<div class="resumen-overlay" id="resumenOverlay" onclick="closeResumen(event)">
+  <div class="resumen-modal">
+    <div class="modal-header">
+      <h3 style="font-size:1rem;color:var(--navy);margin:0">Resumen de la cita</h3>
+      <button class="modal-close" onclick="closeResumen(true)"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div id="resumenCitaInfo" style="background:var(--off);border-radius:8px;padding:14px;margin-bottom:18px;font-size:.82rem;line-height:1.7;color:var(--navy)"></div>
+      <label style="font-size:.75rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Título</label>
+      <input type="text" id="resumenTitulo" maxlength="200" placeholder="Ej: Consulta de poder notarial — caso resuelto">
+      <label style="font-size:.75rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Resumen</label>
+      <textarea id="resumenTexto" maxlength="9999" placeholder="Escribe aquí las notas, resultado de la consulta, acuerdos o cualquier información relevante de esta cita..."></textarea>
+      <div class="resumen-char"><span id="resumenCharCount">0</span> / 9999</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeResumen(true)">Cerrar</button>
+      <button class="btn btn-gold" id="resumenSaveBtn" onclick="saveResumen()">
+        <svg viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+        Guardar resumen
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL CONFIRMAR CITA -->
 <div class="overlay" id="confirmCitaOverlay" onclick="closeConfirmCita(event)">
   <div class="modal" style="max-width:460px">
@@ -509,6 +552,9 @@ function showApp(){
   document.getElementById('app').style.display='block';
   document.getElementById('sbUsername').textContent=ME;
   document.getElementById('sbAvatar').textContent=ME[0].toUpperCase();
+  document.getElementById('resumenTexto').addEventListener('input',function(){
+    document.getElementById('resumenCharCount').textContent=this.value.length;
+  });
   loadAll();
 }
 
@@ -818,6 +864,8 @@ function escAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
 /* ────────────────────────────────────────────────── */
 var citasData = [];
 var citasFiltro = 'todas';
+var citasSortKey = 'fecha';
+var citasSortDir = 'asc';
 
 function loadCitas(){
   api('GET','/api/admin/citas').then(function(data){
@@ -833,12 +881,27 @@ function filterCitas(filtro, btn){
   renderCitas();
 }
 
+function sortCitas(key, dir){
+  citasSortKey = key;
+  citasSortDir = dir;
+  document.querySelectorAll('.sort-btn').forEach(function(b){ b.classList.remove('active'); });
+  var id = 'sort'+key.charAt(0).toUpperCase()+key.slice(1)+(dir==='asc'?'Asc':'Desc');
+  var el = document.getElementById(id);
+  if(el) el.classList.add('active');
+  renderCitas();
+}
+
 function renderCitas(){
   var tbody = document.getElementById('citasBody');
   if(!tbody) return;
-  var lista = citasFiltro === 'todas' ? citasData : citasData.filter(function(c){ return c.estado === citasFiltro; });
+  var lista = citasFiltro === 'todas' ? citasData.slice() : citasData.filter(function(c){ return c.estado === citasFiltro; });
+  lista.sort(function(a,b){
+    var va = (a[citasSortKey]||''), vb = (b[citasSortKey]||'');
+    if(citasSortKey==='hora'){ va=a.fecha+' '+a.hora; vb=b.fecha+' '+b.hora; }
+    return citasSortDir==='asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
   if(!lista.length){
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:32px">No hay citas</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:32px">No hay citas</td></tr>';
     return;
   }
   tbody.innerHTML = '';
@@ -846,21 +909,20 @@ function renderCitas(){
     var badgeClass = 'badge-'+c.estado;
     var esZoom = c.contacto_tipo === 'zoom';
     var medioHtml = esZoom
-      ? '💻 <span style="font-size:.75rem">Zoom</span>'
-      : '📱 <span style="font-size:.75rem">'+escH(c.contacto_valor)+'</span>';
+      ? 'Zoom'
+      : escH(c.contacto_valor);
+    var accionBtn = c.estado === 'confirmada'
+      ? '<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px" onclick="openResumen('+c.id+')">Resumen</button>'
+      : '<button class="btn btn-gold" style="font-size:.72rem;padding:5px 12px" onclick="openConfirmCita('+c.id+')">Confirmar</button>';
     var tr = document.createElement('tr');
-    tr.innerHTML = '<td style="font-size:.8rem">'+c.id+'</td>'
-      +'<td><strong>'+escH(c.nombre)+'</strong><br><span style="font-size:.72rem;color:var(--muted)">'+escH(c.email)+'</span></td>'
-      +'<td style="font-size:.82rem;font-weight:600">'+escH(c.fecha)+'</td>'
+    tr.innerHTML = '<td style="font-size:.8rem;color:var(--muted)">#'+c.id+'</td>'
+      +'<td><strong style="font-size:.83rem">'+escH(c.nombre)+'</strong><br><span style="font-size:.71rem;color:var(--muted)">'+escH(c.email)+'</span></td>'
+      +'<td style="font-size:.82rem;font-weight:600;white-space:nowrap">'+escH(c.fecha)+'</td>'
       +'<td style="font-size:.82rem;font-weight:600">'+escH(c.hora)+'</td>'
-      +'<td>'+medioHtml+'</td>'
+      +'<td style="font-size:.78rem">'+medioHtml+'</td>'
       +'<td><span class="'+badgeClass+'">'+escH(c.estado)+'</span></td>'
-      +'<td style="font-size:.72rem;color:var(--muted)">'+escH((c.created_at||'').substring(0,16))+'</td>'
-      +'<td><div class="row-actions">'
-        +(c.estado!=='confirmada'?'<button class="btn btn-gold" style="font-size:.72rem;padding:5px 10px" onclick="openConfirmCita('+c.id+')">Confirmar</button>':'')
-        +(c.estado!=='cancelada'?'<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 10px;color:var(--red)" onclick="setCitaEstado('+c.id+',\'cancelada\')">Cancelar</button>':'')
-        +'<button class="btn btn-danger" style="font-size:.72rem;padding:5px 10px" onclick="deleteCita('+c.id+')">Eliminar</button>'
-      +'</div></td>';
+      +'<td style="font-size:.71rem;color:var(--muted);white-space:nowrap">'+escH((c.created_at||'').substring(0,16))+'</td>'
+      +'<td>'+accionBtn+'</td>';
     tbody.appendChild(tr);
   });
 }
@@ -908,18 +970,43 @@ function submitConfirmCita(){
   });
 }
 
-function setCitaEstado(id, estado){
-  api('PUT','/api/admin/citas/'+id,{estado:estado}).then(function(r){
-    if(r.ok){ toast('Estado actualizado'); loadCitas(); }
-    else toast('Error al actualizar','error');
-  });
+var resumenCitaId = null;
+
+function openResumen(id){
+  var cita = citasData.find(function(c){ return c.id === id; });
+  if(!cita) return;
+  resumenCitaId = id;
+  document.getElementById('resumenCitaInfo').innerHTML =
+    '<strong>'+escH(cita.nombre)+'</strong> &nbsp;·&nbsp; '+escH(cita.email)+'<br>'
+    +escH(cita.fecha)+' '+escH(cita.hora)+'  &nbsp;·&nbsp; '
+    +(cita.contacto_tipo==='zoom'?'Zoom':'WhatsApp: '+escH(cita.contacto_valor));
+  document.getElementById('resumenTitulo').value = cita.resumen_titulo || '';
+  var ta = document.getElementById('resumenTexto');
+  ta.value = cita.resumen_texto || '';
+  document.getElementById('resumenCharCount').textContent = ta.value.length;
+  document.getElementById('resumenOverlay').classList.add('open');
 }
 
-function deleteCita(id){
-  if(!confirm('¿Eliminar esta cita?')) return;
-  api('DELETE','/api/admin/citas/'+id).then(function(r){
-    if(r.ok){ toast('Cita eliminada'); loadCitas(); }
-    else toast('Error al eliminar','error');
+function closeResumen(force){
+  if(force===true || (force&&force.target===document.getElementById('resumenOverlay')))
+    document.getElementById('resumenOverlay').classList.remove('open');
+}
+
+function saveResumen(){
+  if(!resumenCitaId) return;
+  var titulo = document.getElementById('resumenTitulo').value.trim();
+  var texto  = document.getElementById('resumenTexto').value.trim();
+  var btn = document.getElementById('resumenSaveBtn');
+  btn.disabled=true; btn.textContent='Guardando...';
+  api('PUT','/api/admin/citas/'+resumenCitaId, {resumen_titulo: titulo, resumen_texto: texto}).then(function(r){
+    btn.disabled=false;
+    btn.innerHTML='<svg viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>Guardar resumen';
+    if(r.ok){
+      toast('Resumen guardado');
+      var cita = citasData.find(function(c){ return c.id===resumenCitaId; });
+      if(cita){ cita.resumen_titulo=titulo; cita.resumen_texto=texto; }
+      closeResumen(true);
+    } else toast('Error al guardar','error');
   });
 }
 

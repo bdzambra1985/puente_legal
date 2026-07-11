@@ -71,10 +71,15 @@ router.get('/otp-pending', (req, res) => {
 });
 
 router.put('/citas/:id', async (req, res) => {
-  const { estado, zoom_link } = req.body;
+  const { estado, zoom_link, resumen_titulo, resumen_texto } = req.body;
   const db = getDB();
   if (zoom_link !== undefined) {
     db.prepare('UPDATE citas SET zoom_link=? WHERE id=?').run(zoom_link, req.params.id);
+  }
+  if (resumen_titulo !== undefined || resumen_texto !== undefined) {
+    db.prepare('UPDATE citas SET resumen_titulo=?, resumen_texto=? WHERE id=?')
+      .run(resumen_titulo ?? '', resumen_texto ?? '', req.params.id);
+    return res.json({ ok: true });
   }
   db.prepare('UPDATE citas SET estado=? WHERE id=?').run(estado, req.params.id);
   if (estado === 'confirmada') {

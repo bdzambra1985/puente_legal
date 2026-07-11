@@ -100,6 +100,10 @@ function initDB() {
     db.exec("ALTER TABLE citas ADD COLUMN contacto_valor TEXT NOT NULL DEFAULT ''");
   if (!citasCols.includes('zoom_link'))
     db.exec("ALTER TABLE citas ADD COLUMN zoom_link TEXT NOT NULL DEFAULT ''");
+  if (!citasCols.includes('resumen_titulo'))
+    db.exec("ALTER TABLE citas ADD COLUMN resumen_titulo TEXT NOT NULL DEFAULT ''");
+  if (!citasCols.includes('resumen_texto'))
+    db.exec("ALTER TABLE citas ADD COLUMN resumen_texto TEXT NOT NULL DEFAULT ''");
 
   // Admin por defecto
   const adminExists = db.prepare('SELECT id FROM admin_users WHERE username = ?').get('admin');
