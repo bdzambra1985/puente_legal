@@ -508,7 +508,7 @@ footer{background:var(--navy);padding:72px 32px 36px}
     </div>
     <div class="hero-right">
       <div class="hero-card-main">
-        <img src="/img/logo_horizontal.jpeg" alt="Puente Legal Internacional EC" class="hero-card-img">
+        <img src="/img/tarjeta.jpg" alt="Puente Legal Internacional EC" class="hero-card-img">
         <div class="hero-card-body">
           <div class="hero-card-title">Puente Legal Internacional EC</div>
           <div class="hero-card-sub">Abogados ecuatorianos especializados en servicios jurídicos remotos para la comunidad internacional.</div>
@@ -722,11 +722,11 @@ function applyContacto(c){
   var cc = document.getElementById('contactCobertura'); if(cc) cc.textContent = c.cobertura||'';
   var nt = document.getElementById('navTelefono'); if(nt) nt.textContent = c.telefono||'';
   // Datos bancarios en modal de pago
-  if(c.banco_nombre)  document.getElementById('pagoBancoNombre').textContent  = c.banco_nombre;
-  if(c.banco_titular) document.getElementById('pagoBancoTitular').textContent = c.banco_titular;
-  if(c.banco_tipo)    document.getElementById('pagoBancoTipo').textContent    = c.banco_tipo;
-  if(c.banco_cuenta)  document.getElementById('pagoBancoCuenta').textContent  = c.banco_cuenta;
-  if(c.banco_nota)    document.getElementById('pagoBancoNota').textContent    = c.banco_nota;
+  var pbn1 = document.getElementById('pagoBancoNombre');  if(c.banco_nombre  && pbn1) pbn1.textContent = c.banco_nombre;
+  var pbn2 = document.getElementById('pagoBancoTitular'); if(c.banco_titular && pbn2) pbn2.textContent = c.banco_titular;
+  var pbn3 = document.getElementById('pagoBancoTipo');    if(c.banco_tipo    && pbn3) pbn3.textContent = c.banco_tipo;
+  var pbn4 = document.getElementById('pagoBancoCuenta');  if(c.banco_cuenta  && pbn4) pbn4.textContent = c.banco_cuenta;
+  var pbn5 = document.getElementById('pagoBancoNota');    if(c.banco_nota    && pbn5) pbn5.textContent = c.banco_nota;
 }
 
 /* Escape para insertar contenido del servidor en HTML de forma segura */
@@ -1569,6 +1569,7 @@ function pagoEnviarComprobante(){
       <div class="pago-row"><span class="pago-lbl">Tipo de cuenta</span><span class="pago-val"><span id="pagoBancoTipo">—</span></span></div>
       <div class="pago-row"><span class="pago-lbl">N° de cuenta</span><span class="pago-val"><span id="pagoBancoCuenta">—</span><button class="pago-copy" onclick="copiar(document.getElementById('pagoBancoCuenta').textContent)">Copiar</button></span></div>
       <div class="pago-row"><span class="pago-lbl">Referencia</span><span class="pago-val" id="pagoRef">Cita #—<button class="pago-copy" onclick="copiar(document.getElementById('pagoRef').firstChild.textContent)">Copiar</button></span></div>
+      <div id="pagoBancoNota" style="font-size:.76rem;color:var(--muted);line-height:1.6;padding:12px 0 4px"></div>
       <div id="pagoComprobanteWrap" style="margin-top:20px">
         <label style="font-size:.75rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">Adjuntar comprobante de transferencia</label>
         <div id="pagoUploadArea" style="border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:border-color .2s" onclick="document.getElementById('pagoFileInput').click()" ondragover="event.preventDefault();this.style.borderColor='var(--gold)'" ondragleave="this.style.borderColor=''" ondrop="pagoOnDrop(event)">

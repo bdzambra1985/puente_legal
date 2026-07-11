@@ -262,7 +262,7 @@ function initDB() {
         description: 'Obtén tu firma electrónica de forma rápida, segura y completamente en línea. Sin trasladarte desde tu casa o negocio.',
         badge: 'Disponible ahora',
         bullets: JSON.stringify(['Obtén tu firma en minutos','Respaldo legal válido ante el SRI','Confidencialidad garantizada','Soporte y asesoría personalizada']),
-        image: '/img/promo1.jpg',
+        image: '/img/servicioadicional2.jpg',
         cta_text: 'Solicitar firma electrónica',
         sort_order: 1
       },
@@ -272,7 +272,7 @@ function initDB() {
         description: 'Nos enfocamos en darte respuestas rápidas, claras y efectivas. Atención personalizada para personas y empresas.',
         badge: 'Expertos SRI',
         bullets: JSON.stringify(['Actualización de RUC','Declaraciones de impuestos y anexos','Devolución de IVA y Renta','Obtención y renovación de claves electrónicas']),
-        image: '/img/promo2.jpg',
+        image: '/img/servicioadicional3.jpg',
         cta_text: 'Consultar servicio',
         sort_order: 2
       },
@@ -282,7 +282,7 @@ function initDB() {
         description: 'Te ayudamos a cumplir con la normativa de facturación electrónica del SRI de forma fácil, rápida y sin complicaciones.',
         badge: 'Normativa SRI',
         bullets: JSON.stringify(['Cumple con la normativa y evita sanciones','Instalación del sistema de facturación','Capacitación completa sobre su uso','Acompañamiento personalizado continuo']),
-        image: '/img/promo3.jpg',
+        image: '/img/servicioadicional1.jpg',
         cta_text: 'Consultar servicio',
         sort_order: 3
       }
