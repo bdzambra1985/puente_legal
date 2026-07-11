@@ -139,6 +139,10 @@ function initDB() {
   const existingContacto = db.prepare('SELECT key FROM contacto').all().map(r => r.key);
   const insContacto = db.prepare('INSERT OR IGNORE INTO contacto (key,value) VALUES (?,?)');
   const contactoDefaults = {
+    whatsapp:              '593000000000',
+    telefono:              '+593 00 000 0000',
+    email:                 'info@puentelegal.ec',
+    cobertura:             'Ecuador · Nacional e Internacional',
     banco_nombre:          'Banco Pichincha',
     banco_titular:         'Puente Legal Internacional EC',
     banco_tipo:            'Corriente',
@@ -241,31 +245,8 @@ function initDB() {
     ].forEach(([k,v]) => ins.run(k,v));
   }
 
-  // Contacto inicial
-  const kc = db.prepare('SELECT COUNT(*) as c FROM contacto').get();
-  if (kc.c === 0) {
-    const ins = db.prepare('INSERT INTO contacto (key,value) VALUES (?,?)');
-    [
-      ['whatsapp',        '593000000000'],
-      ['telefono',        '+593 00 000 0000'],
-      ['email',           'info@puentelegal.ec'],
-      ['cobertura',       'Ecuador · Nacional e Internacional'],
-      ['banco_nombre',    'Banco Pichincha'],
-      ['banco_titular',   'Puente Legal Internacional EC'],
-      ['banco_tipo',      'Corriente'],
-      ['banco_cuenta',    '0000000000'],
-      ['banco_nota',           'Envía el comprobante por WhatsApp al +593 99 652 6419 indicando tu número de cita. Procesamos la confirmación en menos de 2 horas hábiles.'],
-      ['sri_ambiente',          '1'],
-      ['sri_ruc',               ''],
-      ['sri_razon_social',      ''],
-      ['sri_nombre_comercial',  ''],
-      ['sri_direccion',         ''],
-      ['sri_estab',             '001'],
-      ['sri_pto_emi',           '001'],
-      ['sri_iva_rate',          '15'],
-      ['p12_password',          ''],
-    ].forEach(([k,v]) => ins.run(k,v));
-  }
+  // (Los valores por defecto de `contacto` se siembran arriba de forma idempotente
+  //  con INSERT OR IGNORE, cubriendo tanto bases nuevas como existentes.)
 
   // Promo cards iniciales
   const pc = db.prepare('SELECT COUNT(*) as c FROM promo_cards').get();
