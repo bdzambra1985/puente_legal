@@ -1084,16 +1084,29 @@ function openComprobarPago(id){
     +escH(cita.email)+'<br>'
     +escH(cita.fecha)+' '+escH(cita.hora)
     +(cita.contacto_tipo==='zoom'?' · Zoom':' · WA: '+escH(cita.contacto_valor));
-  var url = '/api/admin/comprobante/'+encodeURIComponent(cita.comprobante_path);
+  var apiUrl = '/api/admin/comprobante/'+encodeURIComponent(cita.comprobante_path);
   var visor = document.getElementById('comprobarVisor');
   var ext = (cita.comprobante_path||'').split('.').pop().toLowerCase();
-  if(ext === 'pdf'){
-    visor.innerHTML = '<iframe src="'+url+'" style="width:100%;height:400px;border:none"></iframe>';
-  } else {
-    visor.innerHTML = '<img src="'+url+'" style="max-width:100%;max-height:420px;display:block;margin:0 auto" onerror="this.parentNode.innerHTML=\'<span style=color:var(--muted);font-size:.82rem;padding:20px>No se puede mostrar el archivo</span>\'">';
-  }
-  document.getElementById('comprobarDescargar').href = url;
+  visor.innerHTML = '<span style="color:var(--muted);font-size:.82rem;padding:20px">Cargando...</span>';
+  document.getElementById('comprobarDescargar').href = '#';
   document.getElementById('comprobarPagoOverlay').classList.add('open');
+  fetch(apiUrl, { headers: { 'Authorization': 'Bearer '+TOKEN } })
+    .then(function(r){
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.blob();
+    })
+    .then(function(blob){
+      var blobUrl = URL.createObjectURL(blob);
+      document.getElementById('comprobarDescargar').href = blobUrl;
+      if(ext === 'pdf'){
+        visor.innerHTML = '<iframe src="'+blobUrl+'" style="width:100%;height:400px;border:none"></iframe>';
+      } else {
+        visor.innerHTML = '<img src="'+blobUrl+'" style="max-width:100%;max-height:420px;display:block;margin:0 auto">';
+      }
+    })
+    .catch(function(){
+      visor.innerHTML = '<span style="color:var(--muted);font-size:.82rem;padding:20px">No se puede mostrar el archivo</span>';
+    });
 }
 
 function closeComprobarPago(force){
