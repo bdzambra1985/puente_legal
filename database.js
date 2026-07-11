@@ -134,6 +134,8 @@ function initDB() {
     db.exec("ALTER TABLE citas ADD COLUMN comprobante_path TEXT NOT NULL DEFAULT ''");
   if (!citasCols.includes('comprobante_estado'))
     db.exec("ALTER TABLE citas ADD COLUMN comprobante_estado TEXT NOT NULL DEFAULT ''");
+  if (!citasCols.includes('facturado'))
+    db.exec("ALTER TABLE citas ADD COLUMN facturado INTEGER NOT NULL DEFAULT 0");
 
   // Migración: agregar datos bancarios y SRI a contacto si no existen
   const existingContacto = db.prepare('SELECT key FROM contacto').all().map(r => r.key);

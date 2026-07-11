@@ -131,4 +131,78 @@ async function sendOTP(email, code) {
   console.log(`[email] OTP enviado a ${email}`);
 }
 
-module.exports = { sendCitaConfirmada, sendOTP };
+async function sendFacturaEmitida(factura) {
+  if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
+    console.log('[email] SMTP no configurado — skipping factura id:', factura.id);
+    return;
+  }
+  if (!factura.cliente_email) {
+    console.log('[email] Factura sin email de cliente — skipping factura id:', factura.id);
+    return;
+  }
+
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+  let sriData = {};
+  try { sriData = JSON.parse(factura.sri_data || '{}'); } catch { /* noop */ }
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:32px 16px;background:#f8f7f4;font-family:'Helvetica Neue',Arial,sans-serif">
+  <div style="max-width:520px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08)">
+    <div style="background:#0f1e38;padding:32px 40px;text-align:center">
+      <div style="font-size:1.3rem;font-weight:800;color:#C9A227;letter-spacing:2px">PUENTE LEGAL</div>
+      <div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-top:4px;letter-spacing:1px">INTERNACIONAL EC</div>
+    </div>
+    <div style="padding:36px 40px">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="font-size:2.8rem;margin-bottom:12px">🧾</div>
+        <h1 style="font-size:1.25rem;color:#0f1e38;margin:0 0 8px;font-weight:700">Tu factura electrónica</h1>
+        <p style="color:#64748b;font-size:.88rem;margin:0">Hola <strong>${escHtml(factura.cliente_nombre)}</strong>, adjuntamos tu comprobante autorizado por el SRI.</p>
+      </div>
+
+      <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:4px">
+        ${detalle('🔖', 'N° Factura', factura.numero_factura)}
+        ${detalle('📄', 'Concepto', factura.concepto || '—')}
+        ${detalle('💵', 'Subtotal', '$' + parseFloat(factura.subtotal).toFixed(2))}
+        ${detalle('➕', 'IVA (' + factura.iva_rate + '%)', '$' + parseFloat(factura.iva).toFixed(2))}
+        ${detalle('💰', 'Total', '$' + parseFloat(factura.monto).toFixed(2))}
+      </div>
+
+      <div style="background:#f8f7f4;border-radius:10px;padding:16px 18px;margin-top:20px">
+        <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;font-weight:700;margin-bottom:6px">Clave de acceso</div>
+        <div style="font-size:.72rem;color:#0f1e38;word-break:break-all;font-family:'Courier New',monospace">${escHtml(factura.clave_acceso)}</div>
+      </div>
+
+      <p style="font-size:.78rem;color:#94a3b8;text-align:center;margin-top:20px;line-height:1.6">
+        El archivo XML adjunto es tu comprobante fiscalmente válido ante el SRI. Consérvalo para tu contabilidad.
+      </p>
+    </div>
+    <div style="background:#f8f7f4;padding:18px 40px;text-align:center;border-top:1px solid #e2e8f0">
+      <div style="font-size:.7rem;color:#94a3b8">Puente Legal Internacional EC · Ecuador · Nacional e Internacional</div>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const attachments = [];
+  if (sriData.xmlAutorizado) {
+    attachments.push({
+      filename: `${factura.numero_factura}.xml`,
+      content: sriData.xmlAutorizado,
+      contentType: 'application/xml'
+    });
+  }
+
+  await createTransport().sendMail({
+    from: `"Puente Legal" <${from}>`,
+    to: factura.cliente_email,
+    subject: `🧾 Factura electrónica N° ${factura.numero_factura} — Puente Legal`,
+    html,
+    attachments
+  });
+
+  console.log(`[email] Factura enviada a ${factura.cliente_email} (factura #${factura.id})`);
+}
+
+module.exports = { sendCitaConfirmada, sendOTP, sendFacturaEmitida };

@@ -143,6 +143,7 @@ a{text-decoration:none;color:inherit}
 .badge-pendiente{background:rgba(201,162,39,.12);color:#78611a;font-size:.62rem;font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:20px;border:1px solid rgba(201,162,39,.3)}
 .badge-confirmada{background:rgba(22,163,74,.1);color:var(--green);font-size:.62rem;font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:20px;border:1px solid rgba(22,163,74,.2)}
 .badge-cancelada{background:rgba(220,38,38,.08);color:var(--red);font-size:.62rem;font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:20px;border:1px solid rgba(220,38,38,.15)}
+.badge-facturado{background:rgba(37,99,235,.1);color:#2563eb;font-size:.62rem;font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:20px;border:1px solid rgba(37,99,235,.2)}
 .citas-filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
 .filter-btn{padding:6px 16px;border-radius:20px;border:1.5px solid var(--border);background:none;font-family:'Inter',sans-serif;font-size:.78rem;font-weight:600;color:var(--muted);cursor:pointer;transition:border-color .2s,color .2s,background .2s}
 .filter-btn.active,.filter-btn:hover{border-color:var(--navy);color:var(--navy);background:var(--off)}
@@ -1056,7 +1057,8 @@ function escAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
 /* ────────────────────────────────────────────────── */
 var facturasData = [];
 var facturaDetalleId = null;
-var SRI_ESTADO_BADGE = { autorizada:'badge-active', error:'badge-inactive' };
+var SRI_ESTADO_BADGE = { autorizada:'badge-facturado', error:'badge-inactive' };
+var SRI_ESTADO_LABEL = { autorizada:'Facturado', error:'Error', procesando:'Procesando', pendiente:'Pendiente' };
 
 function loadSriConfig(){
   api('GET','/api/admin/sri-config').then(function(cfg){
@@ -1145,7 +1147,7 @@ function renderFacturas(){
     tr.innerHTML = '<td style="font-size:.8rem;font-weight:600">'+escH(f.numero_factura)+'</td>'
       +'<td><strong style="font-size:.83rem">'+escH(f.cliente_nombre)+'</strong><br><span style="font-size:.71rem;color:var(--muted)">'+escH(f.cliente_doc)+'</span></td>'
       +'<td style="font-size:.82rem;font-weight:600">$'+parseFloat(f.monto).toFixed(2)+'</td>'
-      +'<td><span class="'+badgeClass+'">'+escH(f.sri_estado)+'</span></td>'
+      +'<td><span class="'+badgeClass+'">'+escH(SRI_ESTADO_LABEL[f.sri_estado]||f.sri_estado)+'</span></td>'
       +'<td style="font-size:.71rem;color:var(--muted);white-space:nowrap">'+escH((f.created_at||'').substring(0,16))+'</td>'
       +'<td>'+acciones+'</td>';
     tbody.appendChild(tr);
@@ -1194,7 +1196,7 @@ function viewFacturaDetalle(id){
   api('GET','/api/admin/facturas/'+id).then(function(f){
     if(!f || f.error) return;
     facturaDetalleId = id;
-    var html = '<strong>'+escH(f.numero_factura)+'</strong> &nbsp;·&nbsp; <span class="'+(SRI_ESTADO_BADGE[f.sri_estado]||'badge-pendiente')+'">'+escH(f.sri_estado)+'</span><br><br>'
+    var html = '<strong>'+escH(f.numero_factura)+'</strong> &nbsp;·&nbsp; <span class="'+(SRI_ESTADO_BADGE[f.sri_estado]||'badge-pendiente')+'">'+escH(SRI_ESTADO_LABEL[f.sri_estado]||f.sri_estado)+'</span><br><br>'
       +'Cliente: '+escH(f.cliente_nombre)+' ('+escH(f.cliente_doc)+')<br>'
       +(f.cliente_email ? 'Email: '+escH(f.cliente_email)+'<br>' : '')
       +'Concepto: '+escH(f.concepto)+'<br>'
@@ -1291,7 +1293,7 @@ function renderCitas(){
       +'<td style="font-size:.82rem;font-weight:600;white-space:nowrap">'+escH(c.fecha)+'</td>'
       +'<td style="font-size:.82rem;font-weight:600">'+escH(c.hora)+'</td>'
       +'<td style="font-size:.78rem">'+medioHtml+'</td>'
-      +'<td><span class="'+badgeClass+'">'+escH(c.estado)+'</span></td>'
+      +'<td><span class="'+badgeClass+'">'+escH(c.estado)+'</span>'+(c.facturado?' <span class="badge-facturado">Facturado</span>':'')+'</td>'
       +'<td style="font-size:.71rem;color:var(--muted);white-space:nowrap">'+escH((c.created_at||'').substring(0,16))+'</td>'
       +'<td>'+accionBtn+'</td>';
     tbody.appendChild(tr);

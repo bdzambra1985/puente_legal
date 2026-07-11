@@ -4,7 +4,7 @@ const fs = require('fs');
 const multer = require('multer');
 const { getDB } = require('../database');
 const auth = require('../middleware/auth');
-const { sendCitaConfirmada } = require('../utils/email');
+const { sendCitaConfirmada, sendFacturaEmitida } = require('../utils/email');
 const { emitirFactura, getSRIConfig, getP12Path } = require('../sri/index');
 
 const router = express.Router();
@@ -64,6 +64,19 @@ function nextSecuencial(db, estab, ptoEmi) {
 }
 
 /* ── FACTURACIÓN ELECTRÓNICA (SRI) ─────────────────────────────────── */
+
+// Al autorizarse una factura: marca la cita vinculada (si hay) como facturada
+// y envía el comprobante por correo al cliente. Nunca debe tumbar la respuesta.
+async function onFacturaAutorizada(db, facturaId, citaId) {
+  if (citaId) db.prepare('UPDATE citas SET facturado=1 WHERE id=?').run(citaId);
+  try {
+    const factura = db.prepare('SELECT * FROM facturas WHERE id=?').get(facturaId);
+    if (factura) await sendFacturaEmitida(factura);
+  } catch (e) {
+    console.error('[email] Error enviando factura:', e.message);
+  }
+}
+
 router.post('/facturas', async (req, res) => {
   const { cita_id, cliente_nombre, cliente_email, cliente_doc, monto, concepto, forma_pago } = req.body || {};
   const montoNum = parseFloat(monto);
@@ -96,6 +109,7 @@ router.post('/facturas', async (req, res) => {
     });
     db.prepare('UPDATE facturas SET clave_acceso=?, sri_estado=?, sri_data=? WHERE id=?')
       .run(result.claveAcceso || '', result.ok ? 'autorizada' : 'error', JSON.stringify(result), facturaId);
+    if (result.ok) await onFacturaAutorizada(db, facturaId, cita_id);
     res.json({ ok: result.ok, id: facturaId, numero_factura: numeroFactura,
                ...(result.ok ? {} : { error: result.error }) });
   } catch (e) {
@@ -122,6 +136,7 @@ router.post('/facturas/:id/reintentar', async (req, res) => {
     });
     db.prepare('UPDATE facturas SET clave_acceso=?, sri_estado=?, sri_data=? WHERE id=?')
       .run(result.claveAcceso || '', result.ok ? 'autorizada' : 'error', JSON.stringify(result), row.id);
+    if (result.ok) await onFacturaAutorizada(db, row.id, row.cita_id);
     res.json({ ok: result.ok, id: row.id, numero_factura: row.numero_factura,
                ...(result.ok ? {} : { error: result.error }) });
   } catch (e) {
