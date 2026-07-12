@@ -5,6 +5,8 @@ const securityHeaders = require('./middleware/securityHeaders');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+// DB_PATH debe apuntar dentro de un Volumen persistente en Railway (ej. /data/data.db)
+// — si no, data.db, comprobantes/ y firma.p12 se pierden en cada deploy.
 
 // Detrás del proxy de Railway: necesario para obtener la IP real (rate limiting)
 app.set('trust proxy', 1);
