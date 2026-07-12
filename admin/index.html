@@ -195,6 +195,19 @@ a{text-decoration:none;color:inherit}
   .btn-preview{padding:6px 10px;font-size:.7rem}
   .login-card{padding:36px 24px}
 }
+
+/* ── AGENDA DE CITAS: tarjetas en vez de tabla en mobile ── */
+@media(max-width:768px){
+  #citasTable thead{display:none}
+  #citasTable,#citasTable tbody{display:block;width:100%}
+  #citasTable tr{display:block;background:var(--white);border:1px solid var(--border);border-radius:var(--r12);margin-bottom:14px;padding:4px 16px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  #citasTable tr:hover td{background:none}
+  #citasTable td{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--off);text-align:right}
+  #citasTable td:last-child{border-bottom:none}
+  #citasTable td::before{content:attr(data-label);font-size:.62rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);flex-shrink:0;text-align:left}
+  #citasTable td.td-full{display:block;padding:12px 0;text-align:left}
+  #citasTable td.td-full::before{display:none}
+}
 </style>
 </head>
 <body>
@@ -1335,14 +1348,14 @@ function renderCitas(){
       accionBtn += '<button class="btn" style="font-size:.72rem;padding:5px 12px;background:#f59e0b;color:#fff;margin-left:4px" onclick="openComprobarPago('+c.id+')">Comprobar pago</button>';
     }
     var tr = document.createElement('tr');
-    tr.innerHTML = '<td style="font-size:.8rem;color:var(--muted)">#'+c.id+'</td>'
-      +'<td><strong style="font-size:.83rem">'+escH(c.nombre)+'</strong><br><span style="font-size:.71rem;color:var(--muted)">'+escH(c.email)+'</span></td>'
-      +'<td style="font-size:.82rem;font-weight:600;white-space:nowrap">'+escH(c.fecha)+'</td>'
-      +'<td style="font-size:.82rem;font-weight:600">'+escH(c.hora)+'</td>'
-      +'<td style="font-size:.78rem">'+medioHtml+'</td>'
-      +'<td><span class="'+badgeClass+'">'+escH(c.estado)+'</span>'+(c.facturado?' <span class="badge-facturado">Facturado</span>':'')+'</td>'
-      +'<td style="font-size:.71rem;color:var(--muted);white-space:nowrap">'+escH((c.created_at||'').substring(0,16))+'</td>'
-      +'<td>'+accionBtn+'</td>';
+    tr.innerHTML = '<td data-label="N° cita" style="font-size:.8rem;color:var(--muted)">#'+c.id+'</td>'
+      +'<td data-label="Cliente" class="td-full"><strong style="font-size:.83rem">'+escH(c.nombre)+'</strong><br><span style="font-size:.71rem;color:var(--muted)">'+escH(c.email)+'</span></td>'
+      +'<td data-label="Fecha" style="font-size:.82rem;font-weight:600;white-space:nowrap">'+escH(c.fecha)+'</td>'
+      +'<td data-label="Hora" style="font-size:.82rem;font-weight:600">'+escH(c.hora)+'</td>'
+      +'<td data-label="Medio" style="font-size:.78rem">'+medioHtml+'</td>'
+      +'<td data-label="Estado"><span class="'+badgeClass+'">'+escH(c.estado)+'</span>'+(c.facturado?' <span class="badge-facturado">Facturado</span>':'')+'</td>'
+      +'<td data-label="Registrada" style="font-size:.71rem;color:var(--muted);white-space:nowrap">'+escH((c.created_at||'').substring(0,16))+'</td>'
+      +'<td data-label="" class="td-full">'+accionBtn+'</td>';
     tbody.appendChild(tr);
   });
 }
