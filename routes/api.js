@@ -6,12 +6,13 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const { getDB } = require('../database');
 const { sendOTP } = require('../utils/email');
+const { saveComprobante } = require('../utils/upload');
 const rateLimit = require('../middleware/rateLimit');
 const { SECRET } = require('../config');
 
 const router = express.Router();
 
-const uploadsDir = path.join(path.dirname(process.env.DB_PATH || path.join(__dirname, '..', 'data.db')), 'comprobantes');
+const uploadsDir = path.join(path.dirname(path.resolve(process.env.DB_PATH || path.join(__dirname, '..', 'data.db'))), 'comprobantes');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 // Comprobantes: se guardan en memoria para validar el contenido real (magic bytes)
@@ -161,7 +162,7 @@ router.get('/citas/:id', (req, res) => {
 });
 
 /* Subir comprobante (POST /api/citas/:id/comprobante) — requiere email coincidente */
-router.post('/citas/:id/comprobante', uploadLimiter, upload.single('comprobante'), (req, res) => {
+router.post('/citas/:id/comprobante', uploadLimiter, upload.single('comprobante'), async (req, res) => {
   const db = getDB();
   const email = String(req.body.email || '').trim().toLowerCase();
   const cita = db.prepare('SELECT id,email FROM citas WHERE id=?').get(req.params.id);
@@ -172,16 +173,15 @@ router.post('/citas/:id/comprobante', uploadLimiter, upload.single('comprobante'
   const ext = detectFileType(req.file.buffer);
   if (!ext) return res.status(400).json({ error: 'Tipo de archivo no permitido' });
 
-  const filename = `cita-${cita.id}-${Date.now()}${ext}`;
   try {
-    fs.writeFileSync(path.join(uploadsDir, filename), req.file.buffer, { mode: 0o600 });
+    const { path: savedPath } = await saveComprobante(req.file.buffer, ext, cita.id, uploadsDir);
+    db.prepare('UPDATE citas SET comprobante_path=?, comprobante_estado=? WHERE id=?')
+      .run(savedPath, 'pendiente', cita.id);
+    res.json({ ok: true });
   } catch (e) {
     console.error('[comprobante] Error guardando archivo:', e.message);
-    return res.status(500).json({ error: 'Error al guardar el archivo' });
+    res.status(500).json({ error: 'Error al guardar el archivo' });
   }
-  db.prepare('UPDATE citas SET comprobante_path=?, comprobante_estado=? WHERE id=?')
-    .run(filename, 'pendiente', cita.id);
-  res.json({ ok: true });
 });
 
 // Solo estas claves de `contacto` se exponen públicamente. Excluye deliberadamente

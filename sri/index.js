@@ -9,7 +9,7 @@ const { signXML }                         = require('./signer');
 const { enviarComprobante, autorizarComprobante } = require('./client');
 
 function getP12Path() {
-  return path.join(path.dirname(process.env.DB_PATH || path.join(__dirname, '..', 'data.db')), 'firma.p12');
+  return path.join(path.dirname(path.resolve(process.env.DB_PATH || path.join(__dirname, '..', 'data.db'))), 'firma.p12');
 }
 
 function getP12() {

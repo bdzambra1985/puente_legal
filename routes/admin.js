@@ -158,19 +158,42 @@ router.get('/facturas/:id', (req, res) => {
 
 /* Servir comprobante (GET /api/admin/comprobante/:filename) */
 const COMPROBANTE_TYPES = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.pdf': 'application/pdf', '.webp': 'image/webp' };
-router.get('/comprobante/:filename', (req, res) => {
-  const uploadsDir = path.join(path.dirname(process.env.DB_PATH || path.join(__dirname, '..', 'data.db')), 'comprobantes');
-  const safeName = path.basename(req.params.filename);
-  const file = path.join(uploadsDir, safeName);
-  if (!fs.existsSync(file)) return res.status(404).send('No encontrado');
-  // Content-Type fijo por extensión y descarga (no render inline) para evitar
-  // que un archivo malicioso se ejecute como HTML/SVG en el navegador del admin.
-  const ext = path.extname(safeName).toLowerCase();
-  const type = COMPROBANTE_TYPES[ext] || 'application/octet-stream';
-  res.setHeader('Content-Type', type);
-  res.setHeader('Content-Disposition', `inline; filename="${safeName}"`);
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.sendFile(file);
+router.get('/comprobante/:filename', async (req, res) => {
+  const raw = req.params.filename;
+
+  // Comprobantes subidos a Cloudinary: comprobante_path guarda la URL completa.
+  // Se hace de proxy (en vez de redirigir) para no perder el gate de JWT de esta ruta.
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      const upstream = await fetch(raw);
+      if (!upstream.ok) return res.status(404).send('No encontrado');
+      const buf = Buffer.from(await upstream.arrayBuffer());
+      res.setHeader('Content-Type', upstream.headers.get('content-type') || 'application/octet-stream');
+      res.setHeader('Content-Disposition', 'inline');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      return res.send(buf);
+    } catch (e) {
+      return res.status(502).send('Error al obtener el archivo');
+    }
+  }
+
+  try {
+    const uploadsDir = path.join(path.dirname(path.resolve(process.env.DB_PATH || path.join(__dirname, '..', 'data.db'))), 'comprobantes');
+    const safeName = path.basename(raw);
+    const file = path.join(uploadsDir, safeName);
+    if (!fs.existsSync(file)) return res.status(404).send('No encontrado');
+    // Content-Type fijo por extensión y descarga (no render inline) para evitar
+    // que un archivo malicioso se ejecute como HTML/SVG en el navegador del admin.
+    const ext = path.extname(safeName).toLowerCase();
+    const type = COMPROBANTE_TYPES[ext] || 'application/octet-stream';
+    res.setHeader('Content-Type', type);
+    res.setHeader('Content-Disposition', `inline; filename="${safeName}"`);
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.sendFile(file);
+  } catch (e) {
+    console.error('[comprobante] Error sirviendo archivo local:', e.message);
+    res.status(500).send('Error al obtener el archivo');
+  }
 });
 
 /* ── TESTIMONIOS ─────────────────────────────────────────── */
