@@ -185,7 +185,7 @@ function buildFacturaXML({
     </detalle>
   </detalles>
   <infoAdicional>
-    <campoAdicional nombre="email">${xmlEsc(email)}</campoAdicional>
+    ${email ? `<campoAdicional nombre="email">${xmlEsc(email)}</campoAdicional>` : ''}
     <campoAdicional nombre="factura">${xmlEsc(numeroFactura)}</campoAdicional>
   </infoAdicional>
 </factura>`;
