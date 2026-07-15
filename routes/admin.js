@@ -126,6 +126,20 @@ async function crearYEmitirFactura(db, { cita_id, cliente_nombre, cliente_email,
 }
 
 async function reintentarFacturaRow(db, row) {
+  let secuencial = row.secuencial;
+  let numeroFactura = row.numero_factura;
+
+  // Si el intento anterior falló porque el SRI ya tenía ese secuencial
+  // registrado (error 45), reintentar con el mismo número vuelve a fallar
+  // siempre — hay que reservar uno nuevo antes de reintentar.
+  let prevData = {};
+  try { prevData = JSON.parse(row.sri_data || '{}'); } catch (e) { /* noop */ }
+  if (/SECUENCIAL REGISTRADO/i.test(prevData.error || '')) {
+    secuencial = nextSecuencial(db, row.estab, row.pto_emi);
+    numeroFactura = `${row.estab}-${row.pto_emi}-${String(secuencial).padStart(9, '0')}`;
+    db.prepare('UPDATE facturas SET secuencial=?, numero_factura=? WHERE id=?').run(secuencial, numeroFactura, row.id);
+  }
+
   db.prepare("UPDATE facturas SET sri_estado='procesando' WHERE id=?").run(row.id);
   if (row.cita_id) db.prepare("UPDATE citas SET factura_estado='esperando_sri' WHERE id=?").run(row.cita_id);
   try {
@@ -133,12 +147,12 @@ async function reintentarFacturaRow(db, row) {
       nombre: row.cliente_nombre, email: row.cliente_email, doc: row.cliente_doc,
       monto: row.monto, subtotal: row.subtotal, iva: row.iva,
       concepto: row.concepto, formaPago: row.forma_pago,
-      fecha: row.fecha_emision, secuencial: row.secuencial
+      fecha: row.fecha_emision, secuencial
     });
     db.prepare('UPDATE facturas SET clave_acceso=?, sri_estado=?, sri_data=? WHERE id=?')
       .run(result.claveAcceso || '', result.ok ? 'autorizada' : 'error', JSON.stringify(result), row.id);
     await syncCitaFactura(db, row.cita_id, row.id, result.ok);
-    return { ok: result.ok, id: row.id, numero_factura: row.numero_factura, ...(result.ok ? {} : { error: result.error }) };
+    return { ok: result.ok, id: row.id, numero_factura: numeroFactura, ...(result.ok ? {} : { error: result.error }) };
   } catch (e) {
     db.prepare('UPDATE facturas SET sri_estado=?, sri_data=? WHERE id=?')
       .run('error', JSON.stringify({ ok: false, error: e.message }), row.id);

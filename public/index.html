@@ -1270,7 +1270,7 @@ function buscarCita(){
         +escH(ytcCita.fecha)+' a las '+escH(ytcCita.hora)+'<br>'
         +'Medio: '+tipoStr+'<br>'
         +'Estado: <strong>'+escH(ytcCita.estado)+'</strong>'
-        +(ytcCita.puedePagar ? '' : '<div style="margin-top:10px;padding:10px 12px;background:#fff7e6;border:1px solid rgba(201,162,39,.3);border-radius:8px;font-size:.78rem;color:#78611a">Tu cita todavía está en revisión. Te avisaremos por correo cuando puedas realizar el pago.</div>');
+        +(ytcCita.puedePagar ? '' : '<div style="margin-top:10px;padding:10px 12px;background:#fff7e6;border:1px solid rgba(201,162,39,.3);border-radius:8px;font-size:.78rem;color:#78611a">Tu cita todavía está en revisión.</div>');
       infoEl.style.display='block';
       if(ytcCita.puedePagar){
         pagarBtn.textContent='Ver opciones de pago →';
