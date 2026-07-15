@@ -136,6 +136,14 @@ function initDB() {
     db.exec("ALTER TABLE citas ADD COLUMN comprobante_estado TEXT NOT NULL DEFAULT ''");
   if (!citasCols.includes('facturado'))
     db.exec("ALTER TABLE citas ADD COLUMN facturado INTEGER NOT NULL DEFAULT 0");
+  if (!citasCols.includes('monto_pagado'))
+    db.exec("ALTER TABLE citas ADD COLUMN monto_pagado REAL NOT NULL DEFAULT 0");
+  if (!citasCols.includes('cliente_doc'))
+    db.exec("ALTER TABLE citas ADD COLUMN cliente_doc TEXT NOT NULL DEFAULT ''");
+  if (!citasCols.includes('factura_estado'))
+    db.exec("ALTER TABLE citas ADD COLUMN factura_estado TEXT NOT NULL DEFAULT ''");
+  if (!citasCols.includes('factura_id'))
+    db.exec('ALTER TABLE citas ADD COLUMN factura_id INTEGER');
 
   // Migración: agregar datos bancarios y SRI a contacto si no existen
   const existingContacto = db.prepare('SELECT key FROM contacto').all().map(r => r.key);

@@ -342,7 +342,7 @@ a{text-decoration:none;color:inherit}
           </div>
           <div style="overflow-x:auto">
             <table class="table" id="citasTable">
-              <thead><tr><th>#</th><th>Cliente</th><th>Fecha</th><th>Hora</th><th>Medio</th><th>Estado</th><th>Registrada</th><th>Acciones</th></tr></thead>
+              <thead><tr><th>#</th><th>Cliente</th><th>Fecha</th><th>Hora</th><th>Medio</th><th>Estado</th><th>Factura</th><th>Registrada</th><th>Acciones</th></tr></thead>
               <tbody id="citasBody"></tbody>
             </table>
           </div>
@@ -677,6 +677,31 @@ a{text-decoration:none;color:inherit}
   </div>
 </div>
 
+<!-- MODAL ENVIAR CORREO -->
+<div class="overlay" id="enviarCorreoOverlay" onclick="closeEnviarCorreo(event)">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <h3>Enviar correo al cliente</h3>
+      <button class="modal-close" onclick="closeEnviarCorreo(true)"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fg"><label>Título</label><input type="text" id="correoTitulo" maxlength="200" placeholder="Ej: Documentos de tu trámite"></div>
+        <div class="fg"><label>Mensaje</label><textarea id="correoMensaje" maxlength="9999" style="min-height:140px" placeholder="Escribe el mensaje que recibirá el cliente..."></textarea></div>
+        <div class="fg">
+          <label>Adjunto (opcional)</label>
+          <input type="file" id="correoAdjunto" onchange="document.getElementById('correoAdjuntoNombre').textContent=this.files[0]?this.files[0].name:''">
+          <div id="correoAdjuntoNombre" style="font-size:.75rem;color:var(--muted);margin-top:4px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeEnviarCorreo(true)">Cancelar</button>
+      <button class="btn btn-gold" id="correoEnviarBtn" onclick="enviarCorreoSubmit()">Enviar correo</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL CONFIRMAR CITA -->
 <div class="overlay" id="confirmCitaOverlay" onclick="closeConfirmCita(event)">
   <div class="modal" style="max-width:460px">
@@ -847,7 +872,7 @@ function loadAll(){
     citasData = citas;
     document.getElementById('dashCitasPend').textContent=citas.filter(function(c){ return c.estado==='pendiente'; }).length;
     document.getElementById('dashCitasTotal').textContent=citas.length;
-    var pagosPend=citas.filter(function(c){ return c.comprobante_estado==='pendiente'; }).length;
+    var pagosPend=citas.filter(function(c){ return c.factura_estado==='pendiente'; }).length;
     document.getElementById('dashPagosPend').textContent=pagosPend;
     document.getElementById('dashPagoCard').style.background=pagosPend>0?'rgba(245,158,11,.08)':'';
   });
@@ -1296,6 +1321,8 @@ var citasData = [];
 var citasFiltro = 'todas';
 var citasSortKey = 'fecha';
 var citasSortDir = 'asc';
+var FACTURA_ESTADO_LABEL = { pendiente:'Comprobante pendiente', esperando_sri:'Esperando SRI', aprobada:'Aprobada', rechazada:'Rechazada', error:'Error' };
+var FACTURA_ESTADO_BADGE = { pendiente:'badge-pendiente', esperando_sri:'badge-pendiente', aprobada:'badge-facturado', rechazada:'badge-inactive', error:'badge-inactive' };
 
 function loadCitas(){
   api('GET','/api/admin/citas').then(function(data){
@@ -1331,7 +1358,7 @@ function renderCitas(){
     return citasSortDir==='asc' ? va.localeCompare(vb) : vb.localeCompare(va);
   });
   if(!lista.length){
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:32px">No hay citas</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:32px">No hay citas</td></tr>';
     return;
   }
   tbody.innerHTML = '';
@@ -1344,16 +1371,24 @@ function renderCitas(){
     var accionBtn = c.estado === 'confirmada'
       ? '<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px" onclick="openResumen('+c.id+')">Resumen</button>'
       : '<button class="btn btn-gold" style="font-size:.72rem;padding:5px 12px" onclick="openConfirmCita('+c.id+')">Confirmar</button>';
-    if(c.comprobante_estado === 'pendiente'){
+    if(c.factura_estado === 'pendiente'){
       accionBtn += '<button class="btn" style="font-size:.72rem;padding:5px 12px;background:#f59e0b;color:#fff;margin-left:4px" onclick="openComprobarPago('+c.id+')">Comprobar pago</button>';
+    } else if(c.factura_estado === 'error' && c.factura_id){
+      accionBtn += '<button class="btn btn-danger" style="font-size:.72rem;padding:5px 12px;margin-left:4px" onclick="reintentarFacturaCita('+c.factura_id+')">Reintentar factura</button>';
+    } else if(c.factura_estado === 'aprobada'){
+      accionBtn += '<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px;margin-left:4px" onclick="openEnviarCorreo('+c.id+')">Enviar correo</button>';
     }
+    var facturaBadge = c.factura_estado
+      ? '<span class="'+(FACTURA_ESTADO_BADGE[c.factura_estado]||'badge-pendiente')+'">'+(FACTURA_ESTADO_LABEL[c.factura_estado]||c.factura_estado)+'</span>'
+      : '<span style="color:var(--muted);font-size:.78rem">—</span>';
     var tr = document.createElement('tr');
     tr.innerHTML = '<td data-label="N° cita" style="font-size:.8rem;color:var(--muted)">#'+c.id+'</td>'
       +'<td data-label="Cliente" class="td-full"><strong style="font-size:.83rem">'+escH(c.nombre)+'</strong><br><span style="font-size:.71rem;color:var(--muted)">'+escH(c.email)+'</span></td>'
       +'<td data-label="Fecha" style="font-size:.82rem;font-weight:600;white-space:nowrap">'+escH(c.fecha)+'</td>'
       +'<td data-label="Hora" style="font-size:.82rem;font-weight:600">'+escH(c.hora)+'</td>'
       +'<td data-label="Medio" style="font-size:.78rem">'+medioHtml+'</td>'
-      +'<td data-label="Estado"><span class="'+badgeClass+'">'+escH(c.estado)+'</span>'+(c.facturado?' <span class="badge-facturado">Facturado</span>':'')+'</td>'
+      +'<td data-label="Estado"><span class="'+badgeClass+'">'+escH(c.estado)+'</span></td>'
+      +'<td data-label="Factura">'+facturaBadge+'</td>'
       +'<td data-label="Registrada" style="font-size:.71rem;color:var(--muted);white-space:nowrap">'+escH((c.created_at||'').substring(0,16))+'</td>'
       +'<td data-label="" class="td-full">'+accionBtn+'</td>';
     tbody.appendChild(tr);
@@ -1453,7 +1488,9 @@ function openComprobarPago(id){
     '<strong>#'+cita.id+' — '+escH(cita.nombre)+'</strong><br>'
     +escH(cita.email)+'<br>'
     +escH(cita.fecha)+' '+escH(cita.hora)
-    +(cita.contacto_tipo==='zoom'?' · Zoom':' · WA: '+escH(cita.contacto_valor));
+    +(cita.contacto_tipo==='zoom'?' · Zoom':' · WA: '+escH(cita.contacto_valor))+'<br>'
+    +'<strong>Monto pagado:</strong> $'+parseFloat(cita.monto_pagado||0).toFixed(2)+' &nbsp;·&nbsp; '
+    +'<strong>Cédula/RUC:</strong> '+escH(cita.cliente_doc||'—');
   var apiUrl = '/api/admin/comprobante/'+encodeURIComponent(cita.comprobante_path);
   var visor = document.getElementById('comprobarVisor');
   var ext = (cita.comprobante_path||'').split('.').pop().toLowerCase();
@@ -1489,13 +1526,76 @@ function verificarPago(estado){
   var btnV = document.getElementById('btnVerificarPago');
   var btnR = document.getElementById('btnRechazarPago');
   btnV.disabled=true; btnR.disabled=true;
-  api('PUT','/api/admin/citas/'+comprobarCitaId, {comprobante_estado: estado}).then(function(r){
+
+  if(estado === 'rechazado'){
+    api('PUT','/api/admin/citas/'+comprobarCitaId, {comprobante_estado: 'rechazado'}).then(function(r){
+      btnV.disabled=false; btnR.disabled=false;
+      if(r.ok){
+        toast('Comprobante rechazado');
+        document.getElementById('comprobarPagoOverlay').classList.remove('open');
+        loadCitas();
+      } else toast('Error al actualizar','error');
+    });
+    return;
+  }
+
+  btnV.textContent = 'Emitiendo factura...';
+  api('POST','/api/admin/citas/'+comprobarCitaId+'/verificar-pago').then(function(r){
     btnV.disabled=false; btnR.disabled=false;
-    if(r.ok){
-      toast(estado==='verificado'?'Pago verificado correctamente':'Comprobante rechazado');
-      document.getElementById('comprobarPagoOverlay').classList.remove('open');
-      loadCitas();
-    } else toast('Error al actualizar','error');
+    btnV.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Pago verificado';
+    if(r.error && !r.id){ toast(r.error, 'error'); return; }
+    document.getElementById('comprobarPagoOverlay').classList.remove('open');
+    loadCitas();
+    if(r.ok) toast('Pago verificado — factura '+r.numero_factura+' autorizada por el SRI');
+    else toast('Pago verificado, pero el SRI rechazó la factura: '+(r.error||''), 'error');
+  });
+}
+
+function reintentarFacturaCita(facturaId){
+  api('POST','/api/admin/facturas/'+facturaId+'/reintentar').then(function(r){
+    loadCitas();
+    if(r.ok) toast('Factura '+r.numero_factura+' autorizada por el SRI');
+    else toast('Sigue sin autorizarse: '+(r.error||''), 'error');
+  });
+}
+
+var enviarCorreoCitaId = null;
+
+function openEnviarCorreo(id){
+  enviarCorreoCitaId = id;
+  document.getElementById('correoTitulo').value = '';
+  document.getElementById('correoMensaje').value = '';
+  document.getElementById('correoAdjunto').value = '';
+  document.getElementById('correoAdjuntoNombre').textContent = '';
+  document.getElementById('enviarCorreoOverlay').classList.add('open');
+}
+
+function closeEnviarCorreo(force){
+  if(force===true || (force&&force.target===document.getElementById('enviarCorreoOverlay')))
+    document.getElementById('enviarCorreoOverlay').classList.remove('open');
+}
+
+function enviarCorreoSubmit(){
+  if(!enviarCorreoCitaId) return;
+  var titulo = document.getElementById('correoTitulo').value.trim();
+  var mensaje = document.getElementById('correoMensaje').value.trim();
+  if(!titulo || !mensaje){ toast('Completa título y mensaje', 'error'); return; }
+  var fd = new FormData();
+  fd.append('titulo', titulo);
+  fd.append('mensaje', mensaje);
+  var file = document.getElementById('correoAdjunto').files[0];
+  if(file) fd.append('adjunto', file);
+  var btn = document.getElementById('correoEnviarBtn');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  fetch('/api/admin/citas/'+enviarCorreoCitaId+'/enviar-correo', {
+    method: 'POST', headers: { 'Authorization': 'Bearer '+TOKEN }, body: fd
+  }).then(function(r){ return r.json(); }).then(function(d){
+    btn.disabled = false; btn.textContent = 'Enviar correo';
+    if(d.ok){ toast('Correo enviado'); closeEnviarCorreo(true); }
+    else toast(d.error || 'Error al enviar', 'error');
+  }).catch(function(){
+    btn.disabled = false; btn.textContent = 'Enviar correo';
+    toast('Error de conexión', 'error');
   });
 }
 

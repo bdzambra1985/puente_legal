@@ -205,4 +205,51 @@ async function sendFacturaEmitida(factura) {
   console.log(`[email] Factura enviada a ${factura.cliente_email} (factura #${factura.id})`);
 }
 
-module.exports = { sendCitaConfirmada, sendOTP, sendFacturaEmitida };
+async function sendCorreoAdjunto(cita, titulo, mensaje, file) {
+  if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
+    console.log('[email] SMTP no configurado — skipping correo cita id:', cita.id);
+    return;
+  }
+  if (!cita.email) {
+    console.log('[email] Cita sin email — skipping correo cita id:', cita.id);
+    return;
+  }
+
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+  const mensajeHtml = escHtml(mensaje).replace(/\n/g, '<br>');
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:32px 16px;background:#f8f7f4;font-family:'Helvetica Neue',Arial,sans-serif">
+  <div style="max-width:520px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08)">
+    <div style="background:#0f1e38;padding:32px 40px;text-align:center">
+      <div style="font-size:1.3rem;font-weight:800;color:#C9A227;letter-spacing:2px">PUENTE LEGAL</div>
+      <div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-top:4px;letter-spacing:1px">INTERNACIONAL EC</div>
+    </div>
+    <div style="padding:36px 40px">
+      <h1 style="font-size:1.2rem;color:#0f1e38;margin:0 0 18px;font-weight:700">${escHtml(titulo)}</h1>
+      <p style="color:#0f1e38;font-size:.88rem;line-height:1.7;margin:0">${mensajeHtml}</p>
+    </div>
+    <div style="background:#f8f7f4;padding:18px 40px;text-align:center;border-top:1px solid #e2e8f0">
+      <div style="font-size:.7rem;color:#94a3b8">Puente Legal Internacional EC · Ecuador · Nacional e Internacional</div>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const attachments = [];
+  if (file) attachments.push({ filename: file.originalname, content: file.buffer, contentType: file.mimetype });
+
+  await createTransport().sendMail({
+    from: `"Puente Legal" <${from}>`,
+    to: cita.email,
+    subject: `${titulo} — Puente Legal`,
+    html,
+    attachments
+  });
+
+  console.log(`[email] Correo con adjunto enviado a ${cita.email} (cita #${cita.id})`);
+}
+
+module.exports = { sendCitaConfirmada, sendOTP, sendFacturaEmitida, sendCorreoAdjunto };

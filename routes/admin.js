@@ -4,7 +4,7 @@ const fs = require('fs');
 const multer = require('multer');
 const { getDB } = require('../database');
 const auth = require('../middleware/auth');
-const { sendCitaConfirmada, sendFacturaEmitida } = require('../utils/email');
+const { sendCitaConfirmada, sendFacturaEmitida, sendCorreoAdjunto } = require('../utils/email');
 const { emitirFactura, getSRIConfig, getP12Path } = require('../sri/index');
 
 const router = express.Router();
@@ -65,15 +65,82 @@ function nextSecuencial(db, estab, ptoEmi) {
 
 /* ── FACTURACIÓN ELECTRÓNICA (SRI) ─────────────────────────────────── */
 
-// Al autorizarse una factura: marca la cita vinculada (si hay) como facturada
-// y envía el comprobante por correo al cliente. Nunca debe tumbar la respuesta.
-async function onFacturaAutorizada(db, facturaId, citaId) {
-  if (citaId) db.prepare('UPDATE citas SET facturado=1 WHERE id=?').run(citaId);
+// Al resolverse una factura vinculada a una cita (autorizada o error): sincroniza
+// el estado en la cita y, si quedó autorizada, envía el comprobante por correo.
+// Nunca debe tumbar la respuesta del caller.
+async function syncCitaFactura(db, citaId, facturaId, ok) {
+  if (!citaId) return;
+  db.prepare('UPDATE citas SET factura_id=?, factura_estado=?, facturado=? WHERE id=?')
+    .run(facturaId, ok ? 'aprobada' : 'error', ok ? 1 : 0, citaId);
+  if (ok) {
+    try {
+      const factura = db.prepare('SELECT * FROM facturas WHERE id=?').get(facturaId);
+      if (factura) await sendFacturaEmitida(factura);
+    } catch (e) {
+      console.error('[email] Error enviando factura:', e.message);
+    }
+  }
+}
+
+// Reserva secuencial, inserta la factura y la emite contra el SRI. Si viene
+// cita_id, marca la cita como 'esperando_sri' antes de la llamada async y la
+// sincroniza al resultado final (aprobada/error). Nunca lanza sin capturar.
+async function crearYEmitirFactura(db, { cita_id, cliente_nombre, cliente_email, cliente_doc, monto, concepto, forma_pago }) {
+  const cfg = getSRIConfig(db);
+  const ivaRate  = cfg.ivaRate || 15;
+  const subtotal = Math.round((monto / (1 + ivaRate / 100)) * 100) / 100;
+  const iva      = Math.round((monto - subtotal) * 100) / 100;
+
+  const secuencial    = nextSecuencial(db, cfg.estab, cfg.ptoEmi);
+  const fechaEmision  = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Guayaquil' });
+  const numeroFactura = `${cfg.estab}-${cfg.ptoEmi}-${String(secuencial).padStart(9, '0')}`;
+
+  const ins = db.prepare(`INSERT INTO facturas
+    (cita_id, cliente_nombre, cliente_email, cliente_doc, monto, subtotal, iva, iva_rate,
+     concepto, forma_pago, estab, pto_emi, secuencial, fecha_emision, numero_factura, sri_estado)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'procesando')`)
+    .run(cita_id || null, cliente_nombre, cliente_email || '', cliente_doc, monto, subtotal, iva,
+         ivaRate, concepto || '', forma_pago || '20', cfg.estab, cfg.ptoEmi, secuencial, fechaEmision, numeroFactura);
+  const facturaId = ins.lastInsertRowid;
+  if (cita_id) db.prepare("UPDATE citas SET factura_id=?, factura_estado='esperando_sri' WHERE id=?").run(facturaId, cita_id);
+
   try {
-    const factura = db.prepare('SELECT * FROM facturas WHERE id=?').get(facturaId);
-    if (factura) await sendFacturaEmitida(factura);
+    const result = await emitirFactura(db, {
+      nombre: cliente_nombre, email: cliente_email, doc: cliente_doc,
+      monto, subtotal, iva, concepto, formaPago: forma_pago || '20',
+      fecha: fechaEmision, secuencial
+    });
+    db.prepare('UPDATE facturas SET clave_acceso=?, sri_estado=?, sri_data=? WHERE id=?')
+      .run(result.claveAcceso || '', result.ok ? 'autorizada' : 'error', JSON.stringify(result), facturaId);
+    await syncCitaFactura(db, cita_id, facturaId, result.ok);
+    return { ok: result.ok, id: facturaId, numero_factura: numeroFactura, ...(result.ok ? {} : { error: result.error }) };
   } catch (e) {
-    console.error('[email] Error enviando factura:', e.message);
+    db.prepare('UPDATE facturas SET sri_estado=?, sri_data=? WHERE id=?')
+      .run('error', JSON.stringify({ ok: false, error: e.message }), facturaId);
+    await syncCitaFactura(db, cita_id, facturaId, false);
+    return { ok: false, id: facturaId, numero_factura: numeroFactura, error: e.message };
+  }
+}
+
+async function reintentarFacturaRow(db, row) {
+  db.prepare("UPDATE facturas SET sri_estado='procesando' WHERE id=?").run(row.id);
+  if (row.cita_id) db.prepare("UPDATE citas SET factura_estado='esperando_sri' WHERE id=?").run(row.cita_id);
+  try {
+    const result = await emitirFactura(db, {
+      nombre: row.cliente_nombre, email: row.cliente_email, doc: row.cliente_doc,
+      monto: row.monto, subtotal: row.subtotal, iva: row.iva,
+      concepto: row.concepto, formaPago: row.forma_pago,
+      fecha: row.fecha_emision, secuencial: row.secuencial
+    });
+    db.prepare('UPDATE facturas SET clave_acceso=?, sri_estado=?, sri_data=? WHERE id=?')
+      .run(result.claveAcceso || '', result.ok ? 'autorizada' : 'error', JSON.stringify(result), row.id);
+    await syncCitaFactura(db, row.cita_id, row.id, result.ok);
+    return { ok: result.ok, id: row.id, numero_factura: row.numero_factura, ...(result.ok ? {} : { error: result.error }) };
+  } catch (e) {
+    db.prepare('UPDATE facturas SET sri_estado=?, sri_data=? WHERE id=?')
+      .run('error', JSON.stringify({ ok: false, error: e.message }), row.id);
+    await syncCitaFactura(db, row.cita_id, row.id, false);
+    return { ok: false, id: row.id, error: e.message };
   }
 }
 
@@ -84,39 +151,8 @@ router.post('/facturas', async (req, res) => {
     return res.status(400).json({ error: 'Faltan campos o monto inválido' });
 
   const db = getDB();
-  const cfg = getSRIConfig(db);
-  const ivaRate  = cfg.ivaRate || 15;
-  const subtotal = Math.round((montoNum / (1 + ivaRate / 100)) * 100) / 100;
-  const iva      = Math.round((montoNum - subtotal) * 100) / 100;
-
-  const secuencial    = nextSecuencial(db, cfg.estab, cfg.ptoEmi);
-  const fechaEmision  = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Guayaquil' });
-  const numeroFactura = `${cfg.estab}-${cfg.ptoEmi}-${String(secuencial).padStart(9, '0')}`;
-
-  const ins = db.prepare(`INSERT INTO facturas
-    (cita_id, cliente_nombre, cliente_email, cliente_doc, monto, subtotal, iva, iva_rate,
-     concepto, forma_pago, estab, pto_emi, secuencial, fecha_emision, numero_factura, sri_estado)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'procesando')`)
-    .run(cita_id || null, cliente_nombre, cliente_email || '', cliente_doc, montoNum, subtotal, iva,
-         ivaRate, concepto || '', forma_pago || '20', cfg.estab, cfg.ptoEmi, secuencial, fechaEmision, numeroFactura);
-  const facturaId = ins.lastInsertRowid;
-
-  try {
-    const result = await emitirFactura(db, {
-      nombre: cliente_nombre, email: cliente_email, doc: cliente_doc,
-      monto: montoNum, subtotal, iva, concepto, formaPago: forma_pago || '20',
-      fecha: fechaEmision, secuencial
-    });
-    db.prepare('UPDATE facturas SET clave_acceso=?, sri_estado=?, sri_data=? WHERE id=?')
-      .run(result.claveAcceso || '', result.ok ? 'autorizada' : 'error', JSON.stringify(result), facturaId);
-    if (result.ok) await onFacturaAutorizada(db, facturaId, cita_id);
-    res.json({ ok: result.ok, id: facturaId, numero_factura: numeroFactura,
-               ...(result.ok ? {} : { error: result.error }) });
-  } catch (e) {
-    db.prepare('UPDATE facturas SET sri_estado=?, sri_data=? WHERE id=?')
-      .run('error', JSON.stringify({ ok: false, error: e.message }), facturaId);
-    res.json({ ok: false, id: facturaId, numero_factura: numeroFactura, error: e.message });
-  }
+  const result = await crearYEmitirFactura(db, { cita_id, cliente_nombre, cliente_email, cliente_doc, monto: montoNum, concepto, forma_pago });
+  res.json(result);
 });
 
 router.post('/facturas/:id/reintentar', async (req, res) => {
@@ -126,24 +162,8 @@ router.post('/facturas/:id/reintentar', async (req, res) => {
   if (row.sri_estado !== 'error')
     return res.status(409).json({ error: 'Solo se puede reintentar una factura en estado error' });
 
-  db.prepare("UPDATE facturas SET sri_estado='procesando' WHERE id=?").run(row.id);
-  try {
-    const result = await emitirFactura(db, {
-      nombre: row.cliente_nombre, email: row.cliente_email, doc: row.cliente_doc,
-      monto: row.monto, subtotal: row.subtotal, iva: row.iva,
-      concepto: row.concepto, formaPago: row.forma_pago,
-      fecha: row.fecha_emision, secuencial: row.secuencial
-    });
-    db.prepare('UPDATE facturas SET clave_acceso=?, sri_estado=?, sri_data=? WHERE id=?')
-      .run(result.claveAcceso || '', result.ok ? 'autorizada' : 'error', JSON.stringify(result), row.id);
-    if (result.ok) await onFacturaAutorizada(db, row.id, row.cita_id);
-    res.json({ ok: result.ok, id: row.id, numero_factura: row.numero_factura,
-               ...(result.ok ? {} : { error: result.error }) });
-  } catch (e) {
-    db.prepare('UPDATE facturas SET sri_estado=?, sri_data=? WHERE id=?')
-      .run('error', JSON.stringify({ ok: false, error: e.message }), row.id);
-    res.json({ ok: false, id: row.id, error: e.message });
-  }
+  const result = await reintentarFacturaRow(db, row);
+  res.json(result);
 });
 
 router.get('/facturas', (req, res) => {
@@ -272,8 +292,13 @@ router.put('/citas/:id', async (req, res) => {
     return res.json({ ok: true });
   }
   if (req.body.comprobante_estado !== undefined) {
-    db.prepare('UPDATE citas SET comprobante_estado=? WHERE id=?')
-      .run(req.body.comprobante_estado, req.params.id);
+    const nuevoEstado = req.body.comprobante_estado;
+    if (nuevoEstado === 'rechazado') {
+      db.prepare("UPDATE citas SET comprobante_estado=?, factura_estado='rechazada' WHERE id=?")
+        .run(nuevoEstado, req.params.id);
+    } else {
+      db.prepare('UPDATE citas SET comprobante_estado=? WHERE id=?').run(nuevoEstado, req.params.id);
+    }
     return res.json({ ok: true });
   }
   db.prepare('UPDATE citas SET estado=? WHERE id=?').run(estado, req.params.id);
@@ -285,6 +310,47 @@ router.put('/citas/:id', async (req, res) => {
     }
   }
   res.json({ ok: true });
+});
+
+// Verifica el pago de una cita y dispara la emisión de la factura vinculada
+// (monto y documento del cliente ya se cargaron al subir el comprobante).
+router.post('/citas/:id/verificar-pago', async (req, res) => {
+  const db = getDB();
+  const cita = db.prepare('SELECT * FROM citas WHERE id=?').get(req.params.id);
+  if (!cita) return res.status(404).json({ error: 'NOT_FOUND' });
+  if (!cita.monto_pagado || cita.monto_pagado <= 0 || !cita.cliente_doc)
+    return res.status(400).json({ error: 'La cita no tiene monto o documento del cliente registrado' });
+  if (cita.factura_id)
+    return res.status(409).json({ error: 'Esta cita ya tiene una factura asociada' });
+
+  db.prepare("UPDATE citas SET comprobante_estado='verificado' WHERE id=?").run(cita.id);
+
+  const result = await crearYEmitirFactura(db, {
+    cita_id: cita.id, cliente_nombre: cita.nombre, cliente_email: cita.email,
+    cliente_doc: cita.cliente_doc, monto: cita.monto_pagado,
+    concepto: `Servicios legales — Cita #${cita.id}`
+  });
+  res.json(result);
+});
+
+// Envía un correo puntual al cliente con título, mensaje y un adjunto (independiente del Resumen de la cita).
+const uploadAdjunto = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+router.post('/citas/:id/enviar-correo', uploadAdjunto.single('adjunto'), async (req, res) => {
+  const db = getDB();
+  const cita = db.prepare('SELECT * FROM citas WHERE id=?').get(req.params.id);
+  if (!cita) return res.status(404).json({ error: 'NOT_FOUND' });
+
+  const titulo  = String(req.body.titulo || '').trim().slice(0, 200);
+  const mensaje = String(req.body.mensaje || '').trim().slice(0, 9999);
+  if (!titulo || !mensaje) return res.status(400).json({ error: 'Falta título o mensaje' });
+
+  try {
+    await sendCorreoAdjunto(cita, titulo, mensaje, req.file);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('[email] Error enviando correo con adjunto:', e.message);
+    res.status(500).json({ error: 'Error al enviar el correo' });
+  }
 });
 
 router.delete('/citas/:id', (req, res) => {
