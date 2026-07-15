@@ -152,12 +152,16 @@ router.get('/citas/:id', (req, res) => {
   const email = String(req.query.email || '').trim().toLowerCase();
   if (!email || !EMAIL_RE.test(email)) return res.status(400).json({ error: 'EMAIL_REQUIRED' });
   const cita = getDB()
-    .prepare('SELECT id,nombre,email,fecha,hora,contacto_tipo,estado,comprobante_estado FROM citas WHERE id=?')
+    .prepare('SELECT id,nombre,email,fecha,hora,contacto_tipo,estado,comprobante_estado,resumen_texto FROM citas WHERE id=?')
     .get(req.params.id);
   // Misma respuesta si no existe o el email no coincide (evita enumeración)
   if (!cita || String(cita.email).toLowerCase() !== email)
     return res.status(404).json({ error: 'NOT_FOUND' });
   delete cita.email;
+  // El pago solo se habilita una vez que el admin confirmó la cita Y guardó
+  // el resumen — no se expone el contenido del resumen en sí, solo si existe.
+  cita.puedePagar = cita.estado === 'confirmada' && !!(cita.resumen_texto || '').trim();
+  delete cita.resumen_texto;
   res.json(cita);
 });
 
@@ -165,9 +169,11 @@ router.get('/citas/:id', (req, res) => {
 router.post('/citas/:id/comprobante', uploadLimiter, upload.single('comprobante'), async (req, res) => {
   const db = getDB();
   const email = String(req.body.email || '').trim().toLowerCase();
-  const cita = db.prepare('SELECT id,email FROM citas WHERE id=?').get(req.params.id);
+  const cita = db.prepare('SELECT id,email,estado,resumen_texto FROM citas WHERE id=?').get(req.params.id);
   if (!cita || !email || String(cita.email).toLowerCase() !== email)
     return res.status(404).json({ error: 'NOT_FOUND' });
+  if (cita.estado !== 'confirmada' || !(cita.resumen_texto || '').trim())
+    return res.status(403).json({ error: 'PAGO_NO_HABILITADO' });
   if (!req.file) return res.status(400).json({ error: 'Sin archivo' });
 
   const monto = parseFloat(req.body.monto);

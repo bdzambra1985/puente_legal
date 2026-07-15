@@ -1269,10 +1269,15 @@ function buscarCita(){
         +escH(ytcCita.nombre)+'<br>'
         +escH(ytcCita.fecha)+' a las '+escH(ytcCita.hora)+'<br>'
         +'Medio: '+tipoStr+'<br>'
-        +'Estado: <strong>'+escH(ytcCita.estado)+'</strong>';
+        +'Estado: <strong>'+escH(ytcCita.estado)+'</strong>'
+        +(ytcCita.puedePagar ? '' : '<div style="margin-top:10px;padding:10px 12px;background:#fff7e6;border:1px solid rgba(201,162,39,.3);border-radius:8px;font-size:.78rem;color:#78611a">Tu cita todavía está en revisión. Te avisaremos por correo cuando puedas realizar el pago.</div>');
       infoEl.style.display='block';
-      pagarBtn.textContent='Ver opciones de pago →';
-      pagarBtn.style.display='block';
+      if(ytcCita.puedePagar){
+        pagarBtn.textContent='Ver opciones de pago →';
+        pagarBtn.style.display='block';
+      } else {
+        pagarBtn.style.display='none';
+      }
     })
     .catch(function(){
       errEl.textContent='Error de conexión. Intenta de nuevo.';
@@ -1281,7 +1286,7 @@ function buscarCita(){
 }
 
 function abrirPago(){
-  if(!ytcCita) return;
+  if(!ytcCita || !ytcCita.puedePagar) return;
   document.getElementById('pagoCitaResumen').innerHTML=
     '<strong>Cita #'+escH(ytcCita.id)+'</strong> &nbsp;·&nbsp; '+escH(ytcCita.nombre)
     +' &nbsp;·&nbsp; '+escH(ytcCita.fecha)+' '+escH(ytcCita.hora);
@@ -1373,7 +1378,9 @@ function pagoEnviarComprobante(){
         btn.style.display = 'none';
         document.getElementById('pagoUploadOk').style.display = 'block';
       } else {
-        errEl.textContent = d.error || 'Error al enviar. Intenta de nuevo.';
+        errEl.textContent = d.error === 'PAGO_NO_HABILITADO'
+          ? 'Tu cita todavía está en revisión — todavía no podés pagar.'
+          : (d.error || 'Error al enviar. Intenta de nuevo.');
         errEl.style.display = 'block';
       }
     })
