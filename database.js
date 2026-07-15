@@ -118,6 +118,26 @@ function initDB() {
   `);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_facturas_estab_ptoemi ON facturas(estab, pto_emi)`);
 
+  // Contador de secuencial independiente de la tabla facturas: si se borra una
+  // factura (ej. limpieza de pruebas), el número de la próxima factura NO debe
+  // repetirse — nunca retrocede, solo avanza.
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS sri_secuenciales (
+      estab   TEXT NOT NULL,
+      pto_emi TEXT NOT NULL,
+      ultimo  INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (estab, pto_emi)
+    );
+  `);
+  // Si ya había facturas emitidas antes de este cambio, arranca el contador
+  // desde el secuencial más alto ya usado (nunca desde 0), para no repetir
+  // números que el SRI ya autorizó.
+  const maxPorPunto = db.prepare('SELECT estab, pto_emi, MAX(secuencial) as m FROM facturas GROUP BY estab, pto_emi').all();
+  maxPorPunto.forEach(({ estab, pto_emi, m }) => {
+    db.prepare(`INSERT INTO sri_secuenciales (estab, pto_emi, ultimo) VALUES (?, ?, ?)
+      ON CONFLICT(estab, pto_emi) DO UPDATE SET ultimo = MAX(ultimo, excluded.ultimo)`).run(estab, pto_emi, m || 0);
+  });
+
   // Migración: agregar columnas nuevas si no existen (para DBs existentes en producción)
   const citasCols = db.prepare('PRAGMA table_info(citas)').all().map(c => c.name);
   if (!citasCols.includes('contacto_tipo'))

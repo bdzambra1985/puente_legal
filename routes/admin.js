@@ -58,9 +58,12 @@ router.put('/sri-config', (req, res) => {
   res.json({ ok: true });
 });
 
+// Contador durable: nunca retrocede aunque se borren facturas de la tabla
+// (evita repetir un secuencial que el SRI ya autorizó).
 function nextSecuencial(db, estab, ptoEmi) {
-  const row = db.prepare('SELECT MAX(secuencial) as m FROM facturas WHERE estab=? AND pto_emi=?').get(estab, ptoEmi);
-  return (row.m || 0) + 1;
+  db.prepare('INSERT OR IGNORE INTO sri_secuenciales (estab, pto_emi, ultimo) VALUES (?, ?, 0)').run(estab, ptoEmi);
+  db.prepare('UPDATE sri_secuenciales SET ultimo = ultimo + 1 WHERE estab=? AND pto_emi=?').run(estab, ptoEmi);
+  return db.prepare('SELECT ultimo FROM sri_secuenciales WHERE estab=? AND pto_emi=?').get(estab, ptoEmi).ultimo;
 }
 
 /* ── FACTURACIÓN ELECTRÓNICA (SRI) ─────────────────────────────────── */
