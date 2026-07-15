@@ -346,6 +346,7 @@ router.post('/citas/:id/enviar-correo', uploadAdjunto.single('adjunto'), async (
 
   try {
     await sendCorreoAdjunto(cita, titulo, mensaje, req.file);
+    db.prepare("UPDATE citas SET correo_enviado_at=datetime('now','localtime') WHERE id=?").run(cita.id);
     res.json({ ok: true });
   } catch (e) {
     console.error('[email] Error enviando correo con adjunto:', e.message);

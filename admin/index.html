@@ -208,6 +208,29 @@ a{text-decoration:none;color:inherit}
   #citasTable td.td-full{display:block;padding:12px 0;text-align:left}
   #citasTable td.td-full::before{display:none}
 }
+
+/* ── SEGUIMIENTO: pipeline por cliente ── */
+.pipe-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r12);padding:18px 22px;margin-bottom:14px}
+.pipe-card.has-error{border-color:rgba(220,38,38,.35)}
+.pipe-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:6px}
+.pipe-head-name{font-size:.9rem;font-weight:700;color:var(--navy)}
+.pipe-head-sub{font-size:.76rem;color:var(--muted);margin-top:2px}
+.pipe-row{display:flex;align-items:flex-start;gap:0;margin-top:16px;overflow-x:auto;padding-bottom:4px}
+.pipe-step{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:100px;position:relative;padding:0 4px;flex-shrink:0}
+.pipe-step:not(:last-child)::after{content:'';position:absolute;top:16px;left:calc(50% + 22px);width:calc(100% - 20px);height:2px;background:var(--border);z-index:0}
+.pipe-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;z-index:1;border:2px solid var(--border);background:var(--white);color:var(--muted);flex-shrink:0}
+.pipe-step.pipe-done .pipe-dot{background:var(--green);border-color:var(--green);color:#fff}
+.pipe-step.pipe-pending .pipe-dot{background:var(--gold-dim);border-color:var(--gold);color:#78611a}
+.pipe-step.pipe-error .pipe-dot{background:rgba(220,38,38,.1);border-color:var(--red);color:var(--red)}
+.pipe-step.pipe-idle .pipe-dot{background:var(--white);border-color:var(--border);color:var(--muted)}
+.pipe-label{font-size:.66rem;font-weight:800;color:var(--navy);text-align:center;line-height:1.3}
+.pipe-sub{font-size:.62rem;color:var(--muted);text-align:center}
+.pipe-retry{margin-top:2px;font-size:.62rem;font-weight:700;padding:3px 9px;border-radius:12px;border:1.5px solid var(--red);color:var(--red);background:#fff;cursor:pointer;white-space:nowrap}
+.pipe-retry:hover{background:var(--red);color:#fff}
+.pipe-send{margin-top:2px;font-size:.62rem;font-weight:700;padding:3px 9px;border-radius:12px;border:1.5px solid var(--gold);color:#78611a;background:#fff;cursor:pointer;white-space:nowrap}
+.pipe-send:hover{background:var(--gold);color:var(--navy)}
+.pipe-filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
+.pipe-search{flex:1;min-width:200px;max-width:320px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--r8);font-family:'Inter',sans-serif;font-size:.85rem}
 </style>
 </head>
 <body>
@@ -237,6 +260,9 @@ a{text-decoration:none;color:inherit}
       </div>
       <div class="sb-item" data-panel="citas" onclick="nav(this)">
         <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>Agenda de Citas
+      </div>
+      <div class="sb-item" data-panel="seguimiento" onclick="nav(this)">
+        <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>Seguimiento
       </div>
       <div class="sb-item" data-panel="config-facturacion" onclick="nav(this)">
         <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>Configuración Facturación
@@ -345,6 +371,30 @@ a{text-decoration:none;color:inherit}
               <thead><tr><th>#</th><th>Cliente</th><th>Fecha</th><th>Hora</th><th>Medio</th><th>Estado</th><th>Factura</th><th>Registrada</th><th>Acciones</th></tr></thead>
               <tbody id="citasBody"></tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEGUIMIENTO -->
+      <div class="panel-section" id="panel-seguimiento">
+        <div class="stat-cards" id="pipeStats">
+          <div class="stat-card"><div class="stat-card-num" id="pipeStatTotal">—</div><div class="stat-card-label">Clientes en proceso</div></div>
+          <div class="stat-card"><div class="stat-card-num" id="pipeStatOk" style="color:var(--green)">—</div><div class="stat-card-label">Sin pendientes</div></div>
+          <div class="stat-card"><div class="stat-card-num" id="pipeStatPend" style="color:#78611a">—</div><div class="stat-card-label">En curso</div></div>
+          <div class="stat-card"><div class="stat-card-num" id="pipeStatErr" style="color:var(--red)">—</div><div class="stat-card-label">Con error</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div><h2>Seguimiento por cliente</h2><p>Todo el proceso de cada cita: cita → confirmación → pago → factura → correo</p></div>
+          </div>
+          <div class="card-body">
+            <div class="pipe-filters">
+              <input type="text" class="pipe-search" id="pipeSearch" placeholder="Buscar por nombre o email..." oninput="renderSeguimiento()">
+              <button class="filter-btn active" id="pipeFiltroTodos" onclick="setPipeFiltro('todos')">Todos</button>
+              <button class="filter-btn" id="pipeFiltroErrores" onclick="setPipeFiltro('errores')">Solo con errores</button>
+              <button class="filter-btn" id="pipeFiltroCurso" onclick="setPipeFiltro('curso')">En curso</button>
+            </div>
+            <div id="pipeList"></div>
           </div>
         </div>
       </div>
@@ -747,12 +797,13 @@ var ME    = localStorage.getItem('pl_user') || 'admin';
 var MUST_CHANGE = false;
 
 var PANEL_TITLES = {
-  inicio:'Inicio', citas:'Agenda de Citas', 'config-facturacion':'Configuración Facturación', facturas:'Facturas', testimonios:'Testimonios', servicios:'Servicios',
+  inicio:'Inicio', citas:'Agenda de Citas', seguimiento:'Seguimiento', 'config-facturacion':'Configuración Facturación', facturas:'Facturas', testimonios:'Testimonios', servicios:'Servicios',
   promo:'Soluciones Complementarias', contenido:'Textos generales',
   contacto:'Datos de contacto', cuenta:'Mi cuenta'
 };
 var PANEL_SUBS = {
   inicio:'Resumen del panel', citas:'Citas agendadas desde el sitio web',
+  seguimiento:'Todo el proceso de cada cliente, paso a paso',
   'config-facturacion':'SRI, certificado digital y datos bancarios',
   facturas:'Facturas emitidas al SRI',
   testimonios:'Gestión de reseñas de clientes',
@@ -817,6 +868,7 @@ function nav(el){
   document.getElementById('topbarTitle').textContent=PANEL_TITLES[panel]||panel;
   document.getElementById('topbarSub').textContent=PANEL_SUBS[panel]||'';
   if(panel==='citas'){ loadCitas(); loadOtpPending(); }
+  if(panel==='seguimiento'){ loadCitas(); }
   if(panel==='config-facturacion'){ loadSriConfig(); loadP12Status(); }
   if(panel==='facturas'){ loadFacturas(); }
   closeSidebar();
@@ -1328,6 +1380,7 @@ function loadCitas(){
   api('GET','/api/admin/citas').then(function(data){
     citasData = data || [];
     renderCitas();
+    renderSeguimiento();
   });
 }
 
@@ -1557,6 +1610,107 @@ function reintentarFacturaCita(facturaId){
     if(r.ok) toast('Factura '+r.numero_factura+' autorizada por el SRI');
     else toast('Sigue sin autorizarse: '+(r.error||''), 'error');
   });
+}
+
+/* ────────────────────────────────────────────────── */
+/*  SEGUIMIENTO (pipeline por cliente)                */
+/* ────────────────────────────────────────────────── */
+var pipeFiltro = 'todos';
+
+function pipelineSteps(c){
+  var steps = [];
+  steps.push({ key:'creada', label:'Cita creada', status:'done', sub:(c.created_at||'').substring(0,16) });
+
+  if(c.estado === 'cancelada'){
+    steps.push({ key:'confirmada', label:'Cancelada', status:'error', sub:'' });
+  } else {
+    steps.push({ key:'confirmada', label:'Confirmada', status: c.estado==='confirmada' ? 'done' : 'pending', sub:'' });
+  }
+
+  steps.push({ key:'comprobante', label:'Comprobante subido', status: c.comprobante_path ? 'done' : 'idle', sub: c.comprobante_path ? '' : 'Esperando al cliente' });
+
+  var pagoStatus = 'idle', pagoSub = '', pagoAction = null;
+  if(c.comprobante_estado === 'verificado'){ pagoStatus='done'; }
+  else if(c.comprobante_estado === 'rechazado'){ pagoStatus='error'; pagoSub='Comprobante rechazado'; }
+  else if(c.comprobante_estado === 'pendiente'){ pagoStatus='pending'; pagoSub='Por revisar'; pagoAction={label:'Revisar', fn:'openComprobarPago('+c.id+')'}; }
+  steps.push({ key:'pago', label:'Pago verificado', status:pagoStatus, sub:pagoSub, action:pagoAction });
+
+  var facStatus = 'idle', facSub = '', facAction = null;
+  if(c.factura_estado === 'aprobada'){ facStatus='done'; }
+  else if(c.factura_estado === 'error'){ facStatus='error'; facSub='Rechazada por el SRI'; facAction={label:'Reintentar', fn:'reintentarFacturaCita('+c.factura_id+')'}; }
+  else if(c.factura_estado === 'rechazada'){ facStatus='error'; facSub='Comprobante rechazado'; }
+  else if(c.factura_estado === 'esperando_sri'){ facStatus='pending'; facSub='Esperando al SRI'; }
+  else if(c.factura_estado === 'pendiente'){ facStatus='pending'; facSub='Falta verificar pago'; }
+  steps.push({ key:'factura', label:'Factura SRI', status:facStatus, sub:facSub, action:facAction });
+
+  var correoAction = (!c.correo_enviado_at && c.factura_estado === 'aprobada') ? {label:'Enviar', fn:'openEnviarCorreo('+c.id+')'} : null;
+  steps.push({ key:'correo', label:'Correo enviado', status: c.correo_enviado_at ? 'done' : 'idle', sub: c.correo_enviado_at ? c.correo_enviado_at.substring(0,16) : '', action:correoAction });
+
+  return steps;
+}
+
+function setPipeFiltro(f){
+  pipeFiltro = f;
+  document.querySelectorAll('#pipeFiltroTodos,#pipeFiltroErrores,#pipeFiltroCurso').forEach(function(b){ b.classList.remove('active'); });
+  var id = 'pipeFiltro'+f.charAt(0).toUpperCase()+f.slice(1);
+  var el = document.getElementById(id);
+  if(el) el.classList.add('active');
+  renderSeguimiento();
+}
+
+function renderSeguimiento(){
+  var list = document.getElementById('pipeList');
+  if(!list) return;
+  var searchEl = document.getElementById('pipeSearch');
+  var search = searchEl ? searchEl.value.toLowerCase().trim() : '';
+
+  var allSteps = citasData.map(pipelineSteps);
+  var totalErr = allSteps.filter(function(s){ return s.some(function(x){ return x.status==='error'; }); }).length;
+  var totalPend = allSteps.filter(function(s){ return !s.some(function(x){ return x.status==='error'; }) && s.some(function(x){ return x.status==='pending'; }); }).length;
+  document.getElementById('pipeStatTotal').textContent = citasData.length;
+  document.getElementById('pipeStatOk').textContent = citasData.length - totalErr - totalPend;
+  document.getElementById('pipeStatPend').textContent = totalPend;
+  document.getElementById('pipeStatErr').textContent = totalErr;
+
+  var items = citasData.map(function(c){ return { cita:c, steps: pipelineSteps(c) }; });
+  if(search){
+    items = items.filter(function(it){
+      return it.cita.nombre.toLowerCase().indexOf(search)>=0 || it.cita.email.toLowerCase().indexOf(search)>=0;
+    });
+  }
+  items = items.filter(function(it){
+    var hasError = it.steps.some(function(s){ return s.status==='error'; });
+    var hasPending = it.steps.some(function(s){ return s.status==='pending'; });
+    if(pipeFiltro==='errores') return hasError;
+    if(pipeFiltro==='curso') return hasPending && !hasError;
+    return true;
+  });
+
+  if(!items.length){
+    list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px">No hay clientes que coincidan</div>';
+    return;
+  }
+
+  list.innerHTML = items.map(function(it){
+    var c = it.cita;
+    var hasError = it.steps.some(function(s){ return s.status==='error'; });
+    var stepsHtml = it.steps.map(function(s){
+      var actionHtml = s.action ? '<button class="'+(s.status==='error'?'pipe-retry':'pipe-send')+'" onclick="'+s.action.fn+'">'+s.action.label+'</button>' : '';
+      var icon = s.status==='done' ? '✓' : (s.status==='error' ? '✕' : (s.status==='pending' ? '···' : ''));
+      return '<div class="pipe-step pipe-'+s.status+'">'
+        +'<div class="pipe-dot">'+icon+'</div>'
+        +'<div class="pipe-label">'+escH(s.label)+'</div>'
+        +(s.sub ? '<div class="pipe-sub">'+escH(s.sub)+'</div>' : '')
+        +actionHtml
+        +'</div>';
+    }).join('');
+    return '<div class="pipe-card'+(hasError?' has-error':'')+'">'
+      +'<div class="pipe-head">'
+        +'<div><div class="pipe-head-name">#'+c.id+' — '+escH(c.nombre)+'</div><div class="pipe-head-sub">'+escH(c.email)+' · '+escH(c.fecha)+' '+escH(c.hora)+'</div></div>'
+      +'</div>'
+      +'<div class="pipe-row">'+stepsHtml+'</div>'
+      +'</div>';
+  }).join('');
 }
 
 var enviarCorreoCitaId = null;
