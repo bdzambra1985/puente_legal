@@ -176,6 +176,20 @@ router.get('/facturas/:id', (req, res) => {
   res.json({ ...row, sri_data: JSON.parse(row.sri_data || '{}') });
 });
 
+// Borra solo el registro local (no revierte una autorización ya emitida por el
+// SRI). Pensado para limpiar facturas de prueba en ambiente Pruebas.
+router.delete('/facturas/:id', (req, res) => {
+  const db = getDB();
+  const row = db.prepare('SELECT * FROM facturas WHERE id=?').get(req.params.id);
+  if (!row) return res.status(404).json({ error: 'NOT_FOUND' });
+  if (row.cita_id) {
+    db.prepare("UPDATE citas SET factura_id=NULL, factura_estado='', facturado=0 WHERE id=? AND factura_id=?")
+      .run(row.cita_id, row.id);
+  }
+  db.prepare('DELETE FROM facturas WHERE id=?').run(row.id);
+  res.json({ ok: true });
+});
+
 /* Servir comprobante (GET /api/admin/comprobante/:filename) */
 const COMPROBANTE_TYPES = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.pdf': 'application/pdf', '.webp': 'image/webp' };
 router.get('/comprobante/:filename', async (req, res) => {
