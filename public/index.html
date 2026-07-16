@@ -1348,26 +1348,12 @@ function pagoOnDrop(e){
 function pagoEnviarComprobante(){
   if(!pagoArchivoSeleccionado || !ytcCita) return;
   var errEl = document.getElementById('pagoUploadErr');
-  var monto = document.getElementById('pagoMontoInput').value;
-  var doc = document.getElementById('pagoDocInput').value.trim();
-  if(!monto || parseFloat(monto) <= 0){
-    errEl.textContent = 'Ingresa el monto que pagaste.';
-    errEl.style.display = 'block';
-    return;
-  }
-  if(!doc){
-    errEl.textContent = 'Ingresa tu cédula o RUC.';
-    errEl.style.display = 'block';
-    return;
-  }
   var btn = document.getElementById('pagoEnviarBtn');
   btn.disabled = true; btn.textContent = 'Enviando...';
   errEl.style.display = 'none';
   var fd = new FormData();
   fd.append('comprobante', pagoArchivoSeleccionado);
   fd.append('email', ytcEmail);
-  fd.append('monto', monto);
-  fd.append('cliente_doc', doc);
   fetch('/api/citas/'+ytcCita.id+'/comprobante', { method:'POST', body:fd })
     .then(function(r){ return r.json(); })
     .then(function(d){
@@ -1608,16 +1594,6 @@ function pagoEnviarComprobante(){
       <div class="pago-row"><span class="pago-lbl">Referencia</span><span class="pago-val" id="pagoRef">Cita #—<button class="pago-copy" onclick="copiar(document.getElementById('pagoRef').firstChild.textContent)">Copiar</button></span></div>
       <div id="pagoBancoNota" style="font-size:.76rem;color:var(--muted);line-height:1.6;padding:12px 0 4px"></div>
       <div id="pagoComprobanteWrap" style="margin-top:20px">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-          <div>
-            <label style="font-size:.75rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">Monto pagado (USD)</label>
-            <input type="number" id="pagoMontoInput" step="0.01" min="0" placeholder="0.00" style="width:100%;padding:12px;border-radius:8px;border:1px solid #d8dbe0;font-family:'Inter',sans-serif;font-size:.9rem;box-sizing:border-box">
-          </div>
-          <div>
-            <label style="font-size:.75rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">Cédula / RUC</label>
-            <input type="text" id="pagoDocInput" placeholder="0102030405" style="width:100%;padding:12px;border-radius:8px;border:1px solid #d8dbe0;font-family:'Inter',sans-serif;font-size:.9rem;box-sizing:border-box">
-          </div>
-        </div>
         <label style="font-size:.75rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">Adjuntar comprobante de transferencia</label>
         <div id="pagoUploadArea" style="border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:border-color .2s" onclick="document.getElementById('pagoFileInput').click()" ondragover="event.preventDefault();this.style.borderColor='var(--gold)'" ondragleave="this.style.borderColor=''" ondrop="pagoOnDrop(event)">
           <div style="font-size:1.6rem;margin-bottom:6px">📎</div>

@@ -176,18 +176,15 @@ router.post('/citas/:id/comprobante', uploadLimiter, upload.single('comprobante'
     return res.status(403).json({ error: 'PAGO_NO_HABILITADO' });
   if (!req.file) return res.status(400).json({ error: 'Sin archivo' });
 
-  const monto = parseFloat(req.body.monto);
-  const clienteDoc = String(req.body.cliente_doc || '').trim().slice(0, 20);
-  if (isNaN(monto) || monto <= 0) return res.status(400).json({ error: 'Monto inválido' });
-  if (!clienteDoc) return res.status(400).json({ error: 'Falta la cédula o RUC' });
-
   const ext = detectFileType(req.file.buffer);
   if (!ext) return res.status(400).json({ error: 'Tipo de archivo no permitido' });
 
   try {
     const { path: savedPath } = await saveComprobante(req.file.buffer, ext, cita.id, uploadsDir);
-    db.prepare('UPDATE citas SET comprobante_path=?, comprobante_estado=?, factura_estado=?, monto_pagado=?, cliente_doc=? WHERE id=?')
-      .run(savedPath, 'pendiente', 'pendiente', monto, clienteDoc, cita.id);
+    // El monto y la cédula/RUC ya no los ingresa el cliente acá — el admin los
+    // define desde el popup "Resumen de la cita" antes de verificar el pago.
+    db.prepare('UPDATE citas SET comprobante_path=?, comprobante_estado=?, factura_estado=? WHERE id=?')
+      .run(savedPath, 'pendiente', 'pendiente', cita.id);
     res.json({ ok: true });
   } catch (e) {
     console.error('[comprobante] Error guardando archivo:', e.message);
