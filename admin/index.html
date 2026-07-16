@@ -633,8 +633,9 @@ a{text-decoration:none;color:inherit}
         </div>
         <div class="form-grid form-grid-2">
           <div class="fg"><label>Email (opcional)</label><input type="email" id="f_cliente_email" placeholder="cliente@email.com"></div>
-          <div class="fg"><label>N° de cita (opcional, solo referencia)</label><input type="number" id="f_cita_id" placeholder="123"></div>
+          <div class="fg"><label>Teléfono (opcional)</label><input type="text" id="f_cliente_telefono" placeholder="+593 99 000 0000"></div>
         </div>
+        <div class="fg"><label>N° de cita (opcional, solo referencia)</label><input type="number" id="f_cita_id" placeholder="123"></div>
         <div class="fg"><label>Concepto / descripción del servicio</label><input type="text" id="f_concepto" placeholder="Asesoría legal — Poder notarial"></div>
         <div class="form-grid form-grid-2">
           <div class="fg"><label>Monto total (incluye IVA)</label><input type="number" id="f_monto" placeholder="112.00" step="0.01"></div>
@@ -685,6 +686,23 @@ a{text-decoration:none;color:inherit}
     </div>
     <div class="modal-body">
       <div id="resumenCitaInfo" style="background:var(--off);border-radius:8px;padding:14px;margin-bottom:18px;font-size:.82rem;line-height:1.7;color:var(--navy)"></div>
+
+      <label style="font-size:.75rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:10px">Datos del cliente (factura)</label>
+      <div class="form-grid" style="margin-bottom:18px">
+        <div class="form-grid form-grid-2">
+          <div class="fg"><label>Nombre</label><input type="text" id="resumenNombre" placeholder="Juan Pérez"></div>
+          <div class="fg"><label>Correo</label><input type="email" id="resumenEmail" placeholder="cliente@email.com"></div>
+        </div>
+        <div class="form-grid form-grid-2">
+          <div class="fg"><label>Teléfono</label><input type="text" id="resumenTelefono" placeholder="+593 99 000 0000" maxlength="30"></div>
+          <div class="fg"><label>Cédula / RUC</label><input type="text" id="resumenClienteDoc" placeholder="0102030405" maxlength="20"></div>
+        </div>
+        <div class="form-grid form-grid-2">
+          <div class="fg"><label>Valor del servicio</label><input type="number" id="resumenMonto" placeholder="112.00" step="0.01" min="0"></div>
+          <div class="fg"><label>Descripción de la factura</label><input type="text" id="resumenFacturaDesc" placeholder="Asesoría legal — Poder notarial" maxlength="300"></div>
+        </div>
+      </div>
+
       <label style="font-size:.75rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Título</label>
       <input type="text" id="resumenTitulo" maxlength="200" placeholder="Ej: Consulta de poder notarial — caso resuelto">
       <label style="font-size:.75rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Resumen</label>
@@ -1292,7 +1310,7 @@ function renderFacturas(){
 }
 
 function openFacturaModal(){
-  ['f_cliente_nombre','f_cliente_doc','f_cliente_email','f_cita_id','f_concepto','f_monto'].forEach(function(id){
+  ['f_cliente_nombre','f_cliente_doc','f_cliente_email','f_cliente_telefono','f_cita_id','f_concepto','f_monto'].forEach(function(id){
     document.getElementById(id).value = '';
   });
   document.getElementById('f_forma_pago').value = '20';
@@ -1309,6 +1327,7 @@ function saveFactura(){
     cliente_nombre: document.getElementById('f_cliente_nombre').value.trim(),
     cliente_doc: document.getElementById('f_cliente_doc').value.trim(),
     cliente_email: document.getElementById('f_cliente_email').value.trim(),
+    cliente_telefono: document.getElementById('f_cliente_telefono').value.trim(),
     cita_id: document.getElementById('f_cita_id').value || undefined,
     concepto: document.getElementById('f_concepto').value.trim(),
     monto: document.getElementById('f_monto').value,
@@ -1336,6 +1355,7 @@ function viewFacturaDetalle(id){
     var html = '<strong>'+escH(f.numero_factura)+'</strong> &nbsp;·&nbsp; <span class="'+(SRI_ESTADO_BADGE[f.sri_estado]||'badge-pendiente')+'">'+escH(SRI_ESTADO_LABEL[f.sri_estado]||f.sri_estado)+'</span><br><br>'
       +'Cliente: '+escH(f.cliente_nombre)+' ('+escH(f.cliente_doc)+')<br>'
       +(f.cliente_email ? 'Email: '+escH(f.cliente_email)+'<br>' : '')
+      +(f.cliente_telefono ? 'Teléfono: '+escH(f.cliente_telefono)+'<br>' : '')
       +'Concepto: '+escH(f.concepto)+'<br>'
       +'Subtotal: $'+parseFloat(f.subtotal).toFixed(2)+' &nbsp;·&nbsp; IVA ('+f.iva_rate+'%): $'+parseFloat(f.iva).toFixed(2)+' &nbsp;·&nbsp; Total: $'+parseFloat(f.monto).toFixed(2)+'<br>'
       +(f.clave_acceso ? 'Clave de acceso: <span style="font-family:monospace;font-size:.72rem;word-break:break-all">'+escH(f.clave_acceso)+'</span><br>' : '')
@@ -1498,9 +1518,15 @@ function openResumen(id){
   if(!cita) return;
   resumenCitaId = id;
   document.getElementById('resumenCitaInfo').innerHTML =
-    '<strong>'+escH(cita.nombre)+'</strong> &nbsp;·&nbsp; '+escH(cita.email)+'<br>'
-    +escH(cita.fecha)+' '+escH(cita.hora)+'  &nbsp;·&nbsp; '
+    '<strong>Cita #'+cita.id+'</strong> &nbsp;·&nbsp; '
+    +escH(cita.fecha)+' '+escH(cita.hora)+'<br>'
     +(cita.contacto_tipo==='zoom'?'Zoom':'WhatsApp: '+escH(cita.contacto_valor));
+  document.getElementById('resumenNombre').value = cita.nombre || '';
+  document.getElementById('resumenEmail').value = cita.email || '';
+  document.getElementById('resumenTelefono').value = cita.cliente_telefono || '';
+  document.getElementById('resumenClienteDoc').value = cita.cliente_doc || '';
+  document.getElementById('resumenMonto').value = cita.monto_pagado || '';
+  document.getElementById('resumenFacturaDesc').value = cita.factura_descripcion || '';
   document.getElementById('resumenTitulo').value = cita.resumen_titulo || '';
   var ta = document.getElementById('resumenTexto');
   ta.value = cita.resumen_texto || '';
@@ -1517,17 +1543,37 @@ function saveResumen(){
   if(!resumenCitaId) return;
   var titulo = document.getElementById('resumenTitulo').value.trim();
   var texto  = document.getElementById('resumenTexto').value.trim();
+  var nombre = document.getElementById('resumenNombre').value.trim();
+  var email  = document.getElementById('resumenEmail').value.trim();
+  var telefono = document.getElementById('resumenTelefono').value.trim();
+  var clienteDoc = document.getElementById('resumenClienteDoc').value.trim();
+  var montoRaw = document.getElementById('resumenMonto').value;
+  var facturaDesc = document.getElementById('resumenFacturaDesc').value.trim();
+
+  if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ toast('Correo inválido','error'); return; }
+  if(montoRaw !== '' && (isNaN(parseFloat(montoRaw)) || parseFloat(montoRaw) < 0)){ toast('Valor de servicio inválido','error'); return; }
+
   var btn = document.getElementById('resumenSaveBtn');
   btn.disabled=true; btn.textContent='Guardando...';
-  api('PUT','/api/admin/citas/'+resumenCitaId, {resumen_titulo: titulo, resumen_texto: texto}).then(function(r){
+  api('PUT','/api/admin/citas/'+resumenCitaId, {
+    resumen_titulo: titulo, resumen_texto: texto,
+    nombre: nombre, email: email, cliente_telefono: telefono,
+    cliente_doc: clienteDoc, monto_pagado: montoRaw, factura_descripcion: facturaDesc
+  }).then(function(r){
     btn.disabled=false;
     btn.innerHTML='<svg viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>Guardar resumen';
     if(r.ok){
       toast('Resumen guardado');
       var cita = citasData.find(function(c){ return c.id===resumenCitaId; });
-      if(cita){ cita.resumen_titulo=titulo; cita.resumen_texto=texto; }
+      if(cita){
+        cita.resumen_titulo=titulo; cita.resumen_texto=texto;
+        cita.nombre=nombre; cita.email=email; cita.cliente_telefono=telefono;
+        cita.cliente_doc=clienteDoc; cita.monto_pagado=montoRaw===''?cita.monto_pagado:parseFloat(montoRaw);
+        cita.factura_descripcion=facturaDesc;
+      }
       closeResumen(true);
-    } else toast('Error al guardar','error');
+      renderCitas();
+    } else toast(r.error||'Error al guardar','error');
   });
 }
 

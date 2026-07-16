@@ -88,7 +88,7 @@ async function syncCitaFactura(db, citaId, facturaId, ok) {
 // Reserva secuencial, inserta la factura y la emite contra el SRI. Si viene
 // cita_id, marca la cita como 'esperando_sri' antes de la llamada async y la
 // sincroniza al resultado final (aprobada/error). Nunca lanza sin capturar.
-async function crearYEmitirFactura(db, { cita_id, cliente_nombre, cliente_email, cliente_doc, monto, concepto, forma_pago }) {
+async function crearYEmitirFactura(db, { cita_id, cliente_nombre, cliente_email, cliente_telefono, cliente_doc, monto, concepto, forma_pago }) {
   const cfg = getSRIConfig(db);
   const ivaRate  = cfg.ivaRate || 15;
   const subtotal = Math.round((monto / (1 + ivaRate / 100)) * 100) / 100;
@@ -99,10 +99,10 @@ async function crearYEmitirFactura(db, { cita_id, cliente_nombre, cliente_email,
   const numeroFactura = `${cfg.estab}-${cfg.ptoEmi}-${String(secuencial).padStart(9, '0')}`;
 
   const ins = db.prepare(`INSERT INTO facturas
-    (cita_id, cliente_nombre, cliente_email, cliente_doc, monto, subtotal, iva, iva_rate,
+    (cita_id, cliente_nombre, cliente_email, cliente_telefono, cliente_doc, monto, subtotal, iva, iva_rate,
      concepto, forma_pago, estab, pto_emi, secuencial, fecha_emision, numero_factura, sri_estado)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'procesando')`)
-    .run(cita_id || null, cliente_nombre, cliente_email || '', cliente_doc, monto, subtotal, iva,
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'procesando')`)
+    .run(cita_id || null, cliente_nombre, cliente_email || '', cliente_telefono || '', cliente_doc, monto, subtotal, iva,
          ivaRate, concepto || '', forma_pago || '20', cfg.estab, cfg.ptoEmi, secuencial, fechaEmision, numeroFactura);
   const facturaId = ins.lastInsertRowid;
   if (cita_id) db.prepare("UPDATE citas SET factura_id=?, factura_estado='esperando_sri' WHERE id=?").run(facturaId, cita_id);
@@ -162,13 +162,13 @@ async function reintentarFacturaRow(db, row) {
 }
 
 router.post('/facturas', async (req, res) => {
-  const { cita_id, cliente_nombre, cliente_email, cliente_doc, monto, concepto, forma_pago } = req.body || {};
+  const { cita_id, cliente_nombre, cliente_email, cliente_telefono, cliente_doc, monto, concepto, forma_pago } = req.body || {};
   const montoNum = parseFloat(monto);
   if (!cliente_nombre || !cliente_doc || !monto || isNaN(montoNum) || montoNum <= 0)
     return res.status(400).json({ error: 'Faltan campos o monto inválido' });
 
   const db = getDB();
-  const result = await crearYEmitirFactura(db, { cita_id, cliente_nombre, cliente_email, cliente_doc, monto: montoNum, concepto, forma_pago });
+  const result = await crearYEmitirFactura(db, { cita_id, cliente_nombre, cliente_email, cliente_telefono, cliente_doc, monto: montoNum, concepto, forma_pago });
   res.json(result);
 });
 
@@ -311,15 +311,37 @@ router.get('/otp-pending', (req, res) => {
   res.json(rows);
 });
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 router.put('/citas/:id', async (req, res) => {
-  const { estado, zoom_link, resumen_titulo, resumen_texto } = req.body;
+  const { estado, zoom_link, resumen_titulo, resumen_texto,
+          nombre, email, cliente_telefono, cliente_doc, monto_pagado, factura_descripcion } = req.body;
   const db = getDB();
   if (zoom_link !== undefined) {
     db.prepare('UPDATE citas SET zoom_link=? WHERE id=?').run(zoom_link, req.params.id);
   }
   if (resumen_titulo !== undefined || resumen_texto !== undefined) {
-    db.prepare('UPDATE citas SET resumen_titulo=?, resumen_texto=? WHERE id=?')
-      .run(resumen_titulo ?? '', resumen_texto ?? '', req.params.id);
+    if (email !== undefined && email !== '' && !EMAIL_RE.test(email))
+      return res.status(400).json({ error: 'Correo inválido' });
+    let montoNum = null;
+    if (monto_pagado !== undefined && monto_pagado !== '') {
+      montoNum = parseFloat(monto_pagado);
+      if (isNaN(montoNum) || montoNum < 0)
+        return res.status(400).json({ error: 'Valor de servicio inválido' });
+    }
+    db.prepare(`UPDATE citas SET resumen_titulo=?, resumen_texto=?,
+      nombre=COALESCE(?,nombre), email=COALESCE(?,email),
+      cliente_telefono=COALESCE(?,cliente_telefono), cliente_doc=COALESCE(?,cliente_doc),
+      monto_pagado=COALESCE(?,monto_pagado), factura_descripcion=COALESCE(?,factura_descripcion)
+      WHERE id=?`)
+      .run(resumen_titulo ?? '', resumen_texto ?? '',
+           nombre !== undefined ? String(nombre).slice(0, 120) : null,
+           email !== undefined ? String(email).slice(0, 160) : null,
+           cliente_telefono !== undefined ? String(cliente_telefono).slice(0, 30) : null,
+           cliente_doc !== undefined ? String(cliente_doc).slice(0, 20) : null,
+           montoNum,
+           factura_descripcion !== undefined ? String(factura_descripcion).slice(0, 300) : null,
+           req.params.id);
     return res.json({ ok: true });
   }
   if (req.body.comprobante_estado !== undefined) {
@@ -358,8 +380,8 @@ router.post('/citas/:id/verificar-pago', async (req, res) => {
 
   const result = await crearYEmitirFactura(db, {
     cita_id: cita.id, cliente_nombre: cita.nombre, cliente_email: cita.email,
-    cliente_doc: cita.cliente_doc, monto: cita.monto_pagado,
-    concepto: `Servicios legales — Cita #${cita.id}`
+    cliente_telefono: cita.cliente_telefono, cliente_doc: cita.cliente_doc, monto: cita.monto_pagado,
+    concepto: cita.factura_descripcion || `Servicios legales — Cita #${cita.id}`
   });
   res.json(result);
 });
