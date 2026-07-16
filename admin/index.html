@@ -1152,7 +1152,10 @@ function saveContenido(){
 /* ────────────────────────────────────────────────── */
 /*  CONTACTO                                          */
 /* ────────────────────────────────────────────────── */
+var contactoData = {};
+
 function loadContacto(data){
+  contactoData = data || {};
   ['whatsapp','telefono','email','cobertura','banco_nombre','banco_titular','banco_tipo','banco_cuenta','banco_nota'].forEach(function(k){
     var el=document.getElementById('ct_'+k);
     if(el) el.value=data[k]||'';
@@ -1584,12 +1587,24 @@ function openComprobarPago(id){
   if(!cita) return;
   comprobarCitaId = id;
   document.getElementById('comprobarCitaInfo').innerHTML =
-    '<strong>#'+cita.id+' — '+escH(cita.nombre)+'</strong><br>'
-    +escH(cita.email)+'<br>'
-    +escH(cita.fecha)+' '+escH(cita.hora)
-    +(cita.contacto_tipo==='zoom'?' · Zoom':' · WA: '+escH(cita.contacto_valor))+'<br>'
-    +'<strong>Monto pagado:</strong> $'+parseFloat(cita.monto_pagado||0).toFixed(2)+' &nbsp;·&nbsp; '
-    +'<strong>Cédula/RUC:</strong> '+escH(cita.cliente_doc||'—');
+    '<div class="form-grid form-grid-2">'
+      +'<div>'
+        +'<div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px">Datos de la transferencia</div>'
+        +'<strong>Banco:</strong> '+escH(contactoData.banco_nombre||'—')+'<br>'
+        +'<strong>Titular:</strong> '+escH(contactoData.banco_titular||'—')+'<br>'
+        +'<strong>Tipo:</strong> '+escH(contactoData.banco_tipo||'—')+'<br>'
+        +'<strong>Cuenta:</strong> '+escH(contactoData.banco_cuenta||'—')
+      +'</div>'
+      +'<div>'
+        +'<div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px">Cliente</div>'
+        +'<strong>#'+cita.id+' — '+escH(cita.nombre)+'</strong><br>'
+        +escH(cita.email)+'<br>'
+        +escH(cita.fecha)+' '+escH(cita.hora)
+        +(cita.contacto_tipo==='zoom'?' · Zoom':' · WA: '+escH(cita.contacto_valor))+'<br>'
+        +'<strong>Monto pagado:</strong> $'+parseFloat(cita.monto_pagado||0).toFixed(2)+'<br>'
+        +'<strong>Cédula/RUC:</strong> '+escH(cita.cliente_doc||'—')
+      +'</div>'
+    +'</div>';
   var apiUrl = '/api/admin/comprobante/'+encodeURIComponent(cita.comprobante_path);
   var visor = document.getElementById('comprobarVisor');
   var ext = (cita.comprobante_path||'').split('.').pop().toLowerCase();
