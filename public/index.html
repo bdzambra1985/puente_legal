@@ -1416,25 +1416,31 @@ document.addEventListener('click', function(e){
 });
 
 // Handlers directos para los pocos elementos estáticos fijos que no
-// necesitan delegación (no se recrean dinámicamente).
-['ytcEmail','ytcNumero'].forEach(function(id){
-  var el = document.getElementById(id);
-  if(el) el.addEventListener('keydown', function(e){ if(e.key==='Enter') buscarCita(); });
+// necesitan delegación (no se recrean dinámicamente). Este <script> corre
+// ANTES de que el navegador parsee el HTML de los modales de cita/pago (que
+// vienen más abajo en el archivo), así que hay que esperar a que el DOM
+// completo esté listo — si no, getElementById devuelve null y los listeners
+// nunca quedan atados.
+document.addEventListener('DOMContentLoaded', function(){
+  ['ytcEmail','ytcNumero'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.addEventListener('keydown', function(e){ if(e.key==='Enter') buscarCita(); });
+  });
+
+  var formEl = document.getElementById('form');
+  if(formEl) formEl.addEventListener('submit', sendForm);
+
+  var pagoUploadAreaEl = document.getElementById('pagoUploadArea');
+  if(pagoUploadAreaEl){
+    pagoUploadAreaEl.addEventListener('click', function(){ document.getElementById('pagoFileInput').click(); });
+    pagoUploadAreaEl.addEventListener('dragover', function(e){ e.preventDefault(); this.style.borderColor='var(--gold)'; });
+    pagoUploadAreaEl.addEventListener('dragleave', function(){ this.style.borderColor=''; });
+    pagoUploadAreaEl.addEventListener('drop', pagoOnDrop);
+  }
+
+  var pagoFileInputEl = document.getElementById('pagoFileInput');
+  if(pagoFileInputEl) pagoFileInputEl.addEventListener('change', function(){ pagoSeleccionarArchivo(this.files[0]); });
 });
-
-var formEl = document.getElementById('form');
-if(formEl) formEl.addEventListener('submit', sendForm);
-
-var pagoUploadAreaEl = document.getElementById('pagoUploadArea');
-if(pagoUploadAreaEl){
-  pagoUploadAreaEl.addEventListener('click', function(){ document.getElementById('pagoFileInput').click(); });
-  pagoUploadAreaEl.addEventListener('dragover', function(e){ e.preventDefault(); this.style.borderColor='var(--gold)'; });
-  pagoUploadAreaEl.addEventListener('dragleave', function(){ this.style.borderColor=''; });
-  pagoUploadAreaEl.addEventListener('drop', pagoOnDrop);
-}
-
-var pagoFileInputEl = document.getElementById('pagoFileInput');
-if(pagoFileInputEl) pagoFileInputEl.addEventListener('change', function(){ pagoSeleccionarArchivo(this.files[0]); });
 </script>
 
 <!-- ── APPOINTMENT MODAL ──────────────────────────────────── -->
