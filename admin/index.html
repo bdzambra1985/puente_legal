@@ -1916,7 +1916,8 @@ var CLICK_ACTIONS = {
   'open-confirm-cita':      function(el){ openConfirmCita(Number(el.dataset.id)); },
   'open-comprobar-pago':    function(el){ openComprobarPago(Number(el.dataset.id)); },
   'reintentar-factura-cita':function(el){ reintentarFacturaCita(Number(el.dataset.id)); },
-  'open-enviar-correo':     function(el){ openEnviarCorreo(Number(el.dataset.id)); }
+  'open-enviar-correo':     function(el){ openEnviarCorreo(Number(el.dataset.id)); },
+  'enviar-correo-submit':   function(){ enviarCorreoSubmit(); }
 };
 
 document.addEventListener('click', function(e){
