@@ -4,6 +4,7 @@ const fs = require('fs');
 const multer = require('multer');
 const { getDB } = require('../database');
 const auth = require('../middleware/auth');
+const csrfCheck = require('../middleware/csrf');
 const { sendCitaConfirmada, sendFacturaEmitida, sendCorreoAdjunto } = require('../utils/email');
 const { emitirFactura, getSRIConfig, getP12Path } = require('../sri/index');
 require('../utils/upload'); // asegura que el SDK de Cloudinary quede configurado
@@ -11,6 +12,7 @@ const cloudinary = require('cloudinary').v2;
 
 const router = express.Router();
 router.use(auth);
+router.use(csrfCheck); // no-op en GET/HEAD/OPTIONS; exige X-CSRF-Token en mutaciones
 
 /* ── P12 upload (multer en memoria) ────────────────────────────────── */
 const uploadP12 = multer({ storage: multer.memoryStorage(), limits: { fileSize: 2 * 1024 * 1024 } });

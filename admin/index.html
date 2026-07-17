@@ -243,7 +243,7 @@ a{text-decoration:none;color:inherit}
     <p>Accede con tus credenciales</p>
     <div class="login-field"><label>Usuario</label><input type="text" id="loginUser" placeholder="admin" autocomplete="username"></div>
     <div class="login-field"><label>Contraseña</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"></div>
-    <button class="login-btn" id="loginBtn" onclick="doLogin()">Entrar</button>
+    <button class="login-btn" id="loginBtn" data-action="login">Entrar</button>
     <p class="login-err" id="loginErr">Usuario o contraseña incorrectos.</p>
   </div>
 </div>
@@ -255,53 +255,53 @@ a{text-decoration:none;color:inherit}
     <div class="sb-logo"><img src="/img/logo.jpeg" alt="Puente Legal"></div>
     <nav class="sb-nav">
       <div class="sb-label">Panel</div>
-      <div class="sb-item active" data-panel="inicio" onclick="nav(this)">
+      <div class="sb-item active" data-panel="inicio" data-action="nav">
         <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Inicio
       </div>
-      <div class="sb-item" data-panel="citas" onclick="nav(this)">
+      <div class="sb-item" data-panel="citas" data-action="nav">
         <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>Agenda de Citas
       </div>
-      <div class="sb-item" data-panel="seguimiento" onclick="nav(this)">
+      <div class="sb-item" data-panel="seguimiento" data-action="nav">
         <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>Seguimiento
       </div>
-      <div class="sb-item" data-panel="config-facturacion" onclick="nav(this)">
+      <div class="sb-item" data-panel="config-facturacion" data-action="nav">
         <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>Configuración Facturación
       </div>
-      <div class="sb-item" data-panel="facturas" onclick="nav(this)">
+      <div class="sb-item" data-panel="facturas" data-action="nav">
         <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zM8 13h8v2H8v-2zm0 4h8v2H8v-2z"/></svg>Facturas
       </div>
       <div class="sb-label">Contenido</div>
-      <div class="sb-item" data-panel="testimonios" onclick="nav(this)">
+      <div class="sb-item" data-panel="testimonios" data-action="nav">
         <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>Testimonios
       </div>
-      <div class="sb-item" data-panel="servicios" onclick="nav(this)">
+      <div class="sb-item" data-panel="servicios" data-action="nav">
         <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>Servicios
       </div>
-      <div class="sb-item" data-panel="promo" onclick="nav(this)">
+      <div class="sb-item" data-panel="promo" data-action="nav">
         <svg viewBox="0 0 24 24"><path d="M21 3L3 10.53v.98l6.84 2.65L12.48 21h.98L21 3z"/></svg>Soluciones
       </div>
-      <div class="sb-item" data-panel="contenido" onclick="nav(this)">
+      <div class="sb-item" data-panel="contenido" data-action="nav">
         <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>Textos
       </div>
-      <div class="sb-item" data-panel="contacto" onclick="nav(this)">
+      <div class="sb-item" data-panel="contacto" data-action="nav">
         <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>Contacto
       </div>
       <div class="sb-label">Cuenta</div>
-      <div class="sb-item" data-panel="cuenta" onclick="nav(this)">
+      <div class="sb-item" data-panel="cuenta" data-action="nav">
         <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>Contraseña
       </div>
     </nav>
     <div class="sb-footer">
       <div class="sb-user"><div class="sb-avatar" id="sbAvatar">A</div><div class="sb-username" id="sbUsername">admin</div></div>
-      <div class="sb-logout" onclick="logout()"><svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>Cerrar sesión</div>
+      <div class="sb-logout" data-action="logout"><svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>Cerrar sesión</div>
     </div>
   </aside>
-  <div class="sb-backdrop" id="sbBackdrop" onclick="closeSidebar()"></div>
+  <div class="sb-backdrop" id="sbBackdrop" data-action="close-sidebar"></div>
 
   <div class="main">
     <!-- TOPBAR -->
     <div class="topbar">
-      <button class="sb-hamburger" id="sbHamburger" onclick="toggleSidebar()" aria-label="Menú"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg></button>
+      <button class="sb-hamburger" id="sbHamburger" data-action="toggle-sidebar" aria-label="Menú"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg></button>
       <div><div class="topbar-title" id="topbarTitle">Inicio</div><div class="topbar-sub" id="topbarSub">Panel de administración</div></div>
       <div class="topbar-right">
         <a href="/" target="_blank" class="btn-preview"><svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>Ver sitio</a>
@@ -316,7 +316,7 @@ a{text-decoration:none;color:inherit}
         <div class="stat-cards">
           <div class="stat-card"><div class="stat-card-num" id="dashCitasPend">—</div><div class="stat-card-label">Citas pendientes</div></div>
           <div class="stat-card"><div class="stat-card-num" id="dashCitasTotal">—</div><div class="stat-card-label">Total de citas</div></div>
-          <div class="stat-card" id="dashPagoCard" style="cursor:pointer" onclick="nav(document.querySelector('[data-panel=citas]'))"><div class="stat-card-num" id="dashPagosPend" style="color:#f59e0b">—</div><div class="stat-card-label">Pagos por verificar</div></div>
+          <div class="stat-card" id="dashPagoCard" style="cursor:pointer" data-action="nav-to" data-panel="citas"><div class="stat-card-num" id="dashPagosPend" style="color:#f59e0b">—</div><div class="stat-card-label">Pagos por verificar</div></div>
           <div class="stat-card"><div class="stat-card-num">✓</div><div class="stat-card-label">Sistema operativo</div></div>
         </div>
         <div class="card">
@@ -339,7 +339,7 @@ a{text-decoration:none;color:inherit}
         <div class="card" id="otpPendingCard" style="display:none;margin-bottom:20px;border-left:3px solid #25D366">
           <div class="card-header" style="padding-bottom:8px">
             <div><h2 style="font-size:.95rem">📱 Verificaciones WhatsApp pendientes</h2><p style="font-size:.75rem">Clientes esperando su código — envíaselo por WhatsApp</p></div>
-            <button class="btn btn-ghost" style="font-size:.72rem" onclick="loadOtpPending()">Actualizar</button>
+            <button class="btn btn-ghost" style="font-size:.72rem" data-action="load-otp-pending">Actualizar</button>
           </div>
           <div class="card-body" style="padding-top:0">
             <table class="table" style="font-size:.78rem">
@@ -352,18 +352,18 @@ a{text-decoration:none;color:inherit}
         <div class="card">
           <div class="card-header">
             <div><h2>Agenda de Citas</h2><p>Citas agendadas desde el sitio web</p></div>
-            <button class="btn btn-ghost" onclick="loadCitas()"><svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>Actualizar</button>
+            <button class="btn btn-ghost" data-action="load-citas"><svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>Actualizar</button>
           </div>
           <div class="card-body" style="padding-bottom:0">
             <div class="citas-filters">
-              <button class="filter-btn active" onclick="filterCitas('todas',this)">Todas</button>
-              <button class="filter-btn" onclick="filterCitas('pendiente',this)">Pendientes</button>
-              <button class="filter-btn" onclick="filterCitas('confirmada',this)">Confirmadas</button>
+              <button class="filter-btn active" data-action="filter-citas" data-filtro="todas">Todas</button>
+              <button class="filter-btn" data-action="filter-citas" data-filtro="pendiente">Pendientes</button>
+              <button class="filter-btn" data-action="filter-citas" data-filtro="confirmada">Confirmadas</button>
               <div class="filters-sep"></div>
-              <button class="sort-btn active" id="sortFechaAsc" onclick="sortCitas('fecha','asc')">Fecha ↑</button>
-              <button class="sort-btn" id="sortFechaDesc" onclick="sortCitas('fecha','desc')">Fecha ↓</button>
-              <button class="sort-btn" id="sortHoraAsc" onclick="sortCitas('hora','asc')">Hora ↑</button>
-              <button class="sort-btn" id="sortHoraDesc" onclick="sortCitas('hora','desc')">Hora ↓</button>
+              <button class="sort-btn active" id="sortFechaAsc" data-action="sort-citas" data-key="fecha" data-dir="asc">Fecha ↑</button>
+              <button class="sort-btn" id="sortFechaDesc" data-action="sort-citas" data-key="fecha" data-dir="desc">Fecha ↓</button>
+              <button class="sort-btn" id="sortHoraAsc" data-action="sort-citas" data-key="hora" data-dir="asc">Hora ↑</button>
+              <button class="sort-btn" id="sortHoraDesc" data-action="sort-citas" data-key="hora" data-dir="desc">Hora ↓</button>
             </div>
           </div>
           <div style="overflow-x:auto">
@@ -389,10 +389,10 @@ a{text-decoration:none;color:inherit}
           </div>
           <div class="card-body">
             <div class="pipe-filters">
-              <input type="text" class="pipe-search" id="pipeSearch" placeholder="Buscar por nombre o email..." oninput="renderSeguimiento()">
-              <button class="filter-btn active" id="pipeFiltroTodos" onclick="setPipeFiltro('todos')">Todos</button>
-              <button class="filter-btn" id="pipeFiltroErrores" onclick="setPipeFiltro('errores')">Solo con errores</button>
-              <button class="filter-btn" id="pipeFiltroCurso" onclick="setPipeFiltro('curso')">En curso</button>
+              <input type="text" class="pipe-search" id="pipeSearch" placeholder="Buscar por nombre o email...">
+              <button class="filter-btn active" id="pipeFiltroTodos" data-action="pipe-filtro" data-filtro="todos">Todos</button>
+              <button class="filter-btn" id="pipeFiltroErrores" data-action="pipe-filtro" data-filtro="errores">Solo con errores</button>
+              <button class="filter-btn" id="pipeFiltroCurso" data-action="pipe-filtro" data-filtro="curso">En curso</button>
             </div>
             <div id="pipeList"></div>
           </div>
@@ -418,7 +418,7 @@ a{text-decoration:none;color:inherit}
                 <div class="fg"><label>% IVA</label><input type="number" id="sri_iva_rate" placeholder="15"></div>
               </div>
               <div style="margin-top:20px">
-                <button class="btn btn-primary" onclick="saveSriConfig()"><svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>Guardar configuración</button>
+                <button class="btn btn-primary" data-action="save-sri-config"><svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>Guardar configuración</button>
               </div>
             </div>
           </div>
@@ -434,7 +434,7 @@ a{text-decoration:none;color:inherit}
                 <div class="fg"><label>Contraseña del certificado</label><input type="password" id="sri_p12_password" placeholder="••••••••"></div>
               </div>
               <div style="margin-top:20px">
-                <button class="btn btn-primary" onclick="uploadP12()">Subir certificado</button>
+                <button class="btn btn-primary" data-action="upload-p12">Subir certificado</button>
               </div>
             </div>
           </div>
@@ -450,7 +450,7 @@ a{text-decoration:none;color:inherit}
                 <div class="fg" style="grid-column:1/-1"><label>Nota al pie (instrucciones de pago)</label><textarea id="ct_banco_nota" rows="3" placeholder="Ej: Envía el comprobante por WhatsApp..."></textarea></div>
               </div>
               <div style="margin-top:20px">
-                <button class="btn btn-primary" onclick="saveBanco()"><svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>Guardar datos bancarios</button>
+                <button class="btn btn-primary" data-action="save-banco"><svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>Guardar datos bancarios</button>
               </div>
             </div>
           </div>
@@ -463,7 +463,7 @@ a{text-decoration:none;color:inherit}
         <div class="card">
           <div class="card-header">
             <div><h2>Facturas emitidas</h2><p>Historial de comprobantes enviados al SRI</p></div>
-            <button class="btn btn-gold" onclick="openFacturaModal()"><svg viewBox="0 0 24 24"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Nueva factura</button>
+            <button class="btn btn-gold" data-action="open-factura-modal"><svg viewBox="0 0 24 24"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Nueva factura</button>
           </div>
           <div style="overflow-x:auto">
             <table class="table" id="facturasTable">
@@ -479,7 +479,7 @@ a{text-decoration:none;color:inherit}
         <div class="card">
           <div class="card-header">
             <div><h2>Testimonios</h2><p>Gestiona las reseñas que aparecen en el sitio</p></div>
-            <button class="btn btn-gold" onclick="openTestModal()"><svg viewBox="0 0 24 24"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Nuevo testimonio</button>
+            <button class="btn btn-gold" data-action="open-test-modal"><svg viewBox="0 0 24 24"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Nuevo testimonio</button>
           </div>
           <div style="overflow-x:auto">
             <table class="table" id="testTable">
@@ -539,9 +539,9 @@ a{text-decoration:none;color:inherit}
               <div id="faqFields"></div>
             </div>
           </div>
-          <div class="card-body" style="display:none"><button class="btn btn-primary" style="margin-top:8px" onclick="saveContenido()">Guardar todos los textos</button></div>
+          <div class="card-body" style="display:none"><button class="btn btn-primary" style="margin-top:8px" data-action="save-contenido">Guardar todos los textos</button></div>
           <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:4px">
-            <button class="btn btn-primary" onclick="saveContenido()"><svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>Guardar textos</button>
+            <button class="btn btn-primary" data-action="save-contenido"><svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>Guardar textos</button>
           </div>
         </div>
       </div>
@@ -559,7 +559,7 @@ a{text-decoration:none;color:inherit}
               <div class="fg"><label>Cobertura</label><input type="text" id="ct_cobertura" placeholder="Ecuador · Nacional e Internacional"></div>
             </div>
             <div style="margin-top:20px">
-              <button class="btn btn-primary" onclick="saveContacto()"><svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>Guardar contacto</button>
+              <button class="btn btn-primary" data-action="save-contacto"><svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>Guardar contacto</button>
             </div>
           </div>
         </div>
@@ -574,7 +574,7 @@ a{text-decoration:none;color:inherit}
               <div class="fg"><label>Nueva contraseña</label><input type="password" id="newPass" placeholder="Mínimo 6 caracteres"></div>
               <div class="fg"><label>Confirmar contraseña</label><input type="password" id="newPass2" placeholder="Repite la contraseña"></div>
             </div>
-            <div style="margin-top:20px"><button class="btn btn-primary" onclick="changePassword()">Actualizar contraseña</button></div>
+            <div style="margin-top:20px"><button class="btn btn-primary" data-action="change-password">Actualizar contraseña</button></div>
           </div>
         </div>
       </div>
@@ -584,11 +584,11 @@ a{text-decoration:none;color:inherit}
 </div><!-- /app -->
 
 <!-- MODAL TESTIMONIO -->
-<div class="overlay" id="testModalOverlay" onclick="closeTestModal(event)">
+<div class="overlay" id="testModalOverlay" data-action="close-modal" data-close-fn="closeTestModal">
   <div class="modal">
     <div class="modal-header">
       <h3 id="testModalTitle">Nuevo testimonio</h3>
-      <button class="modal-close" onclick="closeTestModal(true)"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+      <button class="modal-close" data-action="close-modal" data-close-fn="closeTestModal" data-force="1"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="testId">
@@ -607,23 +607,23 @@ a{text-decoration:none;color:inherit}
         </div>
         <div class="fg"><label>Texto del testimonio</label><textarea id="tText" style="min-height:120px" placeholder="Reseña del cliente..."></textarea></div>
         <div class="fg"><label>Estado</label>
-          <div class="toggle-wrap"><button class="toggle on" id="tActive" onclick="this.classList.toggle('on')"></button><span>Activo (visible en el sitio)</span></div>
+          <div class="toggle-wrap"><button class="toggle on" id="tActive" data-action="toggle-on"></button><span>Activo (visible en el sitio)</span></div>
         </div>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeTestModal(true)">Cancelar</button>
-      <button class="btn btn-gold" onclick="saveTestimonio()">Guardar testimonio</button>
+      <button class="btn btn-ghost" data-action="close-modal" data-close-fn="closeTestModal" data-force="1">Cancelar</button>
+      <button class="btn btn-gold" data-action="save-testimonio">Guardar testimonio</button>
     </div>
   </div>
 </div>
 
 <!-- MODAL NUEVA FACTURA -->
-<div class="overlay" id="facturaModalOverlay" onclick="closeFacturaModal(event)">
+<div class="overlay" id="facturaModalOverlay" data-action="close-modal" data-close-fn="closeFacturaModal">
   <div class="modal">
     <div class="modal-header">
       <h3>Nueva factura electrónica</h3>
-      <button class="modal-close" onclick="closeFacturaModal(true)"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+      <button class="modal-close" data-action="close-modal" data-close-fn="closeFacturaModal" data-force="1"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
@@ -651,25 +651,25 @@ a{text-decoration:none;color:inherit}
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeFacturaModal(true)">Cancelar</button>
-      <button class="btn btn-gold" id="facturaSaveBtn" onclick="saveFactura()">Emitir factura</button>
+      <button class="btn btn-ghost" data-action="close-modal" data-close-fn="closeFacturaModal" data-force="1">Cancelar</button>
+      <button class="btn btn-gold" id="facturaSaveBtn" data-action="save-factura">Emitir factura</button>
     </div>
   </div>
 </div>
 
 <!-- MODAL DETALLE FACTURA -->
-<div class="overlay" id="facturaDetalleOverlay" onclick="closeFacturaDetalle(event)">
+<div class="overlay" id="facturaDetalleOverlay" data-action="close-modal" data-close-fn="closeFacturaDetalle">
   <div class="modal" style="max-width:520px">
     <div class="modal-header">
       <h3>Detalle de factura</h3>
-      <button class="modal-close" onclick="closeFacturaDetalle(true)"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+      <button class="modal-close" data-action="close-modal" data-close-fn="closeFacturaDetalle" data-force="1"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
     </div>
     <div class="modal-body">
       <div id="facturaDetalleBody" style="font-size:.85rem;line-height:1.8"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeFacturaDetalle(true)">Cerrar</button>
-      <button class="btn btn-gold" id="facturaReintentarBtn" style="display:none" onclick="reintentarFacturaDesdeDetalle()">Reintentar envío</button>
+      <button class="btn btn-ghost" data-action="close-modal" data-close-fn="closeFacturaDetalle" data-force="1">Cerrar</button>
+      <button class="btn btn-gold" id="facturaReintentarBtn" style="display:none" data-action="reintentar-factura-detalle">Reintentar envío</button>
     </div>
   </div>
 </div>
@@ -678,11 +678,11 @@ a{text-decoration:none;color:inherit}
 <div id="toast"></div>
 
 <!-- MODAL RESUMEN CITA -->
-<div class="resumen-overlay" id="resumenOverlay" onclick="closeResumen(event)">
+<div class="resumen-overlay" id="resumenOverlay" data-action="close-modal" data-close-fn="closeResumen">
   <div class="resumen-modal">
     <div class="modal-header">
       <h3 style="font-size:1rem;color:var(--navy);margin:0">Resumen de la cita</h3>
-      <button class="modal-close" onclick="closeResumen(true)"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+      <button class="modal-close" data-action="close-modal" data-close-fn="closeResumen" data-force="1"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
     </div>
     <div class="modal-body">
       <div id="resumenCitaInfo" style="background:var(--off);border-radius:8px;padding:14px;margin-bottom:18px;font-size:.82rem;line-height:1.7;color:var(--navy)"></div>
@@ -710,8 +710,8 @@ a{text-decoration:none;color:inherit}
       <div class="resumen-char"><span id="resumenCharCount">0</span> / 9999</div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeResumen(true)">Cerrar</button>
-      <button class="btn btn-gold" id="resumenSaveBtn" onclick="saveResumen()">
+      <button class="btn btn-ghost" data-action="close-modal" data-close-fn="closeResumen" data-force="1">Cerrar</button>
+      <button class="btn btn-gold" id="resumenSaveBtn" data-action="save-resumen">
         <svg viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
         Guardar resumen
       </button>
@@ -720,11 +720,11 @@ a{text-decoration:none;color:inherit}
 </div>
 
 <!-- MODAL COMPROBAR PAGO -->
-<div class="overlay" id="comprobarPagoOverlay" onclick="closeComprobarPago(event)">
+<div class="overlay" id="comprobarPagoOverlay" data-action="close-modal" data-close-fn="closeComprobarPago">
   <div class="modal" style="max-width:560px">
     <div class="modal-header">
       <h3>Comprobar pago</h3>
-      <button class="modal-close" onclick="closeComprobarPago(true)"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+      <button class="modal-close" data-action="close-modal" data-close-fn="closeComprobarPago" data-force="1"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
     </div>
     <div class="modal-body">
       <div id="comprobarCitaInfo" style="background:var(--off);border-radius:var(--r8);padding:14px;margin-bottom:16px;font-size:.83rem;line-height:1.7"></div>
@@ -735,9 +735,9 @@ a{text-decoration:none;color:inherit}
       <a id="comprobarDescargar" href="#" target="_blank" style="display:inline-block;margin-top:10px;font-size:.75rem;color:var(--navy);text-decoration:underline">Abrir en nueva pestaña</a>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeComprobarPago(true)">Cerrar</button>
-      <button class="btn" style="background:#f59e0b;color:#fff" id="btnRechazarPago" onclick="verificarPago('rechazado')">Rechazar</button>
-      <button class="btn btn-gold" id="btnVerificarPago" onclick="verificarPago('verificado')">
+      <button class="btn btn-ghost" data-action="close-modal" data-close-fn="closeComprobarPago" data-force="1">Cerrar</button>
+      <button class="btn" style="background:#f59e0b;color:#fff" id="btnRechazarPago" data-action="verificar-pago" data-estado="rechazado">Rechazar</button>
+      <button class="btn btn-gold" id="btnVerificarPago" data-action="verificar-pago" data-estado="verificado">
         <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
         Pago verificado
       </button>
@@ -746,11 +746,11 @@ a{text-decoration:none;color:inherit}
 </div>
 
 <!-- MODAL ENVIAR CORREO -->
-<div class="overlay" id="enviarCorreoOverlay" onclick="closeEnviarCorreo(event)">
+<div class="overlay" id="enviarCorreoOverlay" data-action="close-modal" data-close-fn="closeEnviarCorreo">
   <div class="modal" style="max-width:520px">
     <div class="modal-header">
       <h3>Enviar correo al cliente</h3>
-      <button class="modal-close" onclick="closeEnviarCorreo(true)"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+      <button class="modal-close" data-action="close-modal" data-close-fn="closeEnviarCorreo" data-force="1"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
@@ -758,24 +758,24 @@ a{text-decoration:none;color:inherit}
         <div class="fg"><label>Mensaje</label><textarea id="correoMensaje" maxlength="9999" style="min-height:140px" placeholder="Escribe el mensaje que recibirá el cliente..."></textarea></div>
         <div class="fg">
           <label>Adjunto (opcional)</label>
-          <input type="file" id="correoAdjunto" onchange="document.getElementById('correoAdjuntoNombre').textContent=this.files[0]?this.files[0].name:''">
+          <input type="file" id="correoAdjunto">
           <div id="correoAdjuntoNombre" style="font-size:.75rem;color:var(--muted);margin-top:4px"></div>
         </div>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeEnviarCorreo(true)">Cancelar</button>
-      <button class="btn btn-gold" id="correoEnviarBtn" onclick="enviarCorreoSubmit()">Enviar correo</button>
+      <button class="btn btn-ghost" data-action="close-modal" data-close-fn="closeEnviarCorreo" data-force="1">Cancelar</button>
+      <button class="btn btn-gold" id="correoEnviarBtn" data-action="enviar-correo-submit">Enviar correo</button>
     </div>
   </div>
 </div>
 
 <!-- MODAL CONFIRMAR CITA -->
-<div class="overlay" id="confirmCitaOverlay" onclick="closeConfirmCita(event)">
+<div class="overlay" id="confirmCitaOverlay" data-action="close-modal" data-close-fn="closeConfirmCita">
   <div class="modal" style="max-width:460px">
     <div class="modal-header">
       <h3>Confirmar cita</h3>
-      <button class="modal-close" onclick="closeConfirmCita(true)"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+      <button class="modal-close" data-action="close-modal" data-close-fn="closeConfirmCita" data-force="1"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
     </div>
     <div class="modal-body">
       <div id="confirmCitaInfo" style="background:var(--off);border-radius:var(--r8);padding:16px;margin-bottom:20px;font-size:.85rem;line-height:1.7"></div>
@@ -790,15 +790,15 @@ a{text-decoration:none;color:inherit}
         <div style="background:#f0fdf4;border:1px solid rgba(22,163,74,.2);border-radius:var(--r8);padding:14px;font-size:.82rem;color:#166534;margin-bottom:10px">
           📱 El cliente recibirá un correo confirmando su cita. Además puedes notificarle directamente por WhatsApp:
         </div>
-        <button id="confirmCitaWaBtn" class="btn" style="background:#25D366;color:#fff;width:100%;justify-content:center;gap:8px;font-size:.82rem" onclick="abrirWaConfirmacion()">
+        <button id="confirmCitaWaBtn" class="btn" style="background:#25D366;color:#fff;width:100%;justify-content:center;gap:8px;font-size:.82rem" data-action="abrir-wa-confirmacion">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.533 5.867L0 24l6.301-1.651A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.518-5.163-1.422l-.371-.219-3.742.981.998-3.642-.24-.375A9.939 9.939 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
           Abrir WhatsApp Web con datos de la cita
         </button>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeConfirmCita(true)">Cancelar</button>
-      <button class="btn btn-gold" onclick="submitConfirmCita()">
+      <button class="btn btn-ghost" data-action="close-modal" data-close-fn="closeConfirmCita" data-force="1">Cancelar</button>
+      <button class="btn btn-gold" data-action="submit-confirm-cita">
         <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
         Confirmar y enviar correo
       </button>
@@ -810,9 +810,17 @@ a{text-decoration:none;color:inherit}
 /* ────────────────────────────────────────────────── */
 /*  STATE                                             */
 /* ────────────────────────────────────────────────── */
-var TOKEN = localStorage.getItem('pl_token');
-var ME    = localStorage.getItem('pl_user') || 'admin';
+// La sesión ya no vive en localStorage ni en una variable JS: el token va en
+// una cookie HttpOnly (el navegador la manda solo, este script nunca la ve),
+// así un XSS no puede robarla. ME se completa al hacer login o al restaurar
+// sesión via GET /api/auth/me.
+var ME = 'admin';
 var MUST_CHANGE = false;
+
+function getCsrfToken(){
+  var m = document.cookie.match(/(?:^|;\s*)admin_csrf=([^;]*)/);
+  return m ? decodeURIComponent(m[1]) : '';
+}
 
 var PANEL_TITLES = {
   inicio:'Inicio', citas:'Agenda de Citas', seguimiento:'Seguimiento', 'config-facturacion':'Configuración Facturación', facturas:'Facturas', testimonios:'Testimonios', servicios:'Servicios',
@@ -832,7 +840,14 @@ var PANEL_SUBS = {
 /* ────────────────────────────────────────────────── */
 /*  INIT                                              */
 /* ────────────────────────────────────────────────── */
-if (TOKEN) showApp();
+// Detecta sesión existente probando la cookie contra el backend — ya no hay
+// nada que leer del lado del cliente para saber si hay sesión.
+fetch('/api/auth/me', { credentials:'include' }).then(function(r){
+  if(!r.ok) return null;
+  return r.json();
+}).then(function(d){
+  if(d && d.username){ ME=d.username; showApp(); }
+});
 buildFaqFields();
 
 /* ────────────────────────────────────────────────── */
@@ -847,10 +862,10 @@ function doLogin(){
   var pass=document.getElementById('loginPass').value;
   var btn=document.getElementById('loginBtn');
   btn.textContent='Verificando...'; btn.disabled=true;
-  fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pass})})
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      if(d.token){ TOKEN=d.token; ME=d.username; MUST_CHANGE=!!d.mustChangePassword; localStorage.setItem('pl_token',TOKEN); localStorage.setItem('pl_user',ME); showApp(); }
+  fetch('/api/auth/login',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pass})})
+    .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, d:d}; }); })
+    .then(function(res){
+      if(res.ok){ ME=res.d.username; MUST_CHANGE=!!res.d.mustChangePassword; showApp(); }
       else{ document.getElementById('loginErr').style.display='block'; btn.textContent='Entrar'; btn.disabled=false; }
     })
     .catch(function(){ document.getElementById('loginErr').style.display='block'; btn.textContent='Entrar'; btn.disabled=false; });
@@ -872,7 +887,9 @@ function showApp(){
   }
 }
 
-function logout(){ TOKEN=null; localStorage.removeItem('pl_token'); localStorage.removeItem('pl_user'); location.reload(); }
+function logout(){
+  fetch('/api/auth/logout',{method:'POST',credentials:'include'}).then(function(){ location.reload(); }).catch(function(){ location.reload(); });
+}
 
 /* ────────────────────────────────────────────────── */
 /*  NAVIGATION                                        */
@@ -906,7 +923,10 @@ function closeSidebar(){
 /*  API HELPER                                        */
 /* ────────────────────────────────────────────────── */
 function api(method, path, body){
-  return fetch(path,{method:method||'GET',headers:Object.assign({'Content-Type':'application/json'},TOKEN?{Authorization:'Bearer '+TOKEN}:{}),body:body?JSON.stringify(body):undefined}).then(function(r){ if(r.status===401){ logout(); return {}; } return r.json(); });
+  method = method || 'GET';
+  var headers = {'Content-Type':'application/json'};
+  if(method !== 'GET') headers['X-CSRF-Token'] = getCsrfToken();
+  return fetch(path,{method:method,credentials:'include',headers:headers,body:body?JSON.stringify(body):undefined}).then(function(r){ if(r.status===401){ logout(); return {}; } return r.json(); });
 }
 
 /* ────────────────────────────────────────────────── */
@@ -965,8 +985,8 @@ function loadTestimonios(data){
       +'<td style="max-width:220px;font-size:.78rem;color:var(--muted)">'+escH((t.text||'').substring(0,80))+'...</td>'
       +'<td><span class="'+(t.active?'badge-active':'badge-inactive')+'">'+(t.active?'Activo':'Inactivo')+'</span></td>'
       +'<td><div class="row-actions">'
-        +'<button class="btn btn-ghost" onclick="editTestimonio('+t.id+')">Editar</button>'
-        +'<button class="btn btn-danger" onclick="delTestimonio('+t.id+',\''+escH(t.name)+'\')">Eliminar</button>'
+        +'<button class="btn btn-ghost" data-action="edit-testimonio" data-id="'+t.id+'">Editar</button>'
+        +'<button class="btn btn-danger" data-action="del-testimonio" data-id="'+t.id+'" data-name="'+escAttr(t.name)+'">Eliminar</button>'
       +'</div></td>';
     tbody.appendChild(tr);
   });
@@ -1038,7 +1058,7 @@ function loadServicios(data){
         +'<div class="fg"><label>Título</label><input type="text" id="s_title_'+s.id+'" value="'+escAttr(s.title)+'"></div>'
         +'<div class="fg"><label>Descripción</label><textarea id="s_desc_'+s.id+'">'+escH(s.description)+'</textarea></div>'
         +'<div class="fg"><label>Etiquetas (separadas por coma)</label><input type="text" id="s_tags_'+s.id+'" value="'+escAttr((s.tags||[]).join(', '))+'"></div>'
-        +'<div style="text-align:right"><button class="btn btn-primary" onclick="saveServicio('+s.id+')">Guardar servicio '+s.num+'</button></div>'
+        +'<div style="text-align:right"><button class="btn btn-primary" data-action="save-servicio" data-id="'+s.id+'">Guardar servicio '+s.num+'</button></div>'
       +'</div>';
     body.appendChild(sec);
   });
@@ -1086,9 +1106,9 @@ function loadPromoCards(data){
           +'<div class="fg"><label>Imagen (ruta o URL)</label><input type="text" id="p_img_'+p.id+'" value="'+escAttr(p.image)+'" placeholder="/img/promo1.jpg"></div>'
         +'</div>'
         +'<div class="fg"><label>Estado</label>'
-          +'<div class="toggle-wrap"><button class="toggle '+(p.active?'on':'')+'" id="p_active_'+p.id+'" onclick="this.classList.toggle(\'on\')"></button><span>Visible en el sitio</span></div>'
+          +'<div class="toggle-wrap"><button class="toggle '+(p.active?'on':'')+'" id="p_active_'+p.id+'" data-action="toggle-on"></button><span>Visible en el sitio</span></div>'
         +'</div>'
-        +'<div style="text-align:right"><button class="btn btn-gold" onclick="savePromoCard('+p.id+')">Guardar tarjeta</button></div>'
+        +'<div style="text-align:right"><button class="btn btn-gold" data-action="save-promo-card" data-id="'+p.id+'">Guardar tarjeta</button></div>'
       +'</div>';
     body.appendChild(sec);
   });
@@ -1264,7 +1284,7 @@ function uploadP12(){
   if(fileInput.files && fileInput.files[0]){
     var fd = new FormData();
     fd.append('p12', fileInput.files[0]);
-    tasks.push(fetch('/api/admin/p12-upload', { method:'POST', headers:{ 'Authorization':'Bearer '+TOKEN }, body: fd }).then(function(r){ return r.json(); }));
+    tasks.push(fetch('/api/admin/p12-upload', { method:'POST', credentials:'include', headers:{ 'X-CSRF-Token':getCsrfToken() }, body: fd }).then(function(r){ return r.json(); }));
   }
   if(password){
     tasks.push(api('PUT','/api/admin/sri-config', { p12_password: password }));
@@ -1297,9 +1317,9 @@ function renderFacturas(){
   tbody.innerHTML = '';
   facturasData.forEach(function(f){
     var badgeClass = SRI_ESTADO_BADGE[f.sri_estado] || 'badge-pendiente';
-    var acciones = '<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px" onclick="viewFacturaDetalle('+f.id+')">Ver</button>';
+    var acciones = '<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px" data-action="view-factura-detalle" data-id="'+f.id+'">Ver</button>';
     if(f.sri_estado === 'error'){
-      acciones += '<button class="btn btn-gold" style="font-size:.72rem;padding:5px 12px;margin-left:4px" onclick="reintentarFactura('+f.id+')">Reintentar</button>';
+      acciones += '<button class="btn btn-gold" style="font-size:.72rem;padding:5px 12px;margin-left:4px" data-action="reintentar-factura" data-id="'+f.id+'">Reintentar</button>';
     }
     var tr = document.createElement('tr');
     tr.innerHTML = '<td style="font-size:.8rem;font-weight:600">'+escH(f.numero_factura)+'</td>'
@@ -1445,14 +1465,14 @@ function renderCitas(){
       ? 'Zoom'
       : escH(c.contacto_valor);
     var accionBtn = c.estado === 'confirmada'
-      ? '<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px" onclick="openResumen('+c.id+')">Resumen</button>'
-      : '<button class="btn btn-gold" style="font-size:.72rem;padding:5px 12px" onclick="openConfirmCita('+c.id+')">Confirmar</button>';
+      ? '<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px" data-action="open-resumen" data-id="'+c.id+'">Resumen</button>'
+      : '<button class="btn btn-gold" style="font-size:.72rem;padding:5px 12px" data-action="open-confirm-cita" data-id="'+c.id+'">Confirmar</button>';
     if(c.factura_estado === 'pendiente'){
-      accionBtn += '<button class="btn" style="font-size:.72rem;padding:5px 12px;background:#f59e0b;color:#fff;margin-left:4px" onclick="openComprobarPago('+c.id+')">Comprobar pago</button>';
+      accionBtn += '<button class="btn" style="font-size:.72rem;padding:5px 12px;background:#f59e0b;color:#fff;margin-left:4px" data-action="open-comprobar-pago" data-id="'+c.id+'">Comprobar pago</button>';
     } else if(c.factura_estado === 'error' && c.factura_id){
-      accionBtn += '<button class="btn btn-danger" style="font-size:.72rem;padding:5px 12px;margin-left:4px" onclick="reintentarFacturaCita('+c.factura_id+')">Reintentar factura</button>';
+      accionBtn += '<button class="btn btn-danger" style="font-size:.72rem;padding:5px 12px;margin-left:4px" data-action="reintentar-factura-cita" data-id="'+c.factura_id+'">Reintentar factura</button>';
     } else if(c.factura_estado === 'aprobada'){
-      accionBtn += '<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px;margin-left:4px" onclick="openEnviarCorreo('+c.id+')">Enviar correo</button>';
+      accionBtn += '<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px;margin-left:4px" data-action="open-enviar-correo" data-id="'+c.id+'">Enviar correo</button>';
     }
     var facturaBadge = c.factura_estado
       ? '<span class="'+(FACTURA_ESTADO_BADGE[c.factura_estado]||'badge-pendiente')+'">'+(FACTURA_ESTADO_LABEL[c.factura_estado]||c.factura_estado)+'</span>'
@@ -1611,7 +1631,7 @@ function openComprobarPago(id){
   visor.innerHTML = '<span style="color:var(--muted);font-size:.82rem;padding:20px">Cargando...</span>';
   document.getElementById('comprobarDescargar').href = '#';
   document.getElementById('comprobarPagoOverlay').classList.add('open');
-  fetch(apiUrl, { headers: { 'Authorization': 'Bearer '+TOKEN } })
+  fetch(apiUrl, { credentials:'include' })
     .then(function(r){
       if(!r.ok) throw new Error('HTTP '+r.status);
       return r.blob();
@@ -1693,18 +1713,18 @@ function pipelineSteps(c){
   var pagoStatus = 'idle', pagoSub = '', pagoAction = null;
   if(c.comprobante_estado === 'verificado'){ pagoStatus='done'; }
   else if(c.comprobante_estado === 'rechazado'){ pagoStatus='error'; pagoSub='Comprobante rechazado'; }
-  else if(c.comprobante_estado === 'pendiente'){ pagoStatus='pending'; pagoSub='Por revisar'; pagoAction={label:'Revisar', fn:'openComprobarPago('+c.id+')'}; }
+  else if(c.comprobante_estado === 'pendiente'){ pagoStatus='pending'; pagoSub='Por revisar'; pagoAction={label:'Revisar', action:'open-comprobar-pago', id:c.id}; }
   steps.push({ key:'pago', label:'Pago verificado', status:pagoStatus, sub:pagoSub, action:pagoAction });
 
   var facStatus = 'idle', facSub = '', facAction = null;
   if(c.factura_estado === 'aprobada'){ facStatus='done'; }
-  else if(c.factura_estado === 'error'){ facStatus='error'; facSub='Rechazada por el SRI'; facAction={label:'Reintentar', fn:'reintentarFacturaCita('+c.factura_id+')'}; }
+  else if(c.factura_estado === 'error'){ facStatus='error'; facSub='Rechazada por el SRI'; facAction={label:'Reintentar', action:'reintentar-factura-cita', id:c.factura_id}; }
   else if(c.factura_estado === 'rechazada'){ facStatus='error'; facSub='Comprobante rechazado'; }
   else if(c.factura_estado === 'esperando_sri'){ facStatus='pending'; facSub='Esperando al SRI'; }
   else if(c.factura_estado === 'pendiente'){ facStatus='pending'; facSub='Falta verificar pago'; }
   steps.push({ key:'factura', label:'Factura SRI', status:facStatus, sub:facSub, action:facAction });
 
-  var correoAction = (!c.correo_enviado_at && c.factura_estado === 'aprobada') ? {label:'Enviar', fn:'openEnviarCorreo('+c.id+')'} : null;
+  var correoAction = (!c.correo_enviado_at && c.factura_estado === 'aprobada') ? {label:'Enviar', action:'open-enviar-correo', id:c.id} : null;
   steps.push({ key:'correo', label:'Correo enviado', status: c.correo_enviado_at ? 'done' : 'idle', sub: c.correo_enviado_at ? c.correo_enviado_at.substring(0,16) : '', action:correoAction });
 
   return steps;
@@ -1756,7 +1776,7 @@ function renderSeguimiento(){
     var c = it.cita;
     var hasError = it.steps.some(function(s){ return s.status==='error'; });
     var stepsHtml = it.steps.map(function(s){
-      var actionHtml = s.action ? '<button class="'+(s.status==='error'?'pipe-retry':'pipe-send')+'" onclick="'+s.action.fn+'">'+s.action.label+'</button>' : '';
+      var actionHtml = s.action ? '<button class="'+(s.status==='error'?'pipe-retry':'pipe-send')+'" data-action="'+s.action.action+'" data-id="'+s.action.id+'">'+s.action.label+'</button>' : '';
       var icon = s.status==='done' ? '✓' : (s.status==='error' ? '✕' : (s.status==='pending' ? '···' : ''));
       return '<div class="pipe-step pipe-'+s.status+'">'
         +'<div class="pipe-dot">'+icon+'</div>'
@@ -1803,7 +1823,7 @@ function enviarCorreoSubmit(){
   var btn = document.getElementById('correoEnviarBtn');
   btn.disabled = true; btn.textContent = 'Enviando...';
   fetch('/api/admin/citas/'+enviarCorreoCitaId+'/enviar-correo', {
-    method: 'POST', headers: { 'Authorization': 'Bearer '+TOKEN }, body: fd
+    method: 'POST', credentials:'include', headers: { 'X-CSRF-Token':getCsrfToken() }, body: fd
   }).then(function(r){ return r.json(); }).then(function(d){
     btn.disabled = false; btn.textContent = 'Enviar correo';
     if(d.ok){ toast('Correo enviado'); closeEnviarCorreo(true); }
@@ -1846,6 +1866,75 @@ function loadOtpPending(){
     }).join('');
   });
 }
+
+/* ────────────────────────────────────────────────── */
+/*  EVENTOS — delegación (CSP sin unsafe-inline: nada  */
+/*  de onclick="" inline, todo pasa por data-action)   */
+/* ────────────────────────────────────────────────── */
+var CLOSE_FNS = {
+  closeTestModal:closeTestModal, closeFacturaModal:closeFacturaModal, closeFacturaDetalle:closeFacturaDetalle,
+  closeResumen:closeResumen, closeComprobarPago:closeComprobarPago, closeEnviarCorreo:closeEnviarCorreo,
+  closeConfirmCita:closeConfirmCita
+};
+
+var CLICK_ACTIONS = {
+  'login':                  function(){ doLogin(); },
+  'logout':                 function(){ logout(); },
+  'close-sidebar':          function(){ closeSidebar(); },
+  'toggle-sidebar':         function(){ toggleSidebar(); },
+  'nav':                    function(el){ nav(el); },
+  'nav-to':                 function(el){ var t=document.querySelector('.sb-item[data-panel="'+el.dataset.panel+'"]'); if(t) nav(t); },
+  'load-otp-pending':       function(){ loadOtpPending(); },
+  'load-citas':             function(){ loadCitas(); },
+  'filter-citas':           function(el){ filterCitas(el.dataset.filtro, el); },
+  'sort-citas':             function(el){ sortCitas(el.dataset.key, el.dataset.dir); },
+  'pipe-filtro':            function(el){ setPipeFiltro(el.dataset.filtro); },
+  'save-sri-config':        function(){ saveSriConfig(); },
+  'upload-p12':             function(){ uploadP12(); },
+  'save-banco':             function(){ saveBanco(); },
+  'open-factura-modal':     function(){ openFacturaModal(); },
+  'open-test-modal':        function(){ openTestModal(); },
+  'save-contenido':         function(){ saveContenido(); },
+  'save-contacto':          function(){ saveContacto(); },
+  'change-password':        function(){ changePassword(); },
+  'close-modal':            function(el, e){ var fn=CLOSE_FNS[el.dataset.closeFn]; if(fn) fn(el.dataset.force ? true : e); },
+  'toggle-on':               function(el){ el.classList.toggle('on'); },
+  'save-testimonio':        function(){ saveTestimonio(); },
+  'save-factura':           function(){ saveFactura(); },
+  'reintentar-factura-detalle': function(){ reintentarFacturaDesdeDetalle(); },
+  'save-resumen':           function(){ saveResumen(); },
+  'verificar-pago':         function(el){ verificarPago(el.dataset.estado); },
+  'abrir-wa-confirmacion':  function(){ abrirWaConfirmacion(); },
+  'submit-confirm-cita':    function(){ submitConfirmCita(); },
+  'edit-testimonio':        function(el){ editTestimonio(Number(el.dataset.id)); },
+  'del-testimonio':         function(el){ delTestimonio(Number(el.dataset.id), el.dataset.name); },
+  'save-servicio':          function(el){ saveServicio(Number(el.dataset.id)); },
+  'save-promo-card':        function(el){ savePromoCard(Number(el.dataset.id)); },
+  'view-factura-detalle':   function(el){ viewFacturaDetalle(Number(el.dataset.id)); },
+  'reintentar-factura':     function(el){ reintentarFactura(Number(el.dataset.id)); },
+  'open-resumen':           function(el){ openResumen(Number(el.dataset.id)); },
+  'open-confirm-cita':      function(el){ openConfirmCita(Number(el.dataset.id)); },
+  'open-comprobar-pago':    function(el){ openComprobarPago(Number(el.dataset.id)); },
+  'reintentar-factura-cita':function(el){ reintentarFacturaCita(Number(el.dataset.id)); },
+  'open-enviar-correo':     function(el){ openEnviarCorreo(Number(el.dataset.id)); }
+};
+
+document.addEventListener('click', function(e){
+  var el = e.target.closest('[data-action]');
+  if(!el) return;
+  var fn = CLICK_ACTIONS[el.dataset.action];
+  if(fn) fn(el, e);
+});
+
+// Únicos oninput/onchange que había: elementos estáticos fijos, no hace
+// falta delegación para estos dos.
+var pipeSearchEl = document.getElementById('pipeSearch');
+if(pipeSearchEl) pipeSearchEl.addEventListener('input', renderSeguimiento);
+
+var correoAdjuntoEl = document.getElementById('correoAdjunto');
+if(correoAdjuntoEl) correoAdjuntoEl.addEventListener('change', function(){
+  document.getElementById('correoAdjuntoNombre').textContent = this.files[0] ? this.files[0].name : '';
+});
 </script>
 </body>
 </html>

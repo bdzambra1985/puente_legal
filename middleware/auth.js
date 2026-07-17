@@ -1,9 +1,11 @@
 const jwt = require('jsonwebtoken');
-const { SECRET } = require('../config');
+const { SECRET, TOKEN_COOKIE } = require('../config');
+const { parseCookies } = require('../utils/cookies');
 
 module.exports = function(req, res, next) {
-  const header = req.headers.authorization || '';
-  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  // El token de sesión admin vive en una cookie HttpOnly (no en localStorage
+  // ni en el header Authorization) — así un XSS no puede leerlo con JS.
+  const token = parseCookies(req.headers.cookie)[TOKEN_COOKIE] || null;
   if (!token) return res.status(401).json({ error: 'No autorizado' });
   try {
     const payload = jwt.verify(token, SECRET);

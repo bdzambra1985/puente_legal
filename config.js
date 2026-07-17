@@ -22,4 +22,12 @@ if (!SECRET || SECRET.length < 16) {
     'Los tokens se invalidarán al reiniciar el proceso.');
 }
 
-module.exports = { SECRET };
+// Nombres de las cookies de sesión admin. El token va en una cookie HttpOnly
+// (no accesible desde JS, así un XSS no puede robarlo); el CSRF token va en
+// una cookie legible por JS a propósito (patrón double-submit: el frontend
+// la lee y la reenvía en el header X-CSRF-Token en cada mutación).
+const TOKEN_COOKIE = 'admin_token';
+const CSRF_COOKIE = 'admin_csrf';
+const COOKIE_MAX_AGE_MS = 8 * 60 * 60 * 1000; // 8h, igual que expiresIn del JWT
+
+module.exports = { SECRET, TOKEN_COOKIE, CSRF_COOKIE, COOKIE_MAX_AGE_MS };

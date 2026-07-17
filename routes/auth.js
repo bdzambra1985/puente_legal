@@ -1,12 +1,20 @@
 const express = require('express');
+const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { getDB } = require('../database');
 const authMiddleware = require('../middleware/auth');
+const csrfCheck = require('../middleware/csrf');
 const rateLimit = require('../middleware/rateLimit');
-const { SECRET } = require('../config');
+const { SECRET, TOKEN_COOKIE, CSRF_COOKIE, COOKIE_MAX_AGE_MS } = require('../config');
 
 const router = express.Router();
+
+// secure:true exige HTTPS — en local (NODE_ENV != production) se corre sobre
+// http://localhost, así que se desactiva ahí o el navegador ignora la cookie.
+const IS_PROD = process.env.NODE_ENV === 'production';
+const sessionCookieOpts = { httpOnly: true,  secure: IS_PROD, sameSite: 'strict', path: '/', maxAge: COOKIE_MAX_AGE_MS };
+const csrfCookieOpts    = { httpOnly: false, secure: IS_PROD, sameSite: 'strict', path: '/', maxAge: COOKIE_MAX_AGE_MS };
 
 // Hash "señuelo" para que el tiempo de respuesta sea similar exista o no el usuario
 // (evita enumeración de usuarios por temporización). Password imposible de acertar.
@@ -56,14 +64,34 @@ router.post('/login', loginLimiter, (req, res) => {
   failedLogins.delete(key); // login correcto → limpia el contador de esa IP
 
   const token = jwt.sign({ id: user.id, username: user.username, typ: 'admin' }, SECRET, { expiresIn: '8h' });
+  const csrfToken = crypto.randomBytes(32).toString('hex');
+
+  // El JWT va en cookie HttpOnly (nunca llega a JS/localStorage, un XSS no
+  // puede robarlo). El CSRF token va en una cookie normal a propósito: el
+  // frontend la lee y la reenvía en un header en cada mutación (ver
+  // middleware/csrf.js). Ya no se devuelve el token en el body.
+  res.cookie(TOKEN_COOKIE, token, sessionCookieOpts);
+  res.cookie(CSRF_COOKIE, csrfToken, csrfCookieOpts);
   res.json({
-    token,
     username: user.username,
     mustChangePassword: !!user.must_change_password,
   });
 });
 
-router.post('/change-password', authMiddleware, (req, res) => {
+router.get('/me', authMiddleware, (req, res) => {
+  res.json({ username: req.admin.username });
+});
+
+// No exige sesión válida a propósito: tiene que poder limpiar cookies viejas
+// o corruptas igual, y forzar un logout ajeno no tiene impacto real (a lo
+// sumo cierra una sesión), así que no hace falta CSRF acá tampoco.
+router.post('/logout', (req, res) => {
+  res.clearCookie(TOKEN_COOKIE, { path: '/' });
+  res.clearCookie(CSRF_COOKIE, { path: '/' });
+  res.json({ ok: true });
+});
+
+router.post('/change-password', authMiddleware, csrfCheck, (req, res) => {
   const { newPassword } = req.body || {};
   if (!newPassword || newPassword.length < 8)
     return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
