@@ -6,6 +6,8 @@ const { getDB } = require('../database');
 const auth = require('../middleware/auth');
 const { sendCitaConfirmada, sendFacturaEmitida, sendCorreoAdjunto } = require('../utils/email');
 const { emitirFactura, getSRIConfig, getP12Path } = require('../sri/index');
+require('../utils/upload'); // asegura que el SDK de Cloudinary quede configurado
+const cloudinary = require('cloudinary').v2;
 
 const router = express.Router();
 router.use(auth);
@@ -209,20 +211,52 @@ router.delete('/facturas/:id', (req, res) => {
 
 /* Servir comprobante (GET /api/admin/comprobante/:filename) */
 const COMPROBANTE_TYPES = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.pdf': 'application/pdf', '.webp': 'image/webp' };
+
+// Proxea los bytes desde una URL (para no perder el gate de JWT de esta ruta).
+async function proxyBytes(res, url) {
+  const upstream = await fetch(url);
+  if (!upstream.ok) return res.status(404).send('No encontrado');
+  const buf = Buffer.from(await upstream.arrayBuffer());
+  res.setHeader('Content-Type', upstream.headers.get('content-type') || 'application/octet-stream');
+  res.setHeader('Content-Disposition', 'inline');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  return res.send(buf);
+}
+
 router.get('/comprobante/:filename', async (req, res) => {
   const raw = req.params.filename;
+  const db = getDB();
 
-  // Comprobantes subidos a Cloudinary: comprobante_path guarda la URL completa.
-  // Se hace de proxy (en vez de redirigir) para no perder el gate de JWT de esta ruta.
-  if (/^https?:\/\//i.test(raw)) {
+  // Solo se sirve un valor que realmente exista como comprobante en la BD.
+  // Evita que el path param se use como SSRF hacia URLs arbitrarias.
+  const known = db.prepare('SELECT 1 FROM citas WHERE comprobante_path=?').get(raw);
+  if ((raw.startsWith('cld:') || /^https?:\/\//i.test(raw)) && !known)
+    return res.status(404).send('No encontrado');
+
+  // Comprobante en Cloudinary con entrega autenticada: cld:<resource_type>:<public_id>
+  if (raw.startsWith('cld:')) {
     try {
-      const upstream = await fetch(raw);
-      if (!upstream.ok) return res.status(404).send('No encontrado');
-      const buf = Buffer.from(await upstream.arrayBuffer());
-      res.setHeader('Content-Type', upstream.headers.get('content-type') || 'application/octet-stream');
-      res.setHeader('Content-Disposition', 'inline');
-      res.setHeader('X-Content-Type-Options', 'nosniff');
-      return res.send(buf);
+      const idx = raw.indexOf(':', 4);
+      const resourceType = raw.slice(4, idx);
+      const publicId     = raw.slice(idx + 1);
+      const signed = cloudinary.url(publicId, {
+        resource_type: resourceType || 'image', type: 'authenticated',
+        sign_url: true, secure: true,
+      });
+      return await proxyBytes(res, signed);
+    } catch (e) {
+      return res.status(502).send('Error al obtener el archivo');
+    }
+  }
+
+  // Compatibilidad con comprobantes antiguos (URL pública de Cloudinary).
+  // Se restringe el host para que solo se pueda proxear a Cloudinary.
+  if (/^https?:\/\//i.test(raw)) {
+    let host = '';
+    try { host = new URL(raw).hostname; } catch { return res.status(400).send('URL inválida'); }
+    if (!/(^|\.)cloudinary\.com$/i.test(host)) return res.status(400).send('Origen no permitido');
+    try {
+      return await proxyBytes(res, raw);
     } catch (e) {
       return res.status(502).send('Error al obtener el archivo');
     }

@@ -30,7 +30,7 @@ router.post('/login', loginLimiter, (req, res) => {
   if (!user || !valid)
     return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
 
-  const token = jwt.sign({ id: user.id, username: user.username }, SECRET, { expiresIn: '8h' });
+  const token = jwt.sign({ id: user.id, username: user.username, typ: 'admin' }, SECRET, { expiresIn: '8h' });
   res.json({
     token,
     username: user.username,

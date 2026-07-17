@@ -49,13 +49,16 @@ async function saveComprobante(buffer, ext, citaId, localDir) {
   const { buffer: outBuffer, ext: outExt } = await compressImage(buffer, ext);
 
   if (USE_CLOUDINARY) {
-    const url = await new Promise((resolve, reject) => {
+    // Entrega autenticada: el asset NO es accesible por URL pública. Se guarda
+    // un marcador `cld:<resource_type>:<public_id>` y el panel admin genera una
+    // URL firmada de corta duración al momento de servirlo (ver routes/admin.js).
+    const result = await new Promise((resolve, reject) => {
       cloudinary.uploader.upload_stream(
-        { folder: 'puente-legal/comprobantes', resource_type: 'auto' },
-        (err, result) => err ? reject(new Error(err.message || JSON.stringify(err))) : resolve(result.secure_url)
+        { folder: 'puente-legal/comprobantes', resource_type: 'auto', type: 'authenticated' },
+        (err, result) => err ? reject(new Error(err.message || JSON.stringify(err))) : resolve(result)
       ).end(outBuffer);
     });
-    return { path: url, isUrl: true };
+    return { path: `cld:${result.resource_type}:${result.public_id}`, isUrl: false };
   }
 
   const fs = require('fs');

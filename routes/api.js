@@ -40,7 +40,7 @@ function genCode() {
 }
 
 function issueVerifToken(email) {
-  return jwt.sign({ email: String(email).toLowerCase(), scope: 'cita' }, SECRET, { expiresIn: '20m' });
+  return jwt.sign({ email: String(email).toLowerCase(), scope: 'cita', typ: 'cita' }, SECRET, { expiresIn: '20m' });
 }
 
 function verifTokenEmail(token) {
