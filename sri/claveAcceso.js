@@ -1,5 +1,7 @@
 'use strict';
 
+const crypto = require('crypto');
+
 /**
  * SRI Ecuador — Generador de Clave de Acceso (49 dígitos)
  *
@@ -66,7 +68,7 @@ function generarClaveAcceso({ fecha, ruc, ambiente, estab, ptoEmi, secuencial, t
     const establStr      = String(estab).padStart(3, '0');      // 3 chars
     const ptoEmiStr      = String(ptoEmi).padStart(3, '0');     // 3 chars
     const secuencialStr  = String(secuencial).padStart(9, '0'); // 9 chars
-    const codigoNum      = String(Math.floor(Math.random() * 100000000)).padStart(8, '0'); // 8 chars
+    const codigoNum      = String(crypto.randomInt(0, 100000000)).padStart(8, '0'); // 8 chars (CSPRNG)
     const tipoEmisionStr = String(tipoEmision);                 // 1 char
 
     // 48 chars total

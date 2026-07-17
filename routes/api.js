@@ -53,12 +53,16 @@ function verifTokenEmail(token) {
 // Limitadores
 const otpByEmail = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, keyGenerator: r => (r.body?.email || '').toLowerCase(),
   message: 'Demasiadas solicitudes de código para este correo. Espera unos minutos.' });
+// Límite por IP (además del límite por email): evita que se use el servicio de
+// correo para enviar OTP a muchas direcciones distintas (spam/abuso de cuota).
+const otpByIp = rateLimit({ windowMs: 15 * 60 * 1000, max: 20,
+  message: 'Demasiadas solicitudes de código desde esta red. Espera unos minutos.' });
 const verifLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: 'Demasiados intentos. Espera unos minutos.' });
 const citaLimiter  = rateLimit({ windowMs: 10 * 60 * 1000, max: 15, message: 'Demasiadas solicitudes. Intenta más tarde.' });
 const uploadLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: 'Demasiadas subidas. Intenta más tarde.' });
 
 /* Enviar OTP (POST /api/citas/send-otp) */
-router.post('/citas/send-otp', otpByEmail, async (req, res) => {
+router.post('/citas/send-otp', otpByIp, otpByEmail, async (req, res) => {
   const { email, phone } = req.body;
   if (!email || !EMAIL_RE.test(email))
     return res.status(400).json({ error: 'Email inválido' });
@@ -100,7 +104,7 @@ router.post('/citas/verify-otp', verifLimiter, (req, res) => {
 });
 
 /* Generar código WhatsApp (POST /api/citas/gen-code) — el usuario lo envía por WhatsApp */
-router.post('/citas/gen-code', otpByEmail, (req, res) => {
+router.post('/citas/gen-code', otpByIp, otpByEmail, (req, res) => {
   const { email, phone } = req.body;
   if (!email || !EMAIL_RE.test(email))
     return res.status(400).json({ error: 'Email inválido' });
