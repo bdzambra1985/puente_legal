@@ -1,22 +1,37 @@
-const nodemailer = require('nodemailer');
+// Envío por la API HTTPS de Resend (no SMTP): Railway bloquea los puertos
+// SMTP salientes (25/465/587) en planes Free/Trial/Hobby, así que el envío
+// por SMTP se queda colgado ahí. La API por HTTPS usa el puerto 443, que
+// nunca está bloqueado.
+const RESEND_FROM = process.env.EMAIL_FROM || process.env.SMTP_FROM;
 
-function createTransport() {
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+async function sendViaResend({ to, subject, html, attachments }) {
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      from: `Puente Legal <${RESEND_FROM}>`,
+      to: [to],
+      subject,
+      html,
+      ...(attachments && attachments.length ? { attachments } : {})
+    })
   });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || `Resend respondió ${res.status}`);
+  }
 }
 
 async function sendCitaConfirmada(cita) {
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
-    console.log('[email] SMTP no configurado — skipping cita id:', cita.id);
+  if (!process.env.RESEND_API_KEY) {
+    console.log('[email] RESEND_API_KEY no configurada — skipping cita id:', cita.id);
     return;
   }
 
   const esZoom = cita.contacto_tipo === 'zoom';
-  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
 
   const contactoBloque = esZoom
     ? `<div style="background:#eef2ff;border-radius:10px;padding:22px;margin:24px 0;text-align:center">
@@ -66,8 +81,7 @@ async function sendCitaConfirmada(cita) {
 </body>
 </html>`;
 
-  await createTransport().sendMail({
-    from: `"Puente Legal" <${from}>`,
+  await sendViaResend({
     to: cita.email,
     subject: `✅ Cita confirmada — ${cita.fecha} ${cita.hora} | Puente Legal`,
     html
@@ -89,12 +103,11 @@ function escHtml(s) {
 }
 
 async function sendOTP(email, code) {
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
+  if (!process.env.RESEND_API_KEY) {
     // No registrar el código en logs de producción
     if (process.env.NODE_ENV !== 'production') console.log(`[email] OTP para ${email}: ${code}`);
     return;
   }
-  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
   const html = `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -122,8 +135,7 @@ async function sendOTP(email, code) {
   </div>
 </body>
 </html>`;
-  await createTransport().sendMail({
-    from: `"Puente Legal" <${from}>`,
+  await sendViaResend({
     to: email,
     subject: `🔐 Tu código: ${code} — Puente Legal`,
     html
@@ -132,8 +144,8 @@ async function sendOTP(email, code) {
 }
 
 async function sendFacturaEmitida(factura) {
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
-    console.log('[email] SMTP no configurado — skipping factura id:', factura.id);
+  if (!process.env.RESEND_API_KEY) {
+    console.log('[email] RESEND_API_KEY no configurada — skipping factura id:', factura.id);
     return;
   }
   if (!factura.cliente_email) {
@@ -141,7 +153,6 @@ async function sendFacturaEmitida(factura) {
     return;
   }
 
-  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
   let sriData = {};
   try { sriData = JSON.parse(factura.sri_data || '{}'); } catch { /* noop */ }
 
@@ -189,13 +200,12 @@ async function sendFacturaEmitida(factura) {
   if (sriData.xmlAutorizado) {
     attachments.push({
       filename: `${factura.numero_factura}.xml`,
-      content: sriData.xmlAutorizado,
-      contentType: 'application/xml'
+      content: Buffer.from(sriData.xmlAutorizado, 'utf8').toString('base64'),
+      content_type: 'application/xml'
     });
   }
 
-  await createTransport().sendMail({
-    from: `"Puente Legal" <${from}>`,
+  await sendViaResend({
     to: factura.cliente_email,
     subject: `🧾 Factura electrónica N° ${factura.numero_factura} — Puente Legal`,
     html,
@@ -206,8 +216,8 @@ async function sendFacturaEmitida(factura) {
 }
 
 async function sendCorreoAdjunto(cita, titulo, mensaje, file) {
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
-    console.log('[email] SMTP no configurado — skipping correo cita id:', cita.id);
+  if (!process.env.RESEND_API_KEY) {
+    console.log('[email] RESEND_API_KEY no configurada — skipping correo cita id:', cita.id);
     return;
   }
   if (!cita.email) {
@@ -215,7 +225,6 @@ async function sendCorreoAdjunto(cita, titulo, mensaje, file) {
     return;
   }
 
-  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
   const mensajeHtml = escHtml(mensaje).replace(/\n/g, '<br>');
 
   const html = `<!DOCTYPE html>
@@ -239,10 +248,9 @@ async function sendCorreoAdjunto(cita, titulo, mensaje, file) {
 </html>`;
 
   const attachments = [];
-  if (file) attachments.push({ filename: file.originalname, content: file.buffer, contentType: file.mimetype });
+  if (file) attachments.push({ filename: file.originalname, content: file.buffer.toString('base64'), content_type: file.mimetype });
 
-  await createTransport().sendMail({
-    from: `"Puente Legal" <${from}>`,
+  await sendViaResend({
     to: cita.email,
     subject: `${titulo} — Puente Legal`,
     html,
