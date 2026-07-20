@@ -172,6 +172,10 @@ function initDB() {
     db.exec("ALTER TABLE citas ADD COLUMN factura_descripcion TEXT NOT NULL DEFAULT ''");
   if (!citasCols.includes('correo_notaria_enviado_at'))
     db.exec("ALTER TABLE citas ADD COLUMN correo_notaria_enviado_at TEXT NOT NULL DEFAULT ''");
+  if (!citasCols.includes('correo_adjunto_nombre'))
+    db.exec("ALTER TABLE citas ADD COLUMN correo_adjunto_nombre TEXT NOT NULL DEFAULT ''");
+  if (!citasCols.includes('correo_notaria_adjunto_nombre'))
+    db.exec("ALTER TABLE citas ADD COLUMN correo_notaria_adjunto_nombre TEXT NOT NULL DEFAULT ''");
 
   // Migración: teléfono del cliente en la factura (dato informativo, no se envía al SRI)
   const facturasCols = db.prepare('PRAGMA table_info(facturas)').all().map(c => c.name);

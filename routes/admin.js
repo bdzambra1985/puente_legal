@@ -435,8 +435,14 @@ router.post('/citas/:id/enviar-correo', uploadAdjunto.single('adjunto'), async (
 
   try {
     await sendCorreoAdjunto(cita, titulo, mensaje, req.file);
-    db.prepare("UPDATE citas SET correo_enviado_at=datetime('now','localtime') WHERE id=?").run(cita.id);
-    res.json({ ok: true });
+    // Guarda el nombre del adjunto (no el archivo — ya se mandó por correo,
+    // esto es solo un registro de qué se envió). Se pisa en cada envío para
+    // reflejar siempre el último correo mandado, mismo criterio que
+    // correo_enviado_at.
+    const adjuntoNombre = req.file ? req.file.originalname : '';
+    db.prepare("UPDATE citas SET correo_enviado_at=datetime('now','localtime'), correo_adjunto_nombre=? WHERE id=?").run(adjuntoNombre, cita.id);
+    const updated = db.prepare('SELECT correo_enviado_at FROM citas WHERE id=?').get(cita.id);
+    res.json({ ok: true, correo_enviado_at: updated.correo_enviado_at, correo_adjunto_nombre: adjuntoNombre });
   } catch (e) {
     console.error('[email] Error enviando correo con adjunto:', e.message);
     res.status(500).json({ error: 'Error al enviar el correo' });
@@ -463,9 +469,10 @@ router.post('/citas/:id/enviar-correo-notaria', uploadAdjunto.single('adjunto'),
 
   try {
     await sendCorreoNotaria(cita, notariaEmail, titulo, mensaje, req.file);
-    db.prepare("UPDATE citas SET correo_notaria_enviado_at=datetime('now','localtime') WHERE id=?").run(cita.id);
+    const adjuntoNombre = req.file ? req.file.originalname : '';
+    db.prepare("UPDATE citas SET correo_notaria_enviado_at=datetime('now','localtime'), correo_notaria_adjunto_nombre=? WHERE id=?").run(adjuntoNombre, cita.id);
     const updated = db.prepare('SELECT correo_notaria_enviado_at FROM citas WHERE id=?').get(cita.id);
-    res.json({ ok: true, correo_notaria_enviado_at: updated.correo_notaria_enviado_at });
+    res.json({ ok: true, correo_notaria_enviado_at: updated.correo_notaria_enviado_at, correo_notaria_adjunto_nombre: adjuntoNombre });
   } catch (e) {
     console.error('[email] Error enviando correo a notaría:', e.message);
     res.status(500).json({ error: 'Error al enviar el correo' });

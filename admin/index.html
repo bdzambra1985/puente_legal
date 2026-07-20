@@ -1526,11 +1526,15 @@ function renderCitas(){
     }
     if(!accionBtn) accionBtn = '<span style="color:var(--muted);font-size:.78rem">—</span>';
     var correoClienteHtml = c.factura_estado === 'aprobada'
-      ? '<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px" data-action="open-enviar-correo" data-id="'+c.id+'">Enviar correo</button>'+(c.correo_enviado_at ? '<div style="font-size:.68rem;color:var(--muted);margin-top:4px">✓ '+escH(c.correo_enviado_at.substring(0,16))+'</div>' : '')
+      ? '<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px" data-action="open-enviar-correo" data-id="'+c.id+'">Enviar correo</button>'
+        +(c.correo_enviado_at ? '<div style="font-size:.68rem;color:var(--muted);margin-top:4px">✓ '+escH(c.correo_enviado_at.substring(0,16))+'</div>' : '')
+        +(c.correo_adjunto_nombre ? '<div style="font-size:.68rem;color:var(--muted)">📎 '+escH(c.correo_adjunto_nombre)+'</div>' : '')
       : '<span style="color:var(--muted);font-size:.78rem">—</span>';
     // Disponible recién cuando ya se mandó el correo al cliente (correo_enviado_at seteado).
     var correoNotariaHtml = c.correo_enviado_at
-      ? '<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px" data-action="open-enviar-correo-notaria" data-id="'+c.id+'">Correo a notaría</button>'+(c.correo_notaria_enviado_at ? '<div style="font-size:.68rem;color:var(--muted);margin-top:4px">✓ '+escH(c.correo_notaria_enviado_at.substring(0,16))+'</div>' : '')
+      ? '<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px" data-action="open-enviar-correo-notaria" data-id="'+c.id+'">Correo a notaría</button>'
+        +(c.correo_notaria_enviado_at ? '<div style="font-size:.68rem;color:var(--muted);margin-top:4px">✓ '+escH(c.correo_notaria_enviado_at.substring(0,16))+'</div>' : '')
+        +(c.correo_notaria_adjunto_nombre ? '<div style="font-size:.68rem;color:var(--muted)">📎 '+escH(c.correo_notaria_adjunto_nombre)+'</div>' : '')
       : '<span style="color:var(--muted);font-size:.78rem">—</span>';
     var facturaBadge = c.factura_estado
       ? '<span class="'+(FACTURA_ESTADO_BADGE[c.factura_estado]||'badge-pendiente')+'">'+(FACTURA_ESTADO_LABEL[c.factura_estado]||c.factura_estado)+'</span>'
@@ -1893,7 +1897,16 @@ function enviarCorreoSubmit(){
     method: 'POST', credentials:'include', headers: { 'X-CSRF-Token':getCsrfToken() }, body: fd
   }).then(function(r){ return r.json(); }).then(function(d){
     btn.disabled = false; btn.textContent = 'Enviar correo';
-    if(d.ok){ toast('Correo enviado'); closeEnviarCorreo(true); }
+    if(d.ok){
+      toast('Correo enviado');
+      var cita = citasData.find(function(c){ return c.id===enviarCorreoCitaId; });
+      if(cita){
+        cita.correo_enviado_at = d.correo_enviado_at || new Date().toISOString();
+        cita.correo_adjunto_nombre = d.correo_adjunto_nombre || '';
+      }
+      closeEnviarCorreo(true);
+      renderCitas();
+    }
     else toast(d.error || 'Error al enviar', 'error');
   }).catch(function(){
     btn.disabled = false; btn.textContent = 'Enviar correo';
@@ -1948,7 +1961,10 @@ function enviarCorreoNotariaSubmit(){
     if(d.ok){
       toast('Correo enviado a la notaría');
       var cita = citasData.find(function(c){ return c.id===correoNotariaCitaId; });
-      if(cita) cita.correo_notaria_enviado_at = d.correo_notaria_enviado_at || new Date().toISOString();
+      if(cita){
+        cita.correo_notaria_enviado_at = d.correo_notaria_enviado_at || new Date().toISOString();
+        cita.correo_notaria_adjunto_nombre = d.correo_notaria_adjunto_nombre || '';
+      }
       closeCorreoNotaria(true);
       renderCitas();
     }
