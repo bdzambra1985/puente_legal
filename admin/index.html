@@ -369,7 +369,7 @@ a{text-decoration:none;color:inherit}
           </div>
           <div style="overflow-x:auto">
             <table class="table" id="citasTable">
-              <thead><tr><th>#</th><th>Cliente</th><th>Fecha</th><th>Hora</th><th>Medio</th><th>Estado</th><th>Factura</th><th>Correo Cliente</th><th>Correo Notaría</th><th>Registrada</th><th>Acciones</th></tr></thead>
+              <thead><tr><th>#</th><th>Cliente</th><th>Fecha</th><th>Hora</th><th>Medio</th><th>Estado</th><th>Factura</th><th>Cita Cliente</th><th>Correo Cliente</th><th>Correo Notaría</th><th>Acciones</th></tr></thead>
               <tbody id="citasBody"></tbody>
             </table>
           </div>
@@ -1515,14 +1515,16 @@ function renderCitas(){
     var medioHtml = esZoom
       ? 'Zoom'
       : escH(c.contacto_valor);
-    var accionBtn = c.estado === 'confirmada'
+    var citaClienteHtml = c.estado === 'confirmada'
       ? '<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px" data-action="open-resumen" data-id="'+c.id+'">Resumen</button>'
       : '<button class="btn btn-gold" style="font-size:.72rem;padding:5px 12px" data-action="open-confirm-cita" data-id="'+c.id+'">Confirmar</button>';
+    var accionBtn = '';
     if(c.factura_estado === 'pendiente'){
-      accionBtn += '<button class="btn" style="font-size:.72rem;padding:5px 12px;background:#f59e0b;color:#fff;margin-left:4px" data-action="open-comprobar-pago" data-id="'+c.id+'">Comprobar pago</button>';
+      accionBtn += '<button class="btn" style="font-size:.72rem;padding:5px 12px;background:#f59e0b;color:#fff" data-action="open-comprobar-pago" data-id="'+c.id+'">Comprobar pago</button>';
     } else if(c.factura_estado === 'error' && c.factura_id){
-      accionBtn += '<button class="btn btn-danger" style="font-size:.72rem;padding:5px 12px;margin-left:4px" data-action="reintentar-factura-cita" data-id="'+c.factura_id+'">Reintentar factura</button>';
+      accionBtn += '<button class="btn btn-danger" style="font-size:.72rem;padding:5px 12px" data-action="reintentar-factura-cita" data-id="'+c.factura_id+'">Reintentar factura</button>';
     }
+    if(!accionBtn) accionBtn = '<span style="color:var(--muted);font-size:.78rem">—</span>';
     var correoClienteHtml = c.factura_estado === 'aprobada'
       ? '<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px" data-action="open-enviar-correo" data-id="'+c.id+'">Enviar correo</button>'+(c.correo_enviado_at ? '<div style="font-size:.68rem;color:var(--muted);margin-top:4px">✓ '+escH(c.correo_enviado_at.substring(0,16))+'</div>' : '')
       : '<span style="color:var(--muted);font-size:.78rem">—</span>';
@@ -1535,16 +1537,16 @@ function renderCitas(){
       : '<span style="color:var(--muted);font-size:.78rem">—</span>';
     var tr = document.createElement('tr');
     tr.innerHTML = '<td data-label="N° cita" style="font-size:.8rem;color:var(--muted)">#'+c.id+'</td>'
-      +'<td data-label="Cliente" class="td-full"><strong style="font-size:.83rem">'+escH(c.nombre)+'</strong><br><span style="font-size:.71rem;color:var(--muted)">'+escH(c.email)+'</span></td>'
+      +'<td data-label="Cliente" class="td-full"><strong style="font-size:.83rem">'+escH(c.nombre)+'</strong><br><span style="font-size:.71rem;color:var(--muted)">'+escH(c.email)+'</span><br><span style="font-size:.68rem;color:var(--muted)">Registrada: '+escH((c.created_at||'').substring(0,16))+'</span></td>'
       +'<td data-label="Fecha" style="font-size:.82rem;font-weight:600;white-space:nowrap">'+escH(c.fecha)+'</td>'
       +'<td data-label="Hora" style="font-size:.82rem;font-weight:600">'+escH(c.hora)+'</td>'
       +'<td data-label="Medio" style="font-size:.78rem">'+medioHtml+'</td>'
       +'<td data-label="Estado"><span class="'+badgeClass+'">'+escH(c.estado)+'</span></td>'
       +'<td data-label="Factura">'+facturaBadge+'</td>'
+      +'<td data-label="Cita Cliente">'+citaClienteHtml+'</td>'
       +'<td data-label="Correo Cliente">'+correoClienteHtml+'</td>'
       +'<td data-label="Correo Notaría">'+correoNotariaHtml+'</td>'
-      +'<td data-label="Registrada" style="font-size:.71rem;color:var(--muted);white-space:nowrap">'+escH((c.created_at||'').substring(0,16))+'</td>'
-      +'<td data-label="" class="td-full">'+accionBtn+'</td>';
+      +'<td data-label="Acciones" class="td-full">'+accionBtn+'</td>';
     tbody.appendChild(tr);
   });
 }
@@ -1854,10 +1856,17 @@ function renderSeguimiento(){
 
 var enviarCorreoCitaId = null;
 
+// Recuerda lo último escrito en los modales de correo (por cita), para no
+// tener que volver a tipear si se reabre el modal — se guarda en memoria
+// (dura mientras el panel esté cargado), independiente de si se llegó a
+// enviar o no. Ver bindDraftField() más abajo.
+var correoDrafts = {};
+
 function openEnviarCorreo(id){
   enviarCorreoCitaId = id;
-  document.getElementById('correoTitulo').value = '';
-  document.getElementById('correoMensaje').value = '';
+  var draft = correoDrafts['cliente-'+id] || {};
+  document.getElementById('correoTitulo').value = draft.titulo || '';
+  document.getElementById('correoMensaje').value = draft.mensaje || '';
   document.getElementById('correoAdjunto').value = '';
   document.getElementById('correoAdjuntoNombre').textContent = '';
   document.getElementById('enviarCorreoOverlay').classList.add('open');
@@ -1903,9 +1912,10 @@ function openEnviarCorreoNotaria(id){
     '<strong>Datos del cliente</strong><br>'
     +escH(cita.nombre)+'<br>'
     +'Cédula/RUC: '+escH(cita.cliente_doc||'—');
-  document.getElementById('correoNotariaEmail').value = '';
-  document.getElementById('correoNotariaTitulo').value = '';
-  document.getElementById('correoNotariaMensaje').value = '';
+  var draft = correoDrafts['notaria-'+id] || {};
+  document.getElementById('correoNotariaEmail').value = draft.email || '';
+  document.getElementById('correoNotariaTitulo').value = draft.titulo || '';
+  document.getElementById('correoNotariaMensaje').value = draft.mensaje || '';
   document.getElementById('correoNotariaAdjunto').value = '';
   document.getElementById('correoNotariaAdjuntoNombre').textContent = '';
   document.getElementById('correoNotariaOverlay').classList.add('open');
@@ -2064,6 +2074,26 @@ var correoNotariaAdjuntoEl = document.getElementById('correoNotariaAdjunto');
 if(correoNotariaAdjuntoEl) correoNotariaAdjuntoEl.addEventListener('change', function(){
   document.getElementById('correoNotariaAdjuntoNombre').textContent = this.files[0] ? this.files[0].name : '';
 });
+
+// Guarda en correoDrafts lo que se va tipeando en los campos de los modales
+// de correo, para pre-cargarlo la próxima vez que se abran (ver
+// openEnviarCorreo/openEnviarCorreoNotaria).
+function bindDraftField(elId, tipo, campo){
+  var el = document.getElementById(elId);
+  if(!el) return;
+  el.addEventListener('input', function(){
+    var id = tipo === 'cliente' ? enviarCorreoCitaId : correoNotariaCitaId;
+    if(!id) return;
+    var key = tipo+'-'+id;
+    correoDrafts[key] = correoDrafts[key] || {};
+    correoDrafts[key][campo] = this.value;
+  });
+}
+bindDraftField('correoTitulo', 'cliente', 'titulo');
+bindDraftField('correoMensaje', 'cliente', 'mensaje');
+bindDraftField('correoNotariaEmail', 'notaria', 'email');
+bindDraftField('correoNotariaTitulo', 'notaria', 'titulo');
+bindDraftField('correoNotariaMensaje', 'notaria', 'mensaje');
 </script>
 </body>
 </html>
