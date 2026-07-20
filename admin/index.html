@@ -356,6 +356,7 @@ a{text-decoration:none;color:inherit}
           </div>
           <div class="card-body" style="padding-bottom:0">
             <div class="citas-filters">
+              <input type="text" class="pipe-search" id="citasSearch" placeholder="Buscar por nombre o correo...">
               <button class="filter-btn active" data-action="filter-citas" data-filtro="todas">Todas</button>
               <button class="filter-btn" data-action="filter-citas" data-filtro="pendiente">Pendientes</button>
               <button class="filter-btn" data-action="filter-citas" data-filtro="confirmada">Confirmadas</button>
@@ -368,7 +369,7 @@ a{text-decoration:none;color:inherit}
           </div>
           <div style="overflow-x:auto">
             <table class="table" id="citasTable">
-              <thead><tr><th>#</th><th>Cliente</th><th>Fecha</th><th>Hora</th><th>Medio</th><th>Estado</th><th>Factura</th><th>Registrada</th><th>Acciones</th></tr></thead>
+              <thead><tr><th>#</th><th>Cliente</th><th>Fecha</th><th>Hora</th><th>Medio</th><th>Estado</th><th>Factura</th><th>Correo Cliente</th><th>Correo Notaría</th><th>Registrada</th><th>Acciones</th></tr></thead>
               <tbody id="citasBody"></tbody>
             </table>
           </div>
@@ -464,6 +465,11 @@ a{text-decoration:none;color:inherit}
           <div class="card-header">
             <div><h2>Facturas emitidas</h2><p>Historial de comprobantes enviados al SRI</p></div>
             <button class="btn btn-gold" data-action="open-factura-modal"><svg viewBox="0 0 24 24"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Nueva factura</button>
+          </div>
+          <div class="card-body" style="padding-bottom:0">
+            <div class="citas-filters">
+              <input type="text" class="pipe-search" id="facturasSearch" placeholder="Buscar por N° factura, cliente, cédula/RUC o fecha...">
+            </div>
           </div>
           <div style="overflow-x:auto">
             <table class="table" id="facturasTable">
@@ -766,6 +772,33 @@ a{text-decoration:none;color:inherit}
     <div class="modal-footer">
       <button class="btn btn-ghost" data-action="close-modal" data-close-fn="closeEnviarCorreo" data-force="1">Cancelar</button>
       <button class="btn btn-gold" id="correoEnviarBtn" data-action="enviar-correo-submit">Enviar correo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CORREO A NOTARÍA -->
+<div class="overlay" id="correoNotariaOverlay" data-action="close-modal" data-close-fn="closeCorreoNotaria">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <h3>Correo a Notaría</h3>
+      <button class="modal-close" data-action="close-modal" data-close-fn="closeCorreoNotaria" data-force="1"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div id="correoNotariaCitaInfo" style="background:var(--off);border-radius:8px;padding:14px;margin-bottom:18px;font-size:.82rem;line-height:1.7;color:var(--navy)"></div>
+      <div class="form-grid">
+        <div class="fg"><label>Email de la notaría</label><input type="email" id="correoNotariaEmail" placeholder="notaria@ejemplo.com"></div>
+        <div class="fg"><label>Título</label><input type="text" id="correoNotariaTitulo" maxlength="200" placeholder="Ej: Documentos para trámite notarial"></div>
+        <div class="fg"><label>Mensaje</label><textarea id="correoNotariaMensaje" maxlength="9999" style="min-height:120px" placeholder="Instrucciones adicionales para la notaría..."></textarea></div>
+        <div class="fg">
+          <label>Adjunto (opcional)</label>
+          <input type="file" id="correoNotariaAdjunto">
+          <div id="correoNotariaAdjuntoNombre" style="font-size:.75rem;color:var(--muted);margin-top:4px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-action="close-modal" data-close-fn="closeCorreoNotaria" data-force="1">Cancelar</button>
+      <button class="btn btn-gold" id="correoNotariaEnviarBtn" data-action="enviar-correo-notaria-submit">Enviar a notaría</button>
     </div>
   </div>
 </div>
@@ -1234,6 +1267,7 @@ function escAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
 /*  FACTURACIÓN (SRI)                                 */
 /* ────────────────────────────────────────────────── */
 var facturasData = [];
+var facturasSearchTerm = '';
 var facturaDetalleId = null;
 var SRI_ESTADO_BADGE = { autorizada:'badge-facturado', error:'badge-inactive' };
 var SRI_ESTADO_LABEL = { autorizada:'Facturado', error:'Error', procesando:'Procesando', pendiente:'Pendiente' };
@@ -1310,12 +1344,22 @@ function loadFacturas(){
 function renderFacturas(){
   var tbody = document.getElementById('facturasBody');
   if(!tbody) return;
-  if(!facturasData.length){
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px">No hay facturas emitidas</td></tr>';
+  var lista = facturasData;
+  if(facturasSearchTerm){
+    var q = facturasSearchTerm.toLowerCase();
+    lista = lista.filter(function(f){
+      return (f.numero_factura||'').toLowerCase().indexOf(q)>=0
+        || (f.cliente_nombre||'').toLowerCase().indexOf(q)>=0
+        || (f.cliente_doc||'').toLowerCase().indexOf(q)>=0
+        || (f.fecha_emision||'').toLowerCase().indexOf(q)>=0;
+    });
+  }
+  if(!lista.length){
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px">'+(facturasData.length?'Sin resultados para la búsqueda':'No hay facturas emitidas')+'</td></tr>';
     return;
   }
   tbody.innerHTML = '';
-  facturasData.forEach(function(f){
+  lista.forEach(function(f){
     var badgeClass = SRI_ESTADO_BADGE[f.sri_estado] || 'badge-pendiente';
     var acciones = '<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px" data-action="view-factura-detalle" data-id="'+f.id+'">Ver</button>';
     if(f.sri_estado === 'error'){
@@ -1416,6 +1460,7 @@ var citasData = [];
 var citasFiltro = 'todas';
 var citasSortKey = 'fecha';
 var citasSortDir = 'asc';
+var citasSearchTerm = '';
 var FACTURA_ESTADO_LABEL = { pendiente:'Comprobante pendiente', esperando_sri:'Esperando SRI', aprobada:'Aprobada', rechazada:'Rechazada', error:'Error' };
 var FACTURA_ESTADO_BADGE = { pendiente:'badge-pendiente', esperando_sri:'badge-pendiente', aprobada:'badge-facturado', rechazada:'badge-inactive', error:'badge-inactive' };
 
@@ -1448,13 +1493,19 @@ function renderCitas(){
   var tbody = document.getElementById('citasBody');
   if(!tbody) return;
   var lista = citasFiltro === 'todas' ? citasData.slice() : citasData.filter(function(c){ return c.estado === citasFiltro; });
+  if(citasSearchTerm){
+    var q = citasSearchTerm.toLowerCase();
+    lista = lista.filter(function(c){
+      return (c.nombre||'').toLowerCase().indexOf(q)>=0 || (c.email||'').toLowerCase().indexOf(q)>=0;
+    });
+  }
   lista.sort(function(a,b){
     var va = (a[citasSortKey]||''), vb = (b[citasSortKey]||'');
     if(citasSortKey==='hora'){ va=a.fecha+' '+a.hora; vb=b.fecha+' '+b.hora; }
     return citasSortDir==='asc' ? va.localeCompare(vb) : vb.localeCompare(va);
   });
   if(!lista.length){
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:32px">No hay citas</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:32px">'+(citasData.length?'Sin resultados para la búsqueda':'No hay citas')+'</td></tr>';
     return;
   }
   tbody.innerHTML = '';
@@ -1471,9 +1522,14 @@ function renderCitas(){
       accionBtn += '<button class="btn" style="font-size:.72rem;padding:5px 12px;background:#f59e0b;color:#fff;margin-left:4px" data-action="open-comprobar-pago" data-id="'+c.id+'">Comprobar pago</button>';
     } else if(c.factura_estado === 'error' && c.factura_id){
       accionBtn += '<button class="btn btn-danger" style="font-size:.72rem;padding:5px 12px;margin-left:4px" data-action="reintentar-factura-cita" data-id="'+c.factura_id+'">Reintentar factura</button>';
-    } else if(c.factura_estado === 'aprobada'){
-      accionBtn += '<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px;margin-left:4px" data-action="open-enviar-correo" data-id="'+c.id+'">Enviar correo</button>';
     }
+    var correoClienteHtml = c.factura_estado === 'aprobada'
+      ? '<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px" data-action="open-enviar-correo" data-id="'+c.id+'">Enviar correo</button>'+(c.correo_enviado_at ? '<div style="font-size:.68rem;color:var(--muted);margin-top:4px">✓ '+escH(c.correo_enviado_at.substring(0,16))+'</div>' : '')
+      : '<span style="color:var(--muted);font-size:.78rem">—</span>';
+    // Disponible recién cuando ya se mandó el correo al cliente (correo_enviado_at seteado).
+    var correoNotariaHtml = c.correo_enviado_at
+      ? '<button class="btn btn-ghost" style="font-size:.72rem;padding:5px 12px" data-action="open-enviar-correo-notaria" data-id="'+c.id+'">Correo a notaría</button>'+(c.correo_notaria_enviado_at ? '<div style="font-size:.68rem;color:var(--muted);margin-top:4px">✓ '+escH(c.correo_notaria_enviado_at.substring(0,16))+'</div>' : '')
+      : '<span style="color:var(--muted);font-size:.78rem">—</span>';
     var facturaBadge = c.factura_estado
       ? '<span class="'+(FACTURA_ESTADO_BADGE[c.factura_estado]||'badge-pendiente')+'">'+(FACTURA_ESTADO_LABEL[c.factura_estado]||c.factura_estado)+'</span>'
       : '<span style="color:var(--muted);font-size:.78rem">—</span>';
@@ -1485,6 +1541,8 @@ function renderCitas(){
       +'<td data-label="Medio" style="font-size:.78rem">'+medioHtml+'</td>'
       +'<td data-label="Estado"><span class="'+badgeClass+'">'+escH(c.estado)+'</span></td>'
       +'<td data-label="Factura">'+facturaBadge+'</td>'
+      +'<td data-label="Correo Cliente">'+correoClienteHtml+'</td>'
+      +'<td data-label="Correo Notaría">'+correoNotariaHtml+'</td>'
       +'<td data-label="Registrada" style="font-size:.71rem;color:var(--muted);white-space:nowrap">'+escH((c.created_at||'').substring(0,16))+'</td>'
       +'<td data-label="" class="td-full">'+accionBtn+'</td>';
     tbody.appendChild(tr);
@@ -1834,6 +1892,63 @@ function enviarCorreoSubmit(){
   });
 }
 
+var correoNotariaCitaId = null;
+var EMAIL_RE_ADMIN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function openEnviarCorreoNotaria(id){
+  var cita = citasData.find(function(c){ return c.id === id; });
+  if(!cita) return;
+  correoNotariaCitaId = id;
+  document.getElementById('correoNotariaCitaInfo').innerHTML =
+    '<strong>Datos del cliente</strong><br>'
+    +escH(cita.nombre)+'<br>'
+    +'Cédula/RUC: '+escH(cita.cliente_doc||'—');
+  document.getElementById('correoNotariaEmail').value = '';
+  document.getElementById('correoNotariaTitulo').value = '';
+  document.getElementById('correoNotariaMensaje').value = '';
+  document.getElementById('correoNotariaAdjunto').value = '';
+  document.getElementById('correoNotariaAdjuntoNombre').textContent = '';
+  document.getElementById('correoNotariaOverlay').classList.add('open');
+}
+
+function closeCorreoNotaria(force){
+  if(force===true || (force&&force.target===document.getElementById('correoNotariaOverlay')))
+    document.getElementById('correoNotariaOverlay').classList.remove('open');
+}
+
+function enviarCorreoNotariaSubmit(){
+  if(!correoNotariaCitaId) return;
+  var email = document.getElementById('correoNotariaEmail').value.trim();
+  var titulo = document.getElementById('correoNotariaTitulo').value.trim();
+  var mensaje = document.getElementById('correoNotariaMensaje').value.trim();
+  if(!email || !EMAIL_RE_ADMIN.test(email)){ toast('Ingresa un email de notaría válido', 'error'); return; }
+  if(!titulo || !mensaje){ toast('Completa título y mensaje', 'error'); return; }
+  var fd = new FormData();
+  fd.append('notaria_email', email);
+  fd.append('titulo', titulo);
+  fd.append('mensaje', mensaje);
+  var file = document.getElementById('correoNotariaAdjunto').files[0];
+  if(file) fd.append('adjunto', file);
+  var btn = document.getElementById('correoNotariaEnviarBtn');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  fetch('/api/admin/citas/'+correoNotariaCitaId+'/enviar-correo-notaria', {
+    method: 'POST', credentials:'include', headers: { 'X-CSRF-Token':getCsrfToken() }, body: fd
+  }).then(function(r){ return r.json(); }).then(function(d){
+    btn.disabled = false; btn.textContent = 'Enviar a notaría';
+    if(d.ok){
+      toast('Correo enviado a la notaría');
+      var cita = citasData.find(function(c){ return c.id===correoNotariaCitaId; });
+      if(cita) cita.correo_notaria_enviado_at = d.correo_notaria_enviado_at || new Date().toISOString();
+      closeCorreoNotaria(true);
+      renderCitas();
+    }
+    else toast(d.error || 'Error al enviar', 'error');
+  }).catch(function(){
+    btn.disabled = false; btn.textContent = 'Enviar a notaría';
+    toast('Error de conexión', 'error');
+  });
+}
+
 function abrirWaConfirmacion(){
   var cita = citasData.find(function(c){ return c.id === confirmCitaId; });
   if(!cita) return;
@@ -1874,7 +1989,7 @@ function loadOtpPending(){
 var CLOSE_FNS = {
   closeTestModal:closeTestModal, closeFacturaModal:closeFacturaModal, closeFacturaDetalle:closeFacturaDetalle,
   closeResumen:closeResumen, closeComprobarPago:closeComprobarPago, closeEnviarCorreo:closeEnviarCorreo,
-  closeConfirmCita:closeConfirmCita
+  closeConfirmCita:closeConfirmCita, closeCorreoNotaria:closeCorreoNotaria
 };
 
 var CLICK_ACTIONS = {
@@ -1917,7 +2032,9 @@ var CLICK_ACTIONS = {
   'open-comprobar-pago':    function(el){ openComprobarPago(Number(el.dataset.id)); },
   'reintentar-factura-cita':function(el){ reintentarFacturaCita(Number(el.dataset.id)); },
   'open-enviar-correo':     function(el){ openEnviarCorreo(Number(el.dataset.id)); },
-  'enviar-correo-submit':   function(){ enviarCorreoSubmit(); }
+  'enviar-correo-submit':   function(){ enviarCorreoSubmit(); },
+  'open-enviar-correo-notaria': function(el){ openEnviarCorreoNotaria(Number(el.dataset.id)); },
+  'enviar-correo-notaria-submit': function(){ enviarCorreoNotariaSubmit(); }
 };
 
 document.addEventListener('click', function(e){
@@ -1932,9 +2049,20 @@ document.addEventListener('click', function(e){
 var pipeSearchEl = document.getElementById('pipeSearch');
 if(pipeSearchEl) pipeSearchEl.addEventListener('input', renderSeguimiento);
 
+var citasSearchEl = document.getElementById('citasSearch');
+if(citasSearchEl) citasSearchEl.addEventListener('input', function(){ citasSearchTerm = this.value; renderCitas(); });
+
+var facturasSearchEl = document.getElementById('facturasSearch');
+if(facturasSearchEl) facturasSearchEl.addEventListener('input', function(){ facturasSearchTerm = this.value; renderFacturas(); });
+
 var correoAdjuntoEl = document.getElementById('correoAdjunto');
 if(correoAdjuntoEl) correoAdjuntoEl.addEventListener('change', function(){
   document.getElementById('correoAdjuntoNombre').textContent = this.files[0] ? this.files[0].name : '';
+});
+
+var correoNotariaAdjuntoEl = document.getElementById('correoNotariaAdjunto');
+if(correoNotariaAdjuntoEl) correoNotariaAdjuntoEl.addEventListener('change', function(){
+  document.getElementById('correoNotariaAdjuntoNombre').textContent = this.files[0] ? this.files[0].name : '';
 });
 </script>
 </body>

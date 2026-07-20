@@ -260,4 +260,56 @@ async function sendCorreoAdjunto(cita, titulo, mensaje, file) {
   console.log(`[email] Correo con adjunto enviado a ${cita.email} (cita #${cita.id})`);
 }
 
-module.exports = { sendCitaConfirmada, sendOTP, sendFacturaEmitida, sendCorreoAdjunto };
+// A diferencia de sendCorreoAdjunto (va al cliente), este va a la notaría —
+// el email de destino no está guardado en la cita, lo escribe el admin cada
+// vez. Los datos del cliente (nombre/cédula-RUC) se arman automáticamente
+// en el cuerpo, el admin solo agrega el mensaje libre.
+async function sendCorreoNotaria(cita, notariaEmail, titulo, mensaje, file) {
+  if (!process.env.RESEND_API_KEY) {
+    console.log('[email] RESEND_API_KEY no configurada — skipping correo notaría cita id:', cita.id);
+    return;
+  }
+
+  const mensajeHtml = escHtml(mensaje).replace(/\n/g, '<br>');
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:32px 16px;background:#f8f7f4;font-family:'Helvetica Neue',Arial,sans-serif">
+  <div style="max-width:520px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08)">
+    <div style="background:#0f1e38;padding:32px 40px;text-align:center">
+      <div style="font-size:1.3rem;font-weight:800;color:#C9A227;letter-spacing:2px">PUENTE LEGAL</div>
+      <div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-top:4px;letter-spacing:1px">INTERNACIONAL EC</div>
+    </div>
+    <div style="padding:36px 40px">
+      <h1 style="font-size:1.2rem;color:#0f1e38;margin:0 0 18px;font-weight:700">${escHtml(titulo)}</h1>
+      <div style="background:#f8f7f4;border-radius:10px;padding:16px 18px;margin-bottom:20px">
+        <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;font-weight:700;margin-bottom:8px">Datos del cliente</div>
+        <div style="font-size:.85rem;color:#0f1e38;line-height:1.6">
+          <strong>${escHtml(cita.nombre)}</strong><br>
+          Cédula/RUC: ${escHtml(cita.cliente_doc || '—')}
+        </div>
+      </div>
+      <p style="color:#0f1e38;font-size:.88rem;line-height:1.7;margin:0">${mensajeHtml}</p>
+    </div>
+    <div style="background:#f8f7f4;padding:18px 40px;text-align:center;border-top:1px solid #e2e8f0">
+      <div style="font-size:.7rem;color:#94a3b8">Puente Legal Internacional EC · Ecuador · Nacional e Internacional</div>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const attachments = [];
+  if (file) attachments.push({ filename: file.originalname, content: file.buffer.toString('base64'), content_type: file.mimetype });
+
+  await sendViaResend({
+    to: notariaEmail,
+    subject: `${titulo} — Puente Legal`,
+    html,
+    attachments
+  });
+
+  console.log(`[email] Correo a notaría enviado a ${notariaEmail} (cita #${cita.id})`);
+}
+
+module.exports = { sendCitaConfirmada, sendOTP, sendFacturaEmitida, sendCorreoAdjunto, sendCorreoNotaria };

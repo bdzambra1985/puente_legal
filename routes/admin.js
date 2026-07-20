@@ -5,7 +5,7 @@ const multer = require('multer');
 const { getDB } = require('../database');
 const auth = require('../middleware/auth');
 const csrfCheck = require('../middleware/csrf');
-const { sendCitaConfirmada, sendFacturaEmitida, sendCorreoAdjunto } = require('../utils/email');
+const { sendCitaConfirmada, sendFacturaEmitida, sendCorreoAdjunto, sendCorreoNotaria } = require('../utils/email');
 const { emitirFactura, getSRIConfig, getP12Path } = require('../sri/index');
 require('../utils/upload'); // asegura que el SDK de Cloudinary quede configurado
 const cloudinary = require('cloudinary').v2;
@@ -439,6 +439,35 @@ router.post('/citas/:id/enviar-correo', uploadAdjunto.single('adjunto'), async (
     res.json({ ok: true });
   } catch (e) {
     console.error('[email] Error enviando correo con adjunto:', e.message);
+    res.status(500).json({ error: 'Error al enviar el correo' });
+  }
+});
+
+// Envía un correo a la notaría (destinatario libre, lo escribe el admin cada
+// vez — no se guarda en la cita) con los datos del cliente ya armados en el
+// cuerpo + un mensaje libre y adjunto opcional. Solo tiene sentido después de
+// haberle avisado al cliente (correo_enviado_at seteado); se exige también
+// del lado del servidor, no solo ocultando el botón en el panel.
+router.post('/citas/:id/enviar-correo-notaria', uploadAdjunto.single('adjunto'), async (req, res) => {
+  const db = getDB();
+  const cita = db.prepare('SELECT * FROM citas WHERE id=?').get(req.params.id);
+  if (!cita) return res.status(404).json({ error: 'NOT_FOUND' });
+  if (!cita.correo_enviado_at)
+    return res.status(403).json({ error: 'Primero hay que enviarle el correo al cliente' });
+
+  const notariaEmail = String(req.body.notaria_email || '').trim();
+  const titulo  = String(req.body.titulo || '').trim().slice(0, 200);
+  const mensaje = String(req.body.mensaje || '').trim().slice(0, 9999);
+  if (!notariaEmail || !EMAIL_RE.test(notariaEmail)) return res.status(400).json({ error: 'Email de notaría inválido' });
+  if (!titulo || !mensaje) return res.status(400).json({ error: 'Falta título o mensaje' });
+
+  try {
+    await sendCorreoNotaria(cita, notariaEmail, titulo, mensaje, req.file);
+    db.prepare("UPDATE citas SET correo_notaria_enviado_at=datetime('now','localtime') WHERE id=?").run(cita.id);
+    const updated = db.prepare('SELECT correo_notaria_enviado_at FROM citas WHERE id=?').get(cita.id);
+    res.json({ ok: true, correo_notaria_enviado_at: updated.correo_notaria_enviado_at });
+  } catch (e) {
+    console.error('[email] Error enviando correo a notaría:', e.message);
     res.status(500).json({ error: 'Error al enviar el correo' });
   }
 });
