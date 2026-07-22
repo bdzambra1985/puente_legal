@@ -426,6 +426,9 @@ footer{background:var(--navy);padding:72px 32px 36px}
 .apt-resend-cd{font-size:.73rem;color:var(--muted)}
 .apt-resend-btn{background:none;border:none;color:var(--navy);font-size:.73rem;font-weight:700;cursor:pointer;text-decoration:underline;padding:0;font-family:'Inter',sans-serif}
 .apt-verif-hint{font-size:.74rem;color:var(--muted);margin-bottom:12px;line-height:1.6}
+.apt-email-status{font-size:.78rem;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.apt-email-status.ok{color:#16a34a}
+.apt-email-status.bad{color:#ef4444}
 .apt-wa-sent{font-size:.8rem;font-weight:600;color:#16a34a;margin-top:10px;display:flex;align-items:center;gap:6px}
 .apt-wa-code-box{font-size:2.2rem;font-weight:800;letter-spacing:10px;font-family:'Courier New',monospace;color:var(--navy);background:var(--off);border-radius:10px;padding:18px 20px;text-align:center;margin-bottom:14px;border:2px solid var(--gold)}
 /* ¡YA! tengo cita */
@@ -984,6 +987,7 @@ function aptLaunchOtp(){
         document.getElementById('aptVerifEmail').textContent=aptData.email;
         document.getElementById('aptOtpErr').style.display='none';
         document.getElementById('aptBounceErr').style.display='none';
+        aptSetEmailStatus(true);
         aptInitOtpInputs();
         aptStartResendTimer(60);
         aptStartBouncePoll();
@@ -1015,9 +1019,18 @@ function aptResendOtp(){
     aptInitOtpInputs();
     aptStartResendTimer(60);
     document.getElementById('aptBounceErr').style.display='none';
+    aptSetEmailStatus(true);
     aptStartBouncePoll();
     setTimeout(function(){ document.querySelector('.apt-otp-d').focus(); },50);
   }).catch(function(){ btn.style.display='inline'; });
+}
+
+function aptSetEmailStatus(ok){
+  var el=document.getElementById('aptEmailStatus');
+  el.classList.toggle('ok',ok);
+  el.classList.toggle('bad',!ok);
+  document.getElementById('aptEmailStatusIcon').innerHTML = ok ? '&#10003;' : '&#10007;';
+  document.getElementById('aptEmailStatusTxt').textContent = ok ? 'Correo enviado' : 'Correo no válido';
 }
 
 // Mientras el cliente espera el código por correo, consulta cada pocos
@@ -1041,6 +1054,7 @@ function aptShowBounceError(){
   if(aptResendTimer) clearInterval(aptResendTimer);
   document.getElementById('aptResendCd').textContent='';
   document.getElementById('aptResendBtn').style.display='none';
+  aptSetEmailStatus(false);
   document.getElementById('aptBounceErr').style.display='block';
 }
 function aptBounceFix(){
@@ -1591,6 +1605,10 @@ document.addEventListener('DOMContentLoaded', function(){
               </div>
             </div>
             <div class="apt-verif-block">
+              <div class="apt-email-status ok" id="aptEmailStatus">
+                <span id="aptEmailStatusIcon">&#10003;</span>
+                <span id="aptEmailStatusTxt">Correo enviado</span>
+              </div>
               <div class="apt-otp-row" id="aptOtpRow">
                 <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code">
                 <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
