@@ -19,10 +19,9 @@ async function sendViaResend({ to, subject, html, attachments }) {
       ...(attachments && attachments.length ? { attachments } : {})
     })
   });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.message || `Resend respondió ${res.status}`);
-  }
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.message || `Resend respondió ${res.status}`);
+  return body; // { id: '...' } — el id se usa para correlacionar rebotes (webhook)
 }
 
 async function sendCitaConfirmada(cita) {
@@ -135,12 +134,13 @@ async function sendOTP(email, code) {
   </div>
 </body>
 </html>`;
-  await sendViaResend({
+  const result = await sendViaResend({
     to: email,
     subject: `🔐 Tu código: ${code} — Puente Legal`,
     html
   });
   console.log(`[email] OTP enviado a ${email}`);
+  return result && result.id;
 }
 
 async function sendFacturaEmitida(factura) {

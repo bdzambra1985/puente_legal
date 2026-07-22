@@ -860,6 +860,7 @@ var SLOTS = ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00'];
 var aptOtpVerified = false;
 var aptWaSent = false;
 var aptResendTimer = null;
+var aptBounceTimer = null;
 
 function openApt(){
   document.getElementById('aptOverlay').classList.add('open');
@@ -914,6 +915,8 @@ function aptSelectTipo(tipo){
 function closeApt(){
   document.getElementById('aptOverlay').classList.remove('open');
   document.body.style.overflow='';
+  if(aptResendTimer) clearInterval(aptResendTimer);
+  aptStopBouncePoll();
 }
 function aptBgClose(e){ if(e.target===document.getElementById('aptOverlay')) closeApt(); }
 
@@ -980,8 +983,10 @@ function aptLaunchOtp(){
         document.getElementById('aptVerifModoWa').style.display='none';
         document.getElementById('aptVerifEmail').textContent=aptData.email;
         document.getElementById('aptOtpErr').style.display='none';
+        document.getElementById('aptBounceErr').style.display='none';
         aptInitOtpInputs();
         aptStartResendTimer(60);
+        aptStartBouncePoll();
         setTimeout(function(){ document.querySelector('.apt-otp-d').focus(); },100);
       }
     } else { aptShowAlert('Error al iniciar verificación. Intenta de nuevo.'); }
@@ -1009,8 +1014,44 @@ function aptResendOtp(){
   }).then(function(r){ return r.json(); }).then(function(){
     aptInitOtpInputs();
     aptStartResendTimer(60);
+    document.getElementById('aptBounceErr').style.display='none';
+    aptStartBouncePoll();
     setTimeout(function(){ document.querySelector('.apt-otp-d').focus(); },50);
   }).catch(function(){ btn.style.display='inline'; });
+}
+
+// Mientras el cliente espera el código por correo, consulta cada pocos
+// segundos si ese correo rebotó (no existe / está mal escrito) para
+// avisarle en vivo, sin que tenga que intentar verificar un código que
+// nunca le va a llegar.
+function aptStartBouncePoll(){
+  aptStopBouncePoll();
+  aptBounceTimer=setInterval(function(){
+    fetch('/api/citas/otp-status?email='+encodeURIComponent(aptData.email))
+      .then(function(r){ return r.json(); })
+      .then(function(d){ if(d.bounced) aptShowBounceError(); })
+      .catch(function(){});
+  },3000);
+}
+function aptStopBouncePoll(){
+  if(aptBounceTimer){ clearInterval(aptBounceTimer); aptBounceTimer=null; }
+}
+function aptShowBounceError(){
+  aptStopBouncePoll();
+  if(aptResendTimer) clearInterval(aptResendTimer);
+  document.getElementById('aptResendCd').textContent='';
+  document.getElementById('aptResendBtn').style.display='none';
+  document.getElementById('aptBounceErr').style.display='block';
+}
+function aptBounceFix(){
+  aptStopBouncePoll();
+  if(aptResendTimer) clearInterval(aptResendTimer);
+  document.getElementById('aptBounceErr').style.display='none';
+  aptShowMainForm();
+  var fgE=document.getElementById('aptFgEmail'), emailInput=document.getElementById('aptEmail');
+  fgE.classList.add('has-error');
+  emailInput.value='';
+  emailInput.focus();
 }
 
 function aptInitOtpWaInputs(){
@@ -1055,6 +1096,7 @@ function aptVerifSubmit(){
     btn.disabled=false; btn.textContent='Verificar y continuar →';
     if(res.b.ok){
       if(aptResendTimer) clearInterval(aptResendTimer);
+      aptStopBouncePoll();
       aptOtpVerified=true;
       aptData.verifToken=res.b.verifToken||'';
       aptShowMainForm();
@@ -1074,6 +1116,7 @@ function aptShowVerifAlert(msg){
 
 function aptCancelVerif(){
   if(aptResendTimer) clearInterval(aptResendTimer);
+  aptStopBouncePoll();
   aptShowMainForm();
 }
 
@@ -1398,6 +1441,7 @@ var CLICK_ACTIONS = {
   'apt-resend-otp':       function(){ aptResendOtp(); },
   'apt-send-wa-verif':    function(){ aptSendWaVerif(); },
   'apt-verif-submit':     function(){ aptVerifSubmit(); },
+  'apt-bounce-fix':       function(){ aptBounceFix(); },
   'apt-cancel-verif':     function(){ aptCancelVerif(); },
   'apt-cal-prev':         function(){ aptCalPrev(); },
   'apt-cal-next':         function(){ aptCalNext(); },
@@ -1556,6 +1600,12 @@ document.addEventListener('DOMContentLoaded', function(){
                 <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
               </div>
               <div class="apt-err" id="aptOtpErr" style="display:none">Código incorrecto. Intenta de nuevo.</div>
+              <div class="apt-err" id="aptBounceErr" style="display:none">
+                El correo no existe o hay un problema con esta dirección. Por favor ingresa otro correo.
+                <div style="margin-top:8px">
+                  <button class="apt-resend-btn" data-action="apt-bounce-fix" type="button">Cambiar correo</button>
+                </div>
+              </div>
               <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
                 <span class="apt-resend-cd" id="aptResendCd"></span>
                 <button class="apt-resend-btn" id="aptResendBtn" style="display:none" data-action="apt-resend-otp">Reenviar código</button>

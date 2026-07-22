@@ -98,12 +98,67 @@ router.post('/citas/send-otp', otpByIp, otpByEmail, async (req, res) => {
   db.prepare('DELETE FROM otp_verifications WHERE email=?').run(email);
   db.prepare('INSERT INTO otp_verifications (email,phone,code,expires_at) VALUES (?,?,?,?)').run(email, phone || '', code, expires);
   try {
-    await sendOTP(email, code);
+    const resendId = await sendOTP(email, code);
+    if (resendId) db.prepare('UPDATE otp_verifications SET resend_email_id=? WHERE email=? AND used=0').run(resendId, email);
     res.json({ ok: true });
   } catch (e) {
     console.error('[otp] Error enviando email:', e.message);
     res.status(500).json({ error: 'Error al enviar el correo' });
   }
+});
+
+// Límite laxo: el frontend consulta esto cada pocos segundos mientras el
+// cliente está en la pantalla de "ingresa el código" esperando su correo.
+const otpStatusLimiter = rateLimit({ windowMs: 5 * 60 * 1000, max: 100,
+  keyGenerator: r => (r.query?.email || '').toLowerCase(), message: 'Demasiadas consultas. Espera un momento.' });
+
+/* Estado del envío del OTP por correo (GET /api/citas/otp-status?email=...)
+   Permite avisarle al cliente, mientras espera el código, si el correo que
+   escribió rebotó (bounce) — típicamente porque no existe o está mal escrito. */
+router.get('/citas/otp-status', otpStatusLimiter, (req, res) => {
+  const { email } = req.query;
+  if (!email || !EMAIL_RE.test(email)) return res.status(400).json({ error: 'Email inválido' });
+  const otp = getDB().prepare('SELECT bounced_at FROM otp_verifications WHERE email=? AND used=0 ORDER BY id DESC LIMIT 1').get(email);
+  res.json({ bounced: !!(otp && otp.bounced_at) });
+});
+
+// Verifica la firma Svix que Resend adjunta a sus webhooks (cabeceras
+// svix-id/svix-timestamp/svix-signature) usando el secreto RESEND_WEBHOOK_SECRET
+// (se obtiene al crear el webhook en el panel de Resend). Sin firma válida,
+// cualquiera podría marcar OTPs ajenos como rebotados.
+function verifyResendWebhook(req) {
+  const secret = process.env.RESEND_WEBHOOK_SECRET;
+  const id = req.headers['svix-id'];
+  const timestamp = req.headers['svix-timestamp'];
+  const sigHeader = req.headers['svix-signature'];
+  if (!secret || !id || !timestamp || !sigHeader || !req.rawBody) return false;
+
+  const ts = parseInt(timestamp, 10);
+  if (!ts || Math.abs(Date.now() / 1000 - ts) > 5 * 60) return false; // ventana anti-replay
+
+  const secretBytes = Buffer.from(secret.replace(/^whsec_/, ''), 'base64');
+  const signedContent = `${id}.${timestamp}.${req.rawBody.toString('utf8')}`;
+  const expected = crypto.createHmac('sha256', secretBytes).update(signedContent).digest('base64');
+
+  return sigHeader.split(' ').some(part => {
+    const sig = part.split(',')[1];
+    if (!sig) return false;
+    try {
+      const a = Buffer.from(sig, 'base64'), b = Buffer.from(expected, 'base64');
+      return a.length === b.length && crypto.timingSafeEqual(a, b);
+    } catch { return false; }
+  });
+}
+
+/* Webhook de Resend (POST /api/webhooks/resend) — notifica rebotes de correo. */
+router.post('/webhooks/resend', (req, res) => {
+  if (!verifyResendWebhook(req)) return res.status(401).json({ error: 'Firma inválida' });
+  const { type, data } = req.body || {};
+  if (type === 'email.bounced' && data && data.email_id) {
+    getDB().prepare('UPDATE otp_verifications SET bounced_at=? WHERE resend_email_id=? AND used=0')
+      .run(new Date().toISOString(), data.email_id);
+  }
+  res.json({ ok: true });
 });
 
 /* Verificar OTP (POST /api/citas/verify-otp) → devuelve token de verificación */

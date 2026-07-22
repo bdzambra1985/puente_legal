@@ -14,7 +14,9 @@ app.set('trust proxy', 1);
 app.disable('x-powered-by');
 
 app.use(securityHeaders);
-app.use(express.json({ limit: '256kb' }));
+// verify: guarda el body crudo — lo necesita el webhook de Resend para
+// validar su firma Svix (se calcula sobre los bytes exactos recibidos).
+app.use(express.json({ limit: '256kb', verify: (req, res, buf) => { req.rawBody = buf; } }));
 // index:false — public/index.html se sirve a mano (abajo) para poder
 // inyectarle el nonce de CSP; el resto de los archivos estáticos sigue igual.
 app.use(express.static(path.join(__dirname, 'public'), { index: false }));

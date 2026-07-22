@@ -218,6 +218,13 @@ function initDB() {
   const otpCols = db.prepare('PRAGMA table_info(otp_verifications)').all().map(c => c.name);
   if (!otpCols.includes('attempts'))
     db.exec('ALTER TABLE otp_verifications ADD COLUMN attempts INTEGER NOT NULL DEFAULT 0');
+  // Migración: id del correo en Resend + marca de rebote (bounce), para poder
+  // avisarle al cliente si el correo que escribió no existe/rebota mientras
+  // está esperando el código de verificación.
+  if (!otpCols.includes('resend_email_id'))
+    db.exec("ALTER TABLE otp_verifications ADD COLUMN resend_email_id TEXT NOT NULL DEFAULT ''");
+  if (!otpCols.includes('bounced_at'))
+    db.exec('ALTER TABLE otp_verifications ADD COLUMN bounced_at TEXT');
 
   // Admin por defecto
   const adminExists = db.prepare('SELECT id FROM admin_users WHERE username = ?').get('admin');
