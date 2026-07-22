@@ -990,7 +990,7 @@ function aptLaunchOtp(){
         document.getElementById('aptBounceErr').style.display='none';
         aptSetEmailStatus('pending');
         aptInitOtpInputs();
-        aptStartResendTimer(60);
+        aptResetResendUI();
         aptStartBouncePoll();
         setTimeout(function(){ document.querySelector('.apt-otp-d').focus(); },100);
       }
@@ -1011,6 +1011,16 @@ function aptStartResendTimer(secs){
   },1000);
 }
 
+// Mientras el estado del correo está "pending" no se sabe todavía si el
+// código va a llegar, así que no tiene sentido arrancar la cuenta
+// regresiva de "Reenviar en Ns" — arranca recién en aptConfirmDelivered(),
+// cuando Resend confirma que el correo se entregó de verdad.
+function aptResetResendUI(){
+  if(aptResendTimer) clearInterval(aptResendTimer);
+  document.getElementById('aptResendCd').textContent='';
+  document.getElementById('aptResendBtn').style.display='none';
+}
+
 function aptResendOtp(){
   var btn=document.getElementById('aptResendBtn');
   btn.style.display='none';
@@ -1018,7 +1028,7 @@ function aptResendOtp(){
     body:JSON.stringify({email:aptData.email,phone:aptData.contactoValor})
   }).then(function(r){ return r.json(); }).then(function(){
     aptInitOtpInputs();
-    aptStartResendTimer(60);
+    aptResetResendUI();
     document.getElementById('aptBounceErr').style.display='none';
     aptSetEmailStatus('pending');
     aptStartBouncePoll();
@@ -1061,6 +1071,7 @@ function aptStopBouncePoll(){
 function aptConfirmDelivered(){
   aptStopBouncePoll();
   aptSetEmailStatus('ok');
+  aptStartResendTimer(60);
 }
 function aptShowBounceError(){
   aptStopBouncePoll();
