@@ -150,11 +150,20 @@ function verifyResendWebhook(req) {
   });
 }
 
-/* Webhook de Resend (POST /api/webhooks/resend) — notifica rebotes de correo. */
+// Además de email.bounced (rebote real, la primera vez que un correo falla),
+// Resend agrega automáticamente esa dirección a su lista de supresión para
+// cuidar la reputación del remitente: los envíos siguientes a la misma
+// dirección ni se intentan entregar, quedan en estado "suppressed" y
+// disparan email.suppressed en vez de email.bounced — sin tratar ambos
+// casos igual, un correo que ya falló una vez queda "silencioso" para
+// siempre en los intentos posteriores.
+const BOUNCE_LIKE_EVENTS = new Set(['email.bounced', 'email.suppressed']);
+
+/* Webhook de Resend (POST /api/webhooks/resend) — notifica rebotes/supresiones de correo. */
 router.post('/webhooks/resend', (req, res) => {
   if (!verifyResendWebhook(req)) return res.status(401).json({ error: 'Firma inválida' });
   const { type, data } = req.body || {};
-  if (type === 'email.bounced' && data && data.email_id) {
+  if (BOUNCE_LIKE_EVENTS.has(type) && data && data.email_id) {
     getDB().prepare('UPDATE otp_verifications SET bounced_at=? WHERE resend_email_id=? AND used=0')
       .run(new Date().toISOString(), data.email_id);
   }
