@@ -35,6 +35,32 @@ function detectFileType(buf) {
 const SLOTS_ALL = ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00'];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Fecha/hora actual en Ecuador (UTC-5 fijo, sin horario de verano).
+function ahoraEcuador() {
+  const partes = Object.fromEntries(
+    new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Guayaquil', year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', hour12: false
+    }).formatToParts(new Date()).map(p => [p.type, p.value])
+  );
+  return { fecha: `${partes.year}-${partes.month}-${partes.day}`, minutos: parseInt(partes.hour, 10) * 60 + parseInt(partes.minute, 10) };
+}
+
+function slotAMinutos(hora) {
+  const [h, m] = hora.split(':').map(Number);
+  return h * 60 + m;
+}
+
+// Un horario deja de poder agendarse si la fecha ya pasó, o si es hoy y falta
+// menos de 1 hora para esa hora (bloquea también, de paso, las horas ya
+// pasadas del día de hoy). Fechas futuras no tienen esta restricción.
+function horaFueraDeRango(fecha, hora) {
+  const { fecha: hoy, minutos: ahora } = ahoraEcuador();
+  if (fecha < hoy) return true;
+  if (fecha > hoy) return false;
+  return slotAMinutos(hora) < ahora + 60;
+}
+
 function genCode() {
   return String(crypto.randomInt(100000, 1000000)); // 6 dígitos, CSPRNG
 }
@@ -121,7 +147,7 @@ router.get('/citas/disponibles', (req, res) => {
   const { fecha } = req.query;
   if (!fecha || !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return res.status(400).json({ error: 'fecha inválida' });
   const ocupadas = getDB().prepare('SELECT hora FROM citas WHERE fecha=?').all(fecha).map(r => r.hora);
-  res.json({ disponibles: SLOTS_ALL.filter(s => !ocupadas.includes(s)) });
+  res.json({ disponibles: SLOTS_ALL.filter(s => !ocupadas.includes(s) && !horaFueraDeRango(fecha, s)) });
 });
 
 /* Crear cita (POST /api/citas) — requiere token de verificación de email */
@@ -131,6 +157,9 @@ router.post('/citas', citaLimiter, (req, res) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha) || !SLOTS_ALL.includes(hora))
     return res.status(400).json({ error: 'Fecha u hora inválida' });
   if (!EMAIL_RE.test(email)) return res.status(400).json({ error: 'Email inválido' });
+  // Revalida acá por si el cliente tardó (ej. verificando el OTP) y el
+  // horario que había elegido ya quedó fuera de rango mientras tanto.
+  if (horaFueraDeRango(fecha, hora)) return res.status(400).json({ error: 'HORA_FUERA_DE_RANGO' });
 
   // El correo debe estar verificado (OTP) y el token corresponder a ese correo
   const verifiedEmail = verifTokenEmail(verifToken);

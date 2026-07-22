@@ -1111,7 +1111,14 @@ function aptConfirm(){
   .then(function(res){
     if(btn){ btn.disabled=false; btn.textContent=esZoom?'Confirmar cita':'Confirmar por WhatsApp'; }
     if(res.status===409){
+      aptGoStep(2);
       aptShowAlert('Ese horario ya fue reservado. Por favor elige otro.');
+      aptRenderSlots(); return;
+    }
+    if(res.body.error==='HORA_FUERA_DE_RANGO'){
+      aptGoStep(2);
+      aptShowAlert('Tu hora está fuera de rango — pasó demasiado tiempo desde que la elegiste. Por favor elige otro horario.');
+      aptData.time='';
       aptRenderSlots(); return;
     }
     if(!res.body.ok){ aptShowAlert('Error al registrar la cita. Intenta de nuevo.'); return; }
