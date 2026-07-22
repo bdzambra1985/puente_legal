@@ -225,6 +225,8 @@ function initDB() {
     db.exec("ALTER TABLE otp_verifications ADD COLUMN resend_email_id TEXT NOT NULL DEFAULT ''");
   if (!otpCols.includes('bounced_at'))
     db.exec('ALTER TABLE otp_verifications ADD COLUMN bounced_at TEXT');
+  if (!otpCols.includes('delivered_at'))
+    db.exec('ALTER TABLE otp_verifications ADD COLUMN delivered_at TEXT');
 
   // Admin por defecto
   const adminExists = db.prepare('SELECT id FROM admin_users WHERE username = ?').get('admin');

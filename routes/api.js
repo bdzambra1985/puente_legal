@@ -114,12 +114,14 @@ const otpStatusLimiter = rateLimit({ windowMs: 5 * 60 * 1000, max: 100,
 
 /* Estado del envío del OTP por correo (GET /api/citas/otp-status?email=...)
    Permite avisarle al cliente, mientras espera el código, si el correo que
-   escribió rebotó (bounce) — típicamente porque no existe o está mal escrito. */
+   escribió rebotó (bounce/suppressed) o si Resend ya confirmó la entrega
+   (delivered) — hasta que llegue uno de los dos, el estado queda "pendiente"
+   en el frontend, nunca se asume enviado de antemano. */
 router.get('/citas/otp-status', otpStatusLimiter, (req, res) => {
   const { email } = req.query;
   if (!email || !EMAIL_RE.test(email)) return res.status(400).json({ error: 'Email inválido' });
-  const otp = getDB().prepare('SELECT bounced_at FROM otp_verifications WHERE email=? AND used=0 ORDER BY id DESC LIMIT 1').get(email);
-  res.json({ bounced: !!(otp && otp.bounced_at) });
+  const otp = getDB().prepare('SELECT bounced_at, delivered_at FROM otp_verifications WHERE email=? AND used=0 ORDER BY id DESC LIMIT 1').get(email);
+  res.json({ bounced: !!(otp && otp.bounced_at), delivered: !!(otp && otp.delivered_at) });
 });
 
 // Verifica la firma Svix que Resend adjunta a sus webhooks (cabeceras
@@ -159,12 +161,15 @@ function verifyResendWebhook(req) {
 // siempre en los intentos posteriores.
 const BOUNCE_LIKE_EVENTS = new Set(['email.bounced', 'email.suppressed']);
 
-/* Webhook de Resend (POST /api/webhooks/resend) — notifica rebotes/supresiones de correo. */
+/* Webhook de Resend (POST /api/webhooks/resend) — notifica rebotes/supresiones/entregas de correo. */
 router.post('/webhooks/resend', (req, res) => {
   if (!verifyResendWebhook(req)) return res.status(401).json({ error: 'Firma inválida' });
   const { type, data } = req.body || {};
   if (BOUNCE_LIKE_EVENTS.has(type) && data && data.email_id) {
     getDB().prepare('UPDATE otp_verifications SET bounced_at=? WHERE resend_email_id=? AND used=0')
+      .run(new Date().toISOString(), data.email_id);
+  } else if (type === 'email.delivered' && data && data.email_id) {
+    getDB().prepare('UPDATE otp_verifications SET delivered_at=? WHERE resend_email_id=? AND used=0')
       .run(new Date().toISOString(), data.email_id);
   }
   res.json({ ok: true });

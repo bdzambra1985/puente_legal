@@ -429,6 +429,7 @@ footer{background:var(--navy);padding:72px 32px 36px}
 .apt-email-status{font-size:.78rem;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:6px}
 .apt-email-status.ok{color:#16a34a}
 .apt-email-status.bad{color:#ef4444}
+.apt-email-status.pending{color:var(--muted)}
 .apt-wa-sent{font-size:.8rem;font-weight:600;color:#16a34a;margin-top:10px;display:flex;align-items:center;gap:6px}
 .apt-wa-code-box{font-size:2.2rem;font-weight:800;letter-spacing:10px;font-family:'Courier New',monospace;color:var(--navy);background:var(--off);border-radius:10px;padding:18px 20px;text-align:center;margin-bottom:14px;border:2px solid var(--gold)}
 /* ¡YA! tengo cita */
@@ -987,7 +988,7 @@ function aptLaunchOtp(){
         document.getElementById('aptVerifEmail').textContent=aptData.email;
         document.getElementById('aptOtpErr').style.display='none';
         document.getElementById('aptBounceErr').style.display='none';
-        aptSetEmailStatus(true);
+        aptSetEmailStatus('pending');
         aptInitOtpInputs();
         aptStartResendTimer(60);
         aptStartBouncePoll();
@@ -1019,42 +1020,54 @@ function aptResendOtp(){
     aptInitOtpInputs();
     aptStartResendTimer(60);
     document.getElementById('aptBounceErr').style.display='none';
-    aptSetEmailStatus(true);
+    aptSetEmailStatus('pending');
     aptStartBouncePoll();
     setTimeout(function(){ document.querySelector('.apt-otp-d').focus(); },50);
   }).catch(function(){ btn.style.display='inline'; });
 }
 
-function aptSetEmailStatus(ok){
+// estado: 'pending' (todavía no hay confirmación de Resend, ni buena ni
+// mala — nunca se asume "enviado" de antemano), 'ok' (Resend confirmó
+// delivered) o 'bad' (bounced/suppressed).
+function aptSetEmailStatus(estado){
   var el=document.getElementById('aptEmailStatus');
-  el.classList.toggle('ok',ok);
-  el.classList.toggle('bad',!ok);
-  document.getElementById('aptEmailStatusIcon').innerHTML = ok ? '&#10003;' : '&#10007;';
-  document.getElementById('aptEmailStatusTxt').textContent = ok ? 'Correo enviado' : 'Correo no válido';
+  el.classList.remove('ok','bad','pending');
+  el.classList.add(estado);
+  var iconos={ok:'&#10003;',bad:'&#10007;',pending:'&hellip;'};
+  var textos={ok:'Correo enviado',bad:'Correo no enviado — revisa que el correo esté correcto',pending:'Enviando código…'};
+  document.getElementById('aptEmailStatusIcon').innerHTML = iconos[estado];
+  document.getElementById('aptEmailStatusTxt').textContent = textos[estado];
 }
 
 // Mientras el cliente espera el código por correo, consulta cada pocos
-// segundos si ese correo rebotó (no existe / está mal escrito) para
-// avisarle en vivo, sin que tenga que intentar verificar un código que
-// nunca le va a llegar.
+// segundos el estado real que reportó Resend: si rebotó/quedó suprimido
+// (no existe / está mal escrito) o si ya confirmó la entrega — nunca se
+// asume "enviado" solo porque se disparó el POST a Resend.
 function aptStartBouncePoll(){
   aptStopBouncePoll();
   aptBounceTimer=setInterval(function(){
     fetch('/api/citas/otp-status?email='+encodeURIComponent(aptData.email))
       .then(function(r){ return r.json(); })
-      .then(function(d){ if(d.bounced) aptShowBounceError(); })
+      .then(function(d){
+        if(d.bounced) aptShowBounceError();
+        else if(d.delivered) aptConfirmDelivered();
+      })
       .catch(function(){});
   },3000);
 }
 function aptStopBouncePoll(){
   if(aptBounceTimer){ clearInterval(aptBounceTimer); aptBounceTimer=null; }
 }
+function aptConfirmDelivered(){
+  aptStopBouncePoll();
+  aptSetEmailStatus('ok');
+}
 function aptShowBounceError(){
   aptStopBouncePoll();
   if(aptResendTimer) clearInterval(aptResendTimer);
   document.getElementById('aptResendCd').textContent='';
   document.getElementById('aptResendBtn').style.display='none';
-  aptSetEmailStatus(false);
+  aptSetEmailStatus('bad');
   document.getElementById('aptBounceErr').style.display='block';
 }
 function aptBounceFix(){
@@ -1605,9 +1618,9 @@ document.addEventListener('DOMContentLoaded', function(){
               </div>
             </div>
             <div class="apt-verif-block">
-              <div class="apt-email-status ok" id="aptEmailStatus">
-                <span id="aptEmailStatusIcon">&#10003;</span>
-                <span id="aptEmailStatusTxt">Correo enviado</span>
+              <div class="apt-email-status pending" id="aptEmailStatus">
+                <span id="aptEmailStatusIcon">&hellip;</span>
+                <span id="aptEmailStatusTxt">Enviando código…</span>
               </div>
               <div class="apt-otp-row" id="aptOtpRow">
                 <input class="apt-otp-d" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code">
