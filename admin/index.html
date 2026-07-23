@@ -581,7 +581,7 @@ a{text-decoration:none;color:inherit}
           </div>
         </div>
         <div class="card" style="max-width:460px;margin-top:20px;border:1px solid var(--red)">
-          <div class="card-header"><div><h2 style="color:var(--red)">Zona de mantenimiento</h2><p>Borra todas las citas, facturas, comprobantes y verificaciones, y reinicia la numeración a SL-0000001. El secuencial del SRI NO se toca.</p></div></div>
+          <div class="card-header"><div><h2 style="color:var(--red)">Zona de mantenimiento</h2><p>Borra todas las citas, facturas, comprobantes y verificaciones, y reinicia la numeración a 0000001. El secuencial del SRI NO se toca.</p></div></div>
           <div class="card-body">
             <button class="btn btn-danger" data-action="open-reset-modal">Reiniciar datos de prueba</button>
           </div>
@@ -851,7 +851,7 @@ a{text-decoration:none;color:inherit}
     </div>
     <div class="modal-body">
       <div style="background:#fef2f2;border:1px solid var(--red);border-radius:var(--r8);padding:16px;font-size:.84rem;line-height:1.6;color:#991b1b;margin-bottom:18px">
-        <strong>Esta acción es irreversible.</strong> Se borrarán <strong>todas</strong> las citas, facturas, comprobantes y verificaciones, y la numeración volverá a arrancar en <strong>SL-0000001</strong>.<br><br>
+        <strong>Esta acción es irreversible.</strong> Se borrarán <strong>todas</strong> las citas, facturas, comprobantes y verificaciones, y la numeración volverá a arrancar en <strong>0000001</strong>.<br><br>
         El <strong>secuencial del SRI</strong> NO se toca (la facturación electrónica sigue con su numeración).
       </div>
       <div class="fg">
@@ -1263,7 +1263,7 @@ function doResetDatos(){
     btn.textContent='Borrar todo y reiniciar';
     if(d && d.ok){
       document.getElementById('resetOverlay').classList.remove('open');
-      toast('Datos reiniciados ('+d.citas+' citas, '+d.facturas+' facturas). Numeración desde SL-0000001.');
+      toast('Datos reiniciados ('+d.citas+' citas, '+d.facturas+' facturas). Numeración desde 0000001.');
       loadCitas();
       if(typeof loadFacturas==='function') loadFacturas();
     } else { toast('Error al reiniciar','error'); }
