@@ -65,9 +65,9 @@ function genCode() {
   return String(crypto.randomInt(100000, 1000000)); // 6 dígitos, CSPRNG
 }
 
-// Número de referencia de cita para mostrar en el admin: SL-0000001.
+// Número de referencia de cita para mostrar en el admin: 0000001.
 function refCita(id) {
-  return 'SL-' + String(id).padStart(7, '0');
+  return String(id).padStart(7, '0');
 }
 
 function issueVerifToken(email) {
