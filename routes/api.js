@@ -306,13 +306,28 @@ router.post('/citas', citaLimiter, (req, res) => {
    El "número" que ve el cliente es ref_display (ej. 0000001 o 0000001-1); se
    busca primero por ese valor. Como respaldo (citas viejas sin ref_display, o si
    escriben el id pelado) también se intenta por id numérico si es solo dígitos. */
+
+// Normaliza lo que escribe el cliente a la forma guardada (con ceros a la
+// izquierda): "1" -> "0000001", "1-1" -> "0000001-1", "7-2" -> "0000007-2".
+// Devuelve la lista de variantes a probar (incluye siempre lo escrito tal cual).
+function refCandidatos(raw) {
+  const cands = new Set([raw]);
+  const m = raw.match(/^0*(\d+)(?:-0*(\d+))?$/);
+  if (m) {
+    const base = m[1].padStart(7, '0');
+    cands.add(m[2] != null ? `${base}-${m[2]}` : base);
+  }
+  return [...cands];
+}
+
 router.get('/citas/:id', (req, res) => {
   const email = String(req.query.email || '').trim().toLowerCase();
   if (!email || !EMAIL_RE.test(email)) return res.status(400).json({ error: 'EMAIL_REQUIRED' });
   const raw = String(req.params.id || '').trim();
   const cols = 'SELECT id,ref_display,nombre,email,fecha,hora,contacto_tipo,estado,comprobante_estado,resumen_texto FROM citas WHERE ';
   const db = getDB();
-  let cita = db.prepare(cols + 'ref_display=?').get(raw);
+  const cands = refCandidatos(raw);
+  let cita = db.prepare(cols + `ref_display IN (${cands.map(() => '?').join(',')})`).get(...cands);
   if (!cita && /^\d+$/.test(raw)) cita = db.prepare(cols + 'id=?').get(Number(raw));
   // Misma respuesta si no existe o el email no coincide (evita enumeración)
   if (!cita || String(cita.email).toLowerCase() !== email)
