@@ -1063,6 +1063,12 @@ function aptSetEmailStatus(estado){
     document.getElementById('aptEmailStatusIcon'+suf).innerHTML = iconos[estado];
     document.getElementById('aptEmailStatusTxt'+suf).textContent = textos[estado];
   });
+  // El botón "Abrir WhatsApp para recibir código" no se habilita hasta
+  // confirmar que el correo del cliente sí recibe correos — si rebota o
+  // queda suprimido, se queda deshabilitado y aptShowBounceError() ya
+  // muestra el aviso con "Cambiar correo" debajo.
+  var waVerifBtn=document.getElementById('aptWaVerifBtn');
+  if(waVerifBtn) waVerifBtn.disabled = estado!=='ok';
 }
 
 // Mientras el cliente espera el código por correo, consulta cada pocos
@@ -1092,8 +1098,7 @@ function aptConfirmDelivered(){
   // Si el cliente ya llegó al paso de confirmar (modo WhatsApp, donde el
   // botón queda deshabilitado hasta esto), se habilita apenas se confirma
   // — sin que tenga que volver a pasar por el paso 3 para que se note.
-  var btn=document.querySelector('#apanel3 .apt-btn-wa');
-  if(btn){ btn.disabled=false; document.getElementById('aptConfirmWaitEmail').style.display='none'; }
+  aptRenderConfirmBtn();
 }
 function aptShowBounceError(){
   aptStopBouncePoll();
@@ -1200,21 +1205,37 @@ function aptStep3(){
     '<div class="apt-sum-row"><div class="apt-sum-ico">📅</div><div><div class="apt-sum-lbl">Fecha</div><div class="apt-sum-val">'+ds+'</div></div></div>'+
     '<div class="apt-sum-row"><div class="apt-sum-ico">🕐</div><div><div class="apt-sum-lbl">Hora (Ecuador)</div><div class="apt-sum-val">'+aptData.time+'</div></div></div>'+
     contactoRow;
-  // Ojo: escopado a #apanel3 a propósito — .apt-btn-wa también la usa
-  // #aptWaVerifBtn (paso 1, botón "Abrir WhatsApp"); sin el scope,
-  // querySelector agarraba ese botón por aparecer antes en el DOM y este
-  // texto nunca se actualizaba de verdad.
-  var waBtn=document.querySelector('#apanel3 .apt-btn-wa');
-  if(waBtn){
-    waBtn.innerHTML='<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.533 5.867L0 24l6.301-1.651A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.518-5.163-1.422l-.371-.219-3.742.981.998-3.642-.24-.375A9.939 9.939 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>'+(esZoom?'Confirmar por correo':'Confirmar por WhatsApp');
-    // En modo WhatsApp, no se habilita hasta que el correo se confirme
-    // como entregable — evita reservar la cita si el correo con el que
-    // se le va a avisar todo no funciona.
-    var esperandoCorreo = !esZoom && !aptEmailDeliveryConfirmed;
-    waBtn.disabled = esperandoCorreo;
+  aptRenderConfirmBtn();
+  aptGoStep(3);
+}
+
+// Centraliza cómo se ve/comporta el botón final de confirmar, porque su
+// aspecto y su gate dependen del modo de contacto y se necesita reponer
+// igual en más de un lugar (al llegar al paso 3, y al resetear tras un
+// intento fallido en aptConfirm()).
+function aptRenderConfirmBtn(){
+  var btn=document.getElementById('aptConfirmBtn');
+  if(!btn) return;
+  var esZoom=aptData.contactoTipo==='zoom';
+  if(esZoom){
+    // Nada de ícono ni verde de WhatsApp acá — en Zoom la confirmación se
+    // manda por correo, no por WhatsApp, así que el botón se ve como
+    // cualquier otro botón "de enviar" del formulario (mismo estilo que
+    // Continuar/Verificar y continuar).
+    btn.className='apt-btn apt-btn-primary';
+    btn.textContent='Confirmar por correo';
+    btn.disabled=false;
+    document.getElementById('aptConfirmWaitEmail').style.display='none';
+  } else {
+    btn.className='apt-btn apt-btn-wa';
+    btn.innerHTML='<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.533 5.867L0 24l6.301-1.651A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.518-5.163-1.422l-.371-.219-3.742.981.998-3.642-.24-.375A9.939 9.939 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>Confirmar por WhatsApp';
+    // No se habilita hasta que el correo se confirme como entregable —
+    // evita reservar la cita si el correo con el que se le va a avisar
+    // todo no funciona.
+    var esperandoCorreo = !aptEmailDeliveryConfirmed;
+    btn.disabled = esperandoCorreo;
     document.getElementById('aptConfirmWaitEmail').style.display = esperandoCorreo ? 'block' : 'none';
   }
-  aptGoStep(3);
 }
 
 function aptConfirm(){
@@ -1222,7 +1243,7 @@ function aptConfirm(){
   var iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   var ds=DIAS[d.getDay()]+', '+d.getDate()+' de '+MESES[d.getMonth()]+' '+d.getFullYear();
   var esZoom=aptData.contactoTipo==='zoom';
-  var btn=document.querySelector('#apanel3 .apt-btn-wa');
+  var btn=document.getElementById('aptConfirmBtn');
   if(btn){ btn.disabled=true; btn.textContent='Reservando...'; }
   fetch('/api/citas',{
     method:'POST',
@@ -1231,7 +1252,7 @@ function aptConfirm(){
       contacto_tipo:aptData.contactoTipo,contacto_valor:aptData.contactoValor,verifToken:aptData.verifToken})
   }).then(function(r){ return r.json().then(function(j){ return {status:r.status,body:j}; }); })
   .then(function(res){
-    if(btn){ btn.disabled=false; btn.textContent=esZoom?'Confirmar por correo':'Confirmar por WhatsApp'; }
+    aptRenderConfirmBtn();
     if(res.status===409){
       aptGoStep(2);
       aptShowAlert('Ese horario ya fue reservado. Por favor elige otro.');
@@ -1244,20 +1265,26 @@ function aptConfirm(){
       aptRenderSlots(); return;
     }
     if(!res.body.ok){ aptShowAlert('Error al registrar la cita. Intenta de nuevo.'); return; }
-    var citaId = res.body.id || '';
-    var contactoLinea=esZoom?'Medio: Videollamada Zoom':'WhatsApp: '+aptData.contactoValor;
-    var msg='Hola, he agendado una cita:'
-      +'\nN. de cita: '+citaId
-      +'\nNombre: '+aptData.nombre
-      +'\nCorreo: '+aptData.email
-      +'\nFecha: '+ds
-      +'\nHora: '+aptData.time
-      +'\n'+contactoLinea
-      +'\nPor favor confirmar la cita. Gracias.';
-    window.open('https://wa.me/593996526419?text='+encodeURIComponent(msg),'_blank');
+    // En modo Zoom no hay número de WhatsApp del cliente con qué avisar
+    // nada — la confirmación se manda por correo (el backend ya la
+    // dispara al crear la cita, ver POST /citas). En modo WhatsApp se
+    // sigue abriendo WhatsApp con los datos para que el cliente confirme
+    // directamente con el despacho.
+    if(!esZoom){
+      var citaId = res.body.id || '';
+      var msg='Hola, he agendado una cita:'
+        +'\nN. de cita: '+citaId
+        +'\nNombre: '+aptData.nombre
+        +'\nCorreo: '+aptData.email
+        +'\nFecha: '+ds
+        +'\nHora: '+aptData.time
+        +'\nWhatsApp: '+aptData.contactoValor
+        +'\nPor favor confirmar la cita. Gracias.';
+      window.open('https://wa.me/593996526419?text='+encodeURIComponent(msg),'_blank');
+    }
     closeApt();
   }).catch(function(){
-    if(btn){ btn.disabled=false; btn.textContent=esZoom?'Confirmar por correo':'Confirmar por WhatsApp'; }
+    aptRenderConfirmBtn();
     aptShowAlert('Error de conexión. Intenta de nuevo.');
   });
 }
@@ -1759,7 +1786,7 @@ document.addEventListener('DOMContentLoaded', function(){
       <div class="apt-panel" id="apanel3">
         <div class="apt-summary" id="aptSummary"></div>
         <div class="apt-verif-hint" id="aptConfirmWaitEmail" style="display:none;margin-bottom:10px">Esperando confirmar que tu correo es válido — esto puede tardar unos segundos.</div>
-        <button class="apt-btn apt-btn-wa" data-action="apt-confirm">
+        <button class="apt-btn apt-btn-wa" id="aptConfirmBtn" data-action="apt-confirm">
           <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.533 5.867L0 24l6.301-1.651A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.651-.518-5.163-1.422l-.371-.219-3.742.981.998-3.642-.24-.375A9.939 9.939 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
           Confirmar por WhatsApp
         </button>

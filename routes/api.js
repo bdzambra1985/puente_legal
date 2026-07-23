@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const { getDB } = require('../database');
-const { sendOTP, sendComprobanteNotificacion } = require('../utils/email');
+const { sendOTP, sendComprobanteNotificacion, sendCitaNuevaNotificacion } = require('../utils/email');
 const { saveComprobante } = require('../utils/upload');
 const rateLimit = require('../middleware/rateLimit');
 const { SECRET } = require('../config');
@@ -260,6 +260,18 @@ router.post('/citas', citaLimiter, (req, res) => {
       .prepare('INSERT INTO citas (nombre,email,fecha,hora,contacto_tipo,contacto_valor) VALUES (?,?,?,?,?,?)')
       .run(String(nombre).slice(0, 120), String(email).slice(0, 160), fecha, hora, tipo, valor);
     res.json({ ok: true, id: result.lastInsertRowid });
+    // En modo WhatsApp el frontend abre un wa.me con los datos para avisarle
+    // al despacho de la nueva cita — en modo Zoom no hay un WhatsApp propio
+    // del cliente para eso, así que el aviso equivalente se manda por
+    // correo. No debe bloquear ni condicionar la respuesta ya enviada.
+    if (tipo === 'zoom') {
+      const notifEmail = getDB().prepare("SELECT value FROM contacto WHERE key='email_notificaciones'").get();
+      if (notifEmail && notifEmail.value) {
+        const cita = { id: result.lastInsertRowid, nombre, email, fecha, hora };
+        sendCitaNuevaNotificacion(cita, notifEmail.value)
+          .catch(e => console.error('[citas] Error enviando notificación de nueva cita:', e.message));
+      }
+    }
   } catch (e) {
     if (e.code === 'SQLITE_CONSTRAINT_UNIQUE') return res.status(409).json({ error: 'SLOT_TAKEN' });
     console.error('[citas] Error creando cita:', e.message);

@@ -355,4 +355,51 @@ async function sendComprobanteNotificacion(cita, notifEmail) {
   console.log(`[email] Notificación de comprobante enviada a ${notifEmail} (cita #${cita.id})`);
 }
 
-module.exports = { sendCitaConfirmada, sendOTP, sendFacturaEmitida, sendCorreoAdjunto, sendCorreoNotaria, sendComprobanteNotificacion };
+// Avisa al correo de notificaciones cada vez que se agenda una cita por
+// Zoom — el equivalente por correo del wa.me que el frontend abre para
+// avisos por WhatsApp, que en Zoom no aplica porque no hay un WhatsApp
+// propio del cliente para eso.
+async function sendCitaNuevaNotificacion(cita, notifEmail) {
+  if (!process.env.RESEND_API_KEY) {
+    console.log('[email] RESEND_API_KEY no configurada — skipping notificación nueva cita id:', cita.id);
+    return;
+  }
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:32px 16px;background:#f8f7f4;font-family:'Helvetica Neue',Arial,sans-serif">
+  <div style="max-width:420px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08)">
+    <div style="background:#0f1e38;padding:28px 36px;text-align:center">
+      <div style="font-size:1.2rem;font-weight:800;color:#C9A227;letter-spacing:2px">PUENTE LEGAL</div>
+      <div style="font-size:.68rem;color:rgba(255,255,255,.3);margin-top:3px;letter-spacing:1px">INTERNACIONAL EC</div>
+    </div>
+    <div style="padding:36px">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:2.2rem;margin-bottom:10px">📅</div>
+        <h1 style="font-size:1.1rem;color:#0f1e38;margin:0 0 6px;font-weight:700">Nueva cita agendada</h1>
+        <p style="color:#64748b;font-size:.84rem;margin:0">Videollamada Zoom — revísala en el panel admin</p>
+      </div>
+      ${detalle('🔖', 'N° Cita', String(cita.id))}
+      ${detalle('👤', 'Cliente', cita.nombre || '—')}
+      ${detalle('📧', 'Correo', cita.email || '—')}
+      ${detalle('📅', 'Fecha', cita.fecha || '—')}
+      ${detalle('🕐', 'Hora', (cita.hora || '—') + ' (hora Ecuador)')}
+    </div>
+    <div style="background:#f8f7f4;padding:16px 36px;text-align:center;border-top:1px solid #e2e8f0">
+      <div style="font-size:.68rem;color:#94a3b8">Puente Legal Internacional EC</div>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  await sendViaResend({
+    to: notifEmail,
+    subject: `📅 Nueva cita — #${cita.id} ${cita.fecha} ${cita.hora} — Puente Legal`,
+    html
+  });
+
+  console.log(`[email] Notificación de nueva cita enviada a ${notifEmail} (cita #${cita.id})`);
+}
+
+module.exports = { sendCitaConfirmada, sendOTP, sendFacturaEmitida, sendCorreoAdjunto, sendCorreoNotaria, sendComprobanteNotificacion, sendCitaNuevaNotificacion };
