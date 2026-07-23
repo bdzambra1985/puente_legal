@@ -1707,7 +1707,7 @@ function openResumen(id){
   if(!cita) return;
   resumenCitaId = id;
   document.getElementById('resumenCitaInfo').innerHTML =
-    '<strong>Cita #'+cita.id+'</strong> &nbsp;·&nbsp; '
+    '<strong>Cita #'+escH(cita.ref_display||String(cita.id))+'</strong> &nbsp;·&nbsp; '
     +escH(cita.fecha)+' '+escH(cita.hora)+'<br>'
     +(cita.contacto_tipo==='zoom'?'Zoom':'WhatsApp: '+escH(cita.contacto_valor));
   document.getElementById('resumenNombre').value = cita.nombre || '';
@@ -1783,7 +1783,7 @@ function openComprobarPago(id){
       +'</div>'
       +'<div>'
         +'<div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px">Cliente</div>'
-        +'<strong>#'+cita.id+' — '+escH(cita.nombre)+'</strong><br>'
+        +'<strong>#'+escH(cita.ref_display||String(cita.id))+' — '+escH(cita.nombre)+'</strong><br>'
         +escH(cita.email)+'<br>'
         +escH(cita.fecha)+' '+escH(cita.hora)
         +(cita.contacto_tipo==='zoom'?' · Zoom':' · WA: '+escH(cita.contacto_valor))+'<br>'
@@ -1953,7 +1953,7 @@ function renderSeguimiento(){
     }).join('');
     return '<div class="pipe-card'+(hasError?' has-error':'')+'">'
       +'<div class="pipe-head">'
-        +'<div><div class="pipe-head-name">#'+c.id+' — '+escH(c.nombre)+'</div><div class="pipe-head-sub">'+escH(c.email)+' · '+escH(c.fecha)+' '+escH(c.hora)+'</div></div>'
+        +'<div><div class="pipe-head-name">#'+escH(c.ref_display||String(c.id))+' — '+escH(c.nombre)+'</div><div class="pipe-head-sub">'+escH(c.email)+' · '+escH(c.fecha)+' '+escH(c.hora)+'</div></div>'
       +'</div>'
       +'<div class="pipe-row">'+stepsHtml+'</div>'
       +'</div>';

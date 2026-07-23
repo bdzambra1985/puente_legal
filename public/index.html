@@ -1271,7 +1271,7 @@ function aptConfirm(){
     // sigue abriendo WhatsApp con los datos para que el cliente confirme
     // directamente con el despacho.
     if(!esZoom){
-      var citaId = res.body.id || '';
+      var citaId = res.body.ref_display || res.body.id || '';
       var msg='Hola, he agendado una cita:'
         +'\nN. de cita: '+citaId
         +'\nNombre: '+aptData.nombre
@@ -1392,8 +1392,8 @@ function buscarCita(){
   var errEl=document.getElementById('ytcErr');
   var infoEl=document.getElementById('ytcInfo');
   var pagarBtn=document.getElementById('ytcPagarBtn');
-  if(!num||isNaN(num)||Number(num)<1){
-    errEl.textContent='Ingresa un número de cita válido.';
+  if(!num){
+    errEl.textContent='Ingresa el número de cita que recibiste.';
     errEl.style.display='block';
     infoEl.style.display='none';
     pagarBtn.style.display='none';
@@ -1421,7 +1421,7 @@ function buscarCita(){
       }
       ytcCita=res.b;
       var tipoStr=ytcCita.contacto_tipo==='zoom'?'Videollamada Zoom':'WhatsApp';
-      infoEl.innerHTML='<strong>Cita #'+escH(ytcCita.id)+'</strong><br>'
+      infoEl.innerHTML='<strong>Cita #'+escH(ytcCita.ref_display||String(ytcCita.id))+'</strong><br>'
         +escH(ytcCita.nombre)+'<br>'
         +escH(ytcCita.fecha)+' a las '+escH(ytcCita.hora)+'<br>'
         +'Medio: '+tipoStr+'<br>'
@@ -1443,11 +1443,12 @@ function buscarCita(){
 
 function abrirPago(){
   if(!ytcCita || !ytcCita.puedePagar) return;
+  var refCita = ytcCita.ref_display||String(ytcCita.id);
   document.getElementById('pagoCitaResumen').innerHTML=
-    '<strong>Cita #'+escH(ytcCita.id)+'</strong> &nbsp;·&nbsp; '+escH(ytcCita.nombre)
+    '<strong>Cita #'+escH(refCita)+'</strong> &nbsp;·&nbsp; '+escH(ytcCita.nombre)
     +' &nbsp;·&nbsp; '+escH(ytcCita.fecha)+' '+escH(ytcCita.hora);
-  document.getElementById('pagoRef').innerHTML='Cita #'+escH(ytcCita.id)
-    +'<button class="pago-copy" data-action="copiar" data-text="Cita #'+escH(ytcCita.id)+'">Copiar</button>';
+  document.getElementById('pagoRef').innerHTML='Cita #'+escH(refCita)
+    +'<button class="pago-copy" data-action="copiar" data-text="Cita #'+escH(refCita)+'">Copiar</button>';
   document.getElementById('ytcOverlay').classList.remove('open');
   pagoTab('transferencia', document.querySelector('.pago-tab'));
   // Resetear upload
@@ -1807,7 +1808,7 @@ document.addEventListener('DOMContentLoaded', function(){
     <div class="ytc-body">
       <input type="email" id="ytcEmail" placeholder="Tu correo electrónico" style="width:100%;padding:12px;border-radius:8px;border:1px solid #d8dbe0;font-family:'Inter',sans-serif;font-size:.9rem;margin-bottom:10px">
       <div class="ytc-input-row">
-        <input type="number" id="ytcNumero" placeholder="Número de cita (ej: 12)" min="1">
+        <input type="text" id="ytcNumero" placeholder="N° de cita (ej: 0000001)" autocomplete="off">
         <button data-action="buscar-cita">Buscar</button>
       </div>
       <div class="ytc-err" id="ytcErr">No se encontró ninguna cita con ese número.</div>

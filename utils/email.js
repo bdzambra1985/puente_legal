@@ -61,7 +61,7 @@ async function sendCitaConfirmada(cita) {
       </div>
 
       <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:4px">
-        ${detalle('🔖', 'N° Cita', String(cita.id))}
+        ${detalle('🔖', 'N° Cita', cita.ref_display || String(cita.id))}
         ${detalle('📅', 'Fecha', cita.fecha)}
         ${detalle('🕐', 'Hora', cita.hora + ' (hora Ecuador)')}
         ${detalle(esZoom ? '💻' : '📱', 'Medio', esZoom ? 'Videollamada Zoom' : 'WhatsApp')}
@@ -336,7 +336,7 @@ async function sendComprobanteNotificacion(cita, notifEmail) {
         <h1 style="font-size:1.1rem;color:#0f1e38;margin:0 0 6px;font-weight:700">Nuevo comprobante de pago</h1>
         <p style="color:#64748b;font-size:.84rem;margin:0">Un cliente subió un comprobante — revísalo en el panel admin</p>
       </div>
-      ${detalle('🔖', 'N° Cita', String(cita.id))}
+      ${detalle('🔖', 'N° Cita', cita.ref_display || String(cita.id))}
       ${detalle('👤', 'Cliente', cita.nombre || '—')}
     </div>
     <div style="background:#f8f7f4;padding:16px 36px;text-align:center;border-top:1px solid #e2e8f0">
@@ -388,7 +388,7 @@ async function sendCitaNuevaNotificacion(cita, notifEmail) {
         <h1 style="font-size:1.1rem;color:#0f1e38;margin:0 0 6px;font-weight:700">Nueva cita agendada</h1>
         <p style="color:#64748b;font-size:.84rem;margin:0">${medioLabel} — revísala en el panel admin</p>
       </div>
-      ${detalle('🔖', 'N° Cita', String(cita.id))}
+      ${detalle('🔖', 'N° Cita', cita.ref_display || String(cita.id))}
       ${detalle('👤', 'Cliente', cita.nombre || '—')}
       ${detalle('📧', 'Correo', cita.email || '—')}
       ${detalle('📅', 'Fecha', cita.fecha || '—')}

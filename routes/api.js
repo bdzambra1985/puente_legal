@@ -285,13 +285,13 @@ router.post('/citas', citaLimiter, (req, res) => {
     }
     db2.prepare('UPDATE citas SET ref_display=? WHERE id=?').run(refDisplay, newId);
 
-    res.json({ ok: true, id: newId });
+    res.json({ ok: true, id: newId, ref_display: refDisplay });
     // Aviso al despacho de que entró una cita nueva, sea por Zoom o por
     // WhatsApp — se manda al correo de notificaciones configurado en el
     // admin. No debe bloquear ni condicionar la respuesta ya enviada.
     const notifEmail = getDB().prepare("SELECT value FROM contacto WHERE key='email_notificaciones'").get();
     if (notifEmail && notifEmail.value) {
-      const cita = { id: result.lastInsertRowid, nombre, email, fecha, hora, contacto_tipo: tipo, contacto_valor: valor };
+      const cita = { id: result.lastInsertRowid, ref_display: refDisplay, nombre, email, fecha, hora, contacto_tipo: tipo, contacto_valor: valor };
       sendCitaNuevaNotificacion(cita, notifEmail.value)
         .catch(e => console.error('[citas] Error enviando notificación de nueva cita:', e.message));
     }
@@ -302,13 +302,18 @@ router.post('/citas', citaLimiter, (req, res) => {
   }
 });
 
-/* Buscar cita por ID (GET /api/citas/:id?email=...) — requiere email coincidente */
+/* Buscar cita por número (GET /api/citas/:id?email=...) — requiere email coincidente.
+   El "número" que ve el cliente es ref_display (ej. 0000001 o 0000001-1); se
+   busca primero por ese valor. Como respaldo (citas viejas sin ref_display, o si
+   escriben el id pelado) también se intenta por id numérico si es solo dígitos. */
 router.get('/citas/:id', (req, res) => {
   const email = String(req.query.email || '').trim().toLowerCase();
   if (!email || !EMAIL_RE.test(email)) return res.status(400).json({ error: 'EMAIL_REQUIRED' });
-  const cita = getDB()
-    .prepare('SELECT id,nombre,email,fecha,hora,contacto_tipo,estado,comprobante_estado,resumen_texto FROM citas WHERE id=?')
-    .get(req.params.id);
+  const raw = String(req.params.id || '').trim();
+  const cols = 'SELECT id,ref_display,nombre,email,fecha,hora,contacto_tipo,estado,comprobante_estado,resumen_texto FROM citas WHERE ';
+  const db = getDB();
+  let cita = db.prepare(cols + 'ref_display=?').get(raw);
+  if (!cita && /^\d+$/.test(raw)) cita = db.prepare(cols + 'id=?').get(Number(raw));
   // Misma respuesta si no existe o el email no coincide (evita enumeración)
   if (!cita || String(cita.email).toLowerCase() !== email)
     return res.status(404).json({ error: 'NOT_FOUND' });
@@ -324,7 +329,7 @@ router.get('/citas/:id', (req, res) => {
 router.post('/citas/:id/comprobante', uploadLimiter, upload.single('comprobante'), async (req, res) => {
   const db = getDB();
   const email = String(req.body.email || '').trim().toLowerCase();
-  const cita = db.prepare('SELECT id,nombre,email,estado,resumen_texto FROM citas WHERE id=?').get(req.params.id);
+  const cita = db.prepare('SELECT id,ref_display,nombre,email,estado,resumen_texto FROM citas WHERE id=?').get(req.params.id);
   if (!cita || !email || String(cita.email).toLowerCase() !== email)
     return res.status(404).json({ error: 'NOT_FOUND' });
   if (cita.estado !== 'confirmada' || !(cita.resumen_texto || '').trim())
