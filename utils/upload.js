@@ -1,6 +1,32 @@
 'use strict';
 const sharp = require('sharp');
+const { spawn } = require('child_process');
 const cloudinary = require('cloudinary').v2;
+
+/* ── PDF → JPEG (primera página) ──────────────────────────────────────
+   Los PDF no se renderizan de forma confiable en el visor del panel
+   admin (embebidos en un iframe con blob:), así que al subirse se
+   rasteriza su primera página a una imagen JPEG con poppler
+   (`pdftocairo`, instalado en el Dockerfile vía `poppler-utils`). Lee
+   el PDF por stdin y escribe el JPEG por stdout — sin archivos temporales. */
+function pdfToJpeg(pdfBuffer) {
+  return new Promise((resolve, reject) => {
+    const proc = spawn('pdftocairo', ['-jpeg', '-singlefile', '-scale-to', '1600', '-', '-']);
+    const out = [], err = [];
+    proc.stdout.on('data', c => out.push(c));
+    proc.stderr.on('data', c => err.push(c));
+    proc.on('error', reject); // p.ej. el binario no está instalado
+    proc.on('close', code => {
+      const buf = Buffer.concat(out);
+      if (code !== 0 || !buf.length)
+        return reject(new Error('pdftocairo falló: ' + Buffer.concat(err).toString().slice(0, 200)));
+      resolve(buf);
+    });
+    proc.stdin.on('error', () => {}); // evita un EPIPE si el proceso cierra antes
+    proc.stdin.write(pdfBuffer);
+    proc.stdin.end();
+  });
+}
 
 /* ── Cloudinary (opcional) ──────────────────────────────────────────── */
 const CLD_URL    = process.env.CLOUDINARY_URL;
@@ -46,6 +72,18 @@ async function compressImage(buffer, ext) {
    Devuelve { path, isUrl } — path es la URL de Cloudinary o el nombre
    de archivo local; isUrl indica cuál de los dos es. */
 async function saveComprobante(buffer, ext, citaId, localDir) {
+  // Un PDF se convierte a JPEG (primera página) para que siempre se pueda
+  // ver como imagen en el panel. Si la conversión falla (poppler ausente
+  // en dev, o PDF corrupto), se guarda el PDF tal cual — no se pierde el
+  // comprobante, y el admin igual puede abrirlo con "Abrir en nueva pestaña".
+  if (ext === '.pdf') {
+    try {
+      buffer = await pdfToJpeg(buffer);
+      ext = '.jpg';
+    } catch (e) {
+      console.warn('[upload] No se pudo convertir PDF a imagen, se guarda como PDF:', e.message);
+    }
+  }
   const { buffer: outBuffer, ext: outExt } = await compressImage(buffer, ext);
 
   if (USE_CLOUDINARY) {

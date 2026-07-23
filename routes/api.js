@@ -256,21 +256,38 @@ router.post('/citas', citaLimiter, (req, res) => {
   const tipo = contacto_tipo === 'whatsapp' ? 'whatsapp' : 'zoom';
   const valor = String(contacto_valor || '').trim().slice(0, 120);
   try {
-    const result = getDB()
+    const db2 = getDB();
+    const result = db2
       .prepare('INSERT INTO citas (nombre,email,fecha,hora,contacto_tipo,contacto_valor) VALUES (?,?,?,?,?,?)')
       .run(String(nombre).slice(0, 120), String(email).slice(0, 160), fecha, hora, tipo, valor);
-    res.json({ ok: true, id: result.lastInsertRowid });
-    // En modo WhatsApp el frontend abre un wa.me con los datos para avisarle
-    // al despacho de la nueva cita — en modo Zoom no hay un WhatsApp propio
-    // del cliente para eso, así que el aviso equivalente se manda por
-    // correo. No debe bloquear ni condicionar la respuesta ya enviada.
-    if (tipo === 'zoom') {
-      const notifEmail = getDB().prepare("SELECT value FROM contacto WHERE key='email_notificaciones'").get();
-      if (notifEmail && notifEmail.value) {
-        const cita = { id: result.lastInsertRowid, nombre, email, fecha, hora };
-        sendCitaNuevaNotificacion(cita, notifEmail.value)
-          .catch(e => console.error('[citas] Error enviando notificación de nueva cita:', e.message));
-      }
+    const newId = result.lastInsertRowid;
+
+    // Número de referencia para el admin: si este cliente (mismo nombre+correo,
+    // sin distinguir mayúsculas/espacios) ya tenía citas, la nueva lleva
+    // "<id-de-su-primera-cita>-N" (N = cuántas tenía antes). Si es su primera
+    // cita, lleva su propio id.
+    const previas = db2.prepare(
+      'SELECT id, ref_display FROM citas WHERE id<>? AND LOWER(TRIM(nombre))=LOWER(TRIM(?)) AND LOWER(TRIM(email))=LOWER(TRIM(?)) ORDER BY id ASC'
+    ).all(newId, nombre, email);
+    let refDisplay;
+    if (previas.length === 0) {
+      refDisplay = String(newId);
+    } else {
+      const primera = previas[0];
+      const base = primera.ref_display && !primera.ref_display.includes('-') ? primera.ref_display : String(primera.id);
+      refDisplay = `${base}-${previas.length}`;
+    }
+    db2.prepare('UPDATE citas SET ref_display=? WHERE id=?').run(refDisplay, newId);
+
+    res.json({ ok: true, id: newId });
+    // Aviso al despacho de que entró una cita nueva, sea por Zoom o por
+    // WhatsApp — se manda al correo de notificaciones configurado en el
+    // admin. No debe bloquear ni condicionar la respuesta ya enviada.
+    const notifEmail = getDB().prepare("SELECT value FROM contacto WHERE key='email_notificaciones'").get();
+    if (notifEmail && notifEmail.value) {
+      const cita = { id: result.lastInsertRowid, nombre, email, fecha, hora, contacto_tipo: tipo, contacto_valor: valor };
+      sendCitaNuevaNotificacion(cita, notifEmail.value)
+        .catch(e => console.error('[citas] Error enviando notificación de nueva cita:', e.message));
     }
   } catch (e) {
     if (e.code === 'SQLITE_CONSTRAINT_UNIQUE') return res.status(409).json({ error: 'SLOT_TAKEN' });

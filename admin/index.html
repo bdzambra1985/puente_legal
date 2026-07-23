@@ -359,6 +359,7 @@ a{text-decoration:none;color:inherit}
               <tbody id="citasBody"></tbody>
             </table>
           </div>
+          <div id="citasPager" style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:16px"></div>
         </div>
       </div>
 
@@ -571,7 +572,7 @@ a{text-decoration:none;color:inherit}
           </div>
         </div>
         <div class="card" style="max-width:460px;margin-top:20px">
-          <div class="card-header"><div><h2>Correo de notificaciones</h2><p>Recibe un aviso acá cada vez que un cliente envía un comprobante de pago</p></div></div>
+          <div class="card-header"><div><h2>Correo de notificaciones</h2><p>Recibe un aviso acá cada vez que se agenda una cita nueva o un cliente envía un comprobante de pago</p></div></div>
           <div class="card-body">
             <div class="form-grid">
               <div class="fg"><label>Correo de notificaciones</label><input type="email" id="ct_email_notificaciones" placeholder="notificaciones@tudominio.com"></div>
@@ -1464,6 +1465,8 @@ var citasFiltro = 'todas';
 var citasSortKey = 'fecha';
 var citasSortDir = 'asc';
 var citasSearchTerm = '';
+var citasPage = 1;
+var CITAS_POR_PAGINA = 8;
 var FACTURA_ESTADO_LABEL = { pendiente:'Comprobante pendiente', esperando_sri:'Esperando SRI', aprobada:'Aprobada', rechazada:'Rechazada', error:'Error' };
 var FACTURA_ESTADO_BADGE = { pendiente:'badge-pendiente', esperando_sri:'badge-pendiente', aprobada:'badge-facturado', rechazada:'badge-inactive', error:'badge-inactive' };
 
@@ -1477,6 +1480,7 @@ function loadCitas(){
 
 function filterCitas(filtro, btn){
   citasFiltro = filtro;
+  citasPage = 1;
   document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
   if(btn) btn.classList.add('active');
   renderCitas();
@@ -1485,6 +1489,7 @@ function filterCitas(filtro, btn){
 function sortCitas(key, dir){
   citasSortKey = key;
   citasSortDir = dir;
+  citasPage = 1;
   document.querySelectorAll('.sort-btn').forEach(function(b){ b.classList.remove('active'); });
   var id = 'sort'+key.charAt(0).toUpperCase()+key.slice(1)+(dir==='asc'?'Asc':'Desc');
   var el = document.getElementById(id);
@@ -1507,12 +1512,20 @@ function renderCitas(){
     if(citasSortKey==='hora'){ va=a.fecha+' '+a.hora; vb=b.fecha+' '+b.hora; }
     return citasSortDir==='asc' ? va.localeCompare(vb) : vb.localeCompare(va);
   });
+  var pager = document.getElementById('citasPager');
   if(!lista.length){
     tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:32px">'+(citasData.length?'Sin resultados para la búsqueda':'No hay citas')+'</td></tr>';
+    if(pager) pager.innerHTML = '';
     return;
   }
+  // Paginación: 8 citas por página.
+  var totalPaginas = Math.ceil(lista.length / CITAS_POR_PAGINA);
+  if(citasPage > totalPaginas) citasPage = totalPaginas;
+  if(citasPage < 1) citasPage = 1;
+  var inicio = (citasPage - 1) * CITAS_POR_PAGINA;
+  var pagina = lista.slice(inicio, inicio + CITAS_POR_PAGINA);
   tbody.innerHTML = '';
-  lista.forEach(function(c){
+  pagina.forEach(function(c){
     var badgeClass = 'badge-'+c.estado;
     var esZoom = c.contacto_tipo === 'zoom';
     var medioHtml = esZoom
@@ -1543,7 +1556,7 @@ function renderCitas(){
       ? '<span class="'+(FACTURA_ESTADO_BADGE[c.factura_estado]||'badge-pendiente')+'">'+(FACTURA_ESTADO_LABEL[c.factura_estado]||c.factura_estado)+'</span>'
       : '<span style="color:var(--muted);font-size:.78rem">—</span>';
     var tr = document.createElement('tr');
-    tr.innerHTML = '<td data-label="N° cita" style="font-size:.8rem;color:var(--muted)">#'+c.id+'</td>'
+    tr.innerHTML = '<td data-label="N° cita" style="font-size:.8rem;color:var(--muted)">#'+escH(c.ref_display||String(c.id))+'</td>'
       +'<td data-label="Cliente" class="td-full"><strong style="font-size:.83rem">'+escH(c.nombre)+'</strong><br><span style="font-size:.71rem;color:var(--muted)">'+escH(c.email)+'</span><br><span style="font-size:.68rem;color:var(--muted)">Registrada: '+escH((c.created_at||'').substring(0,16))+'</span></td>'
       +'<td data-label="Fecha" style="font-size:.82rem;font-weight:600;white-space:nowrap">'+escH(c.fecha)+'</td>'
       +'<td data-label="Hora" style="font-size:.82rem;font-weight:600">'+escH(c.hora)+'</td>'
@@ -1556,6 +1569,24 @@ function renderCitas(){
       +'<td data-label="Acciones" class="td-full">'+accionBtn+'</td>';
     tbody.appendChild(tr);
   });
+
+  if(pager){
+    if(totalPaginas <= 1){
+      pager.innerHTML = '';
+    } else {
+      pager.innerHTML =
+        '<button class="btn btn-ghost" style="font-size:.75rem;padding:5px 12px"'+(citasPage<=1?' disabled':'')+' data-action="citas-page" data-page="'+(citasPage-1)+'">← Anterior</button>'
+        +'<span style="font-size:.78rem;color:var(--muted)">Página '+citasPage+' de '+totalPaginas+'</span>'
+        +'<button class="btn btn-ghost" style="font-size:.75rem;padding:5px 12px"'+(citasPage>=totalPaginas?' disabled':'')+' data-action="citas-page" data-page="'+(citasPage+1)+'">Siguiente →</button>';
+    }
+  }
+}
+
+function citasIrPagina(n){
+  citasPage = n;
+  renderCitas();
+  var tabla = document.getElementById('citasTable');
+  if(tabla) tabla.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
 
 var confirmCitaId = null;
@@ -2009,6 +2040,7 @@ var CLICK_ACTIONS = {
   'nav':                    function(el){ nav(el); },
   'nav-to':                 function(el){ var t=document.querySelector('.sb-item[data-panel="'+el.dataset.panel+'"]'); if(t) nav(t); },
   'load-citas':             function(){ loadCitas(); },
+  'citas-page':             function(el){ citasIrPagina(Number(el.dataset.page)); },
   'filter-citas':           function(el){ filterCitas(el.dataset.filtro, el); },
   'sort-citas':             function(el){ sortCitas(el.dataset.key, el.dataset.dir); },
   'pipe-filtro':            function(el){ setPipeFiltro(el.dataset.filtro); },
@@ -2059,7 +2091,7 @@ var pipeSearchEl = document.getElementById('pipeSearch');
 if(pipeSearchEl) pipeSearchEl.addEventListener('input', renderSeguimiento);
 
 var citasSearchEl = document.getElementById('citasSearch');
-if(citasSearchEl) citasSearchEl.addEventListener('input', function(){ citasSearchTerm = this.value; renderCitas(); });
+if(citasSearchEl) citasSearchEl.addEventListener('input', function(){ citasSearchTerm = this.value; citasPage = 1; renderCitas(); });
 
 var facturasSearchEl = document.getElementById('facturasSearch');
 if(facturasSearchEl) facturasSearchEl.addEventListener('input', function(){ facturasSearchTerm = this.value; renderFacturas(); });

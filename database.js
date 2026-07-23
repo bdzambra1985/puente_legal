@@ -176,6 +176,11 @@ function initDB() {
     db.exec("ALTER TABLE citas ADD COLUMN correo_adjunto_nombre TEXT NOT NULL DEFAULT ''");
   if (!citasCols.includes('correo_notaria_adjunto_nombre'))
     db.exec("ALTER TABLE citas ADD COLUMN correo_notaria_adjunto_nombre TEXT NOT NULL DEFAULT ''");
+  // Número de referencia mostrado en el admin: la primera cita de un cliente
+  // (mismo nombre+correo) lleva su propio id; las siguientes llevan
+  // "<id-de-la-primera>-1", "-2", etc. Ver routes/api.js (POST /citas).
+  if (!citasCols.includes('ref_display'))
+    db.exec("ALTER TABLE citas ADD COLUMN ref_display TEXT NOT NULL DEFAULT ''");
 
   // Migración: teléfono del cliente en la factura (dato informativo, no se envía al SRI)
   const facturasCols = db.prepare('PRAGMA table_info(facturas)').all().map(c => c.name);

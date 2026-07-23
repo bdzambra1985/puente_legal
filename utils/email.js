@@ -365,6 +365,14 @@ async function sendCitaNuevaNotificacion(cita, notifEmail) {
     return;
   }
 
+  const esZoom = cita.contacto_tipo !== 'whatsapp';
+  const medioLabel = esZoom ? 'Videollamada Zoom' : 'WhatsApp';
+  const medioIco   = esZoom ? '💻' : '📱';
+  // En WhatsApp se muestra además el número que dejó el cliente.
+  const contactoDetalle = esZoom
+    ? ''
+    : detalle('📱', 'WhatsApp', cita.contacto_valor || '—');
+
   const html = `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -378,13 +386,15 @@ async function sendCitaNuevaNotificacion(cita, notifEmail) {
       <div style="text-align:center;margin-bottom:20px">
         <div style="font-size:2.2rem;margin-bottom:10px">📅</div>
         <h1 style="font-size:1.1rem;color:#0f1e38;margin:0 0 6px;font-weight:700">Nueva cita agendada</h1>
-        <p style="color:#64748b;font-size:.84rem;margin:0">Videollamada Zoom — revísala en el panel admin</p>
+        <p style="color:#64748b;font-size:.84rem;margin:0">${medioLabel} — revísala en el panel admin</p>
       </div>
       ${detalle('🔖', 'N° Cita', String(cita.id))}
       ${detalle('👤', 'Cliente', cita.nombre || '—')}
       ${detalle('📧', 'Correo', cita.email || '—')}
       ${detalle('📅', 'Fecha', cita.fecha || '—')}
       ${detalle('🕐', 'Hora', (cita.hora || '—') + ' (hora Ecuador)')}
+      ${detalle(medioIco, 'Medio', medioLabel)}
+      ${contactoDetalle}
     </div>
     <div style="background:#f8f7f4;padding:16px 36px;text-align:center;border-top:1px solid #e2e8f0">
       <div style="font-size:.68rem;color:#94a3b8">Puente Legal Internacional EC</div>
@@ -395,7 +405,7 @@ async function sendCitaNuevaNotificacion(cita, notifEmail) {
 
   await sendViaResend({
     to: notifEmail,
-    subject: `📅 Nueva cita — #${cita.id} ${cita.fecha} ${cita.hora} — Puente Legal`,
+    subject: `📅 Nueva cita ${esZoom ? 'Zoom' : 'WhatsApp'} — #${cita.id} ${cita.fecha} ${cita.hora} — Puente Legal`,
     html
   });
 
