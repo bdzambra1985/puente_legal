@@ -1018,13 +1018,8 @@ function loadAll(){
     loadContenido(results[2]);
     loadContacto(results[3]);
     loadPromoCards(results[4]);
-    var citas = results[5] || [];
-    citasData = citas;
-    document.getElementById('dashCitasPend').textContent=citas.filter(function(c){ return c.estado==='pendiente'; }).length;
-    document.getElementById('dashCitasTotal').textContent=citas.length;
-    var pagosPend=citas.filter(function(c){ return c.factura_estado==='pendiente'; }).length;
-    document.getElementById('dashPagosPend').textContent=pagosPend;
-    document.getElementById('dashPagoCard').style.background=pagosPend>0?'rgba(245,158,11,.08)':'';
+    citasData = results[5] || [];
+    updateDashStats();
   });
 }
 
@@ -1531,7 +1526,24 @@ function loadCitas(){
     citasData = data || [];
     renderCitas();
     renderSeguimiento();
+    updateDashStats();
   });
+}
+
+// Refresca las tarjetas del panel Inicio a partir de citasData. Se llama
+// tanto en la carga inicial como cada vez que se recargan las citas
+// (incluido después de "Reiniciar datos de prueba"), para que no queden
+// números viejos.
+function updateDashStats(){
+  var pend = document.getElementById('dashCitasPend');
+  var total = document.getElementById('dashCitasTotal');
+  var pagos = document.getElementById('dashPagosPend');
+  if(!pend || !total || !pagos) return;
+  pend.textContent = citasData.filter(function(c){ return c.estado==='pendiente'; }).length;
+  total.textContent = citasData.length;
+  var pagosPend = citasData.filter(function(c){ return c.factura_estado==='pendiente'; }).length;
+  pagos.textContent = pagosPend;
+  document.getElementById('dashPagoCard').style.background = pagosPend>0?'rgba(245,158,11,.08)':'';
 }
 
 function filterCitas(filtro, btn){
