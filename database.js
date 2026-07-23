@@ -182,6 +182,11 @@ function initDB() {
   if (!citasCols.includes('ref_display'))
     db.exec("ALTER TABLE citas ADD COLUMN ref_display TEXT NOT NULL DEFAULT ''");
 
+  // Migración: quitar el prefijo "SL-" de los números de cita viejos. La
+  // numeración nueva ya no lo usa (es 0000001 / 0000001-1); esto normaliza los
+  // registros creados antes del cambio. Idempotente (solo afecta a los que lo tienen).
+  db.exec("UPDATE citas SET ref_display = SUBSTR(ref_display, 4) WHERE ref_display LIKE 'SL-%'");
+
   // Migración: teléfono del cliente en la factura (dato informativo, no se envía al SRI)
   const facturasCols = db.prepare('PRAGMA table_info(facturas)').all().map(c => c.name);
   if (!facturasCols.includes('cliente_telefono'))
