@@ -311,11 +311,19 @@ router.post('/citas', citaLimiter, (req, res) => {
 // izquierda): "1" -> "0000001", "1-1" -> "0000001-1", "7-2" -> "0000007-2".
 // Devuelve la lista de variantes a probar (incluye siempre lo escrito tal cual).
 function refCandidatos(raw) {
-  const cands = new Set([raw]);
-  const m = raw.match(/^0*(\d+)(?:-0*(\d+))?$/);
+  const cands = new Set();
+  // Limpia lo escrito: quita "#" inicial y un prefijo "SL-" (las citas viejas
+  // se guardaron con ese prefijo antes de que se quitara; las nuevas no lo llevan).
+  const limpio = String(raw).trim().replace(/^#/, '');
+  const core = limpio.replace(/^sl-/i, '');
+  cands.add(limpio);
+  cands.add(core);
+  const m = core.match(/^0*(\d+)(?:-0*(\d+))?$/);
   if (m) {
     const base = m[1].padStart(7, '0');
-    cands.add(m[2] != null ? `${base}-${m[2]}` : base);
+    const canonical = m[2] != null ? `${base}-${m[2]}` : base;
+    cands.add(canonical);           // forma nueva: 0000001-1
+    cands.add('SL-' + canonical);   // forma vieja guardada: SL-0000001-1
   }
   return [...cands];
 }
