@@ -516,4 +516,46 @@ router.put('/contacto', (req, res) => {
   res.json({ ok: true });
 });
 
+/* ── Reiniciar datos de prueba ──────────────────────────────────────────
+   Borra TODAS las citas, facturas, verificaciones OTP y los archivos de
+   comprobantes locales, y reinicia los contadores AUTOINCREMENT para que la
+   numeración vuelva a arrancar desde 1 (primera cita = SL-0000001).
+   NO toca `sri_secuenciales` (el contador de secuenciales del SRI, que nunca
+   debe retroceder) ni ninguna configuración. Operación destructiva, por eso
+   exige auth admin + CSRF (ya aplicados a todo /api/admin) y confirmación
+   explícita del lado del panel. */
+router.post('/reset-datos', (req, res) => {
+  const db = getDB();
+
+  // 1) Borra los archivos de comprobantes locales (los de Cloudinary quedan
+  //    huérfanos allá, pero las filas se van igual). Se hace antes de borrar
+  //    las citas para poder leer sus comprobante_path.
+  try {
+    const uploadsDir = path.join(path.dirname(path.resolve(process.env.DB_PATH || path.join(__dirname, '..', 'data.db'))), 'comprobantes');
+    const filas = db.prepare("SELECT comprobante_path FROM citas WHERE comprobante_path<>''").all();
+    filas.forEach(f => {
+      const p = f.comprobante_path;
+      if (p && !p.startsWith('cld:') && !/^https?:\/\//i.test(p)) {
+        try { fs.unlinkSync(path.join(uploadsDir, path.basename(p))); } catch { /* ya no está */ }
+      }
+    });
+  } catch (e) { console.error('[reset] limpieza de archivos:', e.message); }
+
+  const nCitas    = db.prepare('SELECT COUNT(*) c FROM citas').get().c;
+  const nFacturas = db.prepare('SELECT COUNT(*) c FROM facturas').get().c;
+
+  const tx = db.transaction(() => {
+    db.prepare('DELETE FROM facturas').run();
+    db.prepare('DELETE FROM citas').run();
+    db.prepare('DELETE FROM otp_verifications').run();
+    // Reinicia SOLO estos contadores AUTOINCREMENT. `sri_secuenciales` es una
+    // tabla propia (no AUTOINCREMENT) que ni se borra ni se toca acá.
+    db.prepare("DELETE FROM sqlite_sequence WHERE name IN ('citas','facturas','otp_verifications')").run();
+  });
+  tx();
+
+  console.log(`[reset] Datos reiniciados: ${nCitas} citas, ${nFacturas} facturas borradas. sri_secuenciales intacto.`);
+  res.json({ ok: true, citas: nCitas, facturas: nFacturas });
+});
+
 module.exports = router;

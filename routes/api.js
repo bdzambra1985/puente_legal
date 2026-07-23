@@ -65,6 +65,11 @@ function genCode() {
   return String(crypto.randomInt(100000, 1000000)); // 6 dígitos, CSPRNG
 }
 
+// Número de referencia de cita para mostrar en el admin: SL-0000001.
+function refCita(id) {
+  return 'SL-' + String(id).padStart(7, '0');
+}
+
 function issueVerifToken(email) {
   return jwt.sign({ email: String(email).toLowerCase(), scope: 'cita', typ: 'cita' }, SECRET, { expiresIn: '20m' });
 }
@@ -262,19 +267,20 @@ router.post('/citas', citaLimiter, (req, res) => {
       .run(String(nombre).slice(0, 120), String(email).slice(0, 160), fecha, hora, tipo, valor);
     const newId = result.lastInsertRowid;
 
-    // Número de referencia para el admin: si este cliente (mismo nombre+correo,
-    // sin distinguir mayúsculas/espacios) ya tenía citas, la nueva lleva
-    // "<id-de-su-primera-cita>-N" (N = cuántas tenía antes). Si es su primera
-    // cita, lleva su propio id.
+    // Número de referencia mostrado en el admin, formato SL-0000001. Si este
+    // cliente (mismo nombre+correo, sin distinguir mayúsculas/espacios) ya
+    // tenía citas, la nueva lleva "<ref-de-su-primera-cita>-N" (N = cuántas
+    // tenía antes, ej. SL-0000001-1). Si es su primera cita, lleva su propio
+    // número formateado a partir de su id.
     const previas = db2.prepare(
       'SELECT id, ref_display FROM citas WHERE id<>? AND LOWER(TRIM(nombre))=LOWER(TRIM(?)) AND LOWER(TRIM(email))=LOWER(TRIM(?)) ORDER BY id ASC'
     ).all(newId, nombre, email);
     let refDisplay;
     if (previas.length === 0) {
-      refDisplay = String(newId);
+      refDisplay = refCita(newId);
     } else {
       const primera = previas[0];
-      const base = primera.ref_display && !primera.ref_display.includes('-') ? primera.ref_display : String(primera.id);
+      const base = primera.ref_display || refCita(primera.id);
       refDisplay = `${base}-${previas.length}`;
     }
     db2.prepare('UPDATE citas SET ref_display=? WHERE id=?').run(refDisplay, newId);

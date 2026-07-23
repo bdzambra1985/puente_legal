@@ -580,6 +580,12 @@ a{text-decoration:none;color:inherit}
             <div style="margin-top:20px"><button class="btn btn-primary" data-action="save-email-notificaciones">Guardar correo</button></div>
           </div>
         </div>
+        <div class="card" style="max-width:460px;margin-top:20px;border:1px solid var(--red)">
+          <div class="card-header"><div><h2 style="color:var(--red)">Zona de mantenimiento</h2><p>Borra todas las citas, facturas, comprobantes y verificaciones, y reinicia la numeración a SL-0000001. El secuencial del SRI NO se toca.</p></div></div>
+          <div class="card-body">
+            <button class="btn btn-danger" data-action="open-reset-modal">Reiniciar datos de prueba</button>
+          </div>
+        </div>
       </div>
 
     </div><!-- /content -->
@@ -832,6 +838,30 @@ a{text-decoration:none;color:inherit}
         <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
         Confirmar y enviar correo
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REINICIAR DATOS -->
+<div class="overlay" id="resetOverlay" data-action="close-modal" data-close-fn="closeResetModal">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <h3 style="color:var(--red)">Reiniciar datos de prueba</h3>
+      <button class="modal-close" data-action="close-modal" data-close-fn="closeResetModal" data-force="1"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div style="background:#fef2f2;border:1px solid var(--red);border-radius:var(--r8);padding:16px;font-size:.84rem;line-height:1.6;color:#991b1b;margin-bottom:18px">
+        <strong>Esta acción es irreversible.</strong> Se borrarán <strong>todas</strong> las citas, facturas, comprobantes y verificaciones, y la numeración volverá a arrancar en <strong>SL-0000001</strong>.<br><br>
+        El <strong>secuencial del SRI</strong> NO se toca (la facturación electrónica sigue con su numeración).
+      </div>
+      <div class="fg">
+        <label>Para confirmar, escribí <strong>REINICIAR</strong></label>
+        <input type="text" id="resetConfirmInput" placeholder="REINICIAR" autocomplete="off" style="font-size:.9rem;letter-spacing:1px">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-action="close-modal" data-close-fn="closeResetModal" data-force="1">Cancelar</button>
+      <button class="btn btn-danger" id="resetConfirmBtn" data-action="do-reset-datos" disabled>Borrar todo y reiniciar</button>
     </div>
   </div>
 </div>
@@ -1217,6 +1247,32 @@ function saveEmailNotificaciones(){
   api('PUT','/api/admin/contacto',body).then(function(d){
     if(d.ok) toast('Correo de notificaciones guardado'); else toast('Error','error');
   });
+}
+
+function openResetModal(){
+  var inp=document.getElementById('resetConfirmInput');
+  inp.value='';
+  document.getElementById('resetConfirmBtn').disabled=true;
+  document.getElementById('resetOverlay').classList.add('open');
+  setTimeout(function(){ inp.focus(); },100);
+}
+function closeResetModal(force){
+  if(force===true || (force&&force.target===document.getElementById('resetOverlay')))
+    document.getElementById('resetOverlay').classList.remove('open');
+}
+function doResetDatos(){
+  var btn=document.getElementById('resetConfirmBtn');
+  if(document.getElementById('resetConfirmInput').value.trim().toUpperCase()!=='REINICIAR') return;
+  btn.disabled=true; btn.textContent='Borrando...';
+  api('POST','/api/admin/reset-datos',{}).then(function(d){
+    btn.textContent='Borrar todo y reiniciar';
+    if(d && d.ok){
+      document.getElementById('resetOverlay').classList.remove('open');
+      toast('Datos reiniciados ('+d.citas+' citas, '+d.facturas+' facturas). Numeración desde SL-0000001.');
+      loadCitas();
+      if(typeof loadFacturas==='function') loadFacturas();
+    } else { toast('Error al reiniciar','error'); }
+  }).catch(function(){ btn.textContent='Borrar todo y reiniciar'; btn.disabled=false; toast('Error de conexión','error'); });
 }
 
 function saveContacto(){
@@ -2029,7 +2085,7 @@ function abrirWaConfirmacion(){
 var CLOSE_FNS = {
   closeTestModal:closeTestModal, closeFacturaModal:closeFacturaModal, closeFacturaDetalle:closeFacturaDetalle,
   closeResumen:closeResumen, closeComprobarPago:closeComprobarPago, closeEnviarCorreo:closeEnviarCorreo,
-  closeConfirmCita:closeConfirmCita, closeCorreoNotaria:closeCorreoNotaria
+  closeConfirmCita:closeConfirmCita, closeCorreoNotaria:closeCorreoNotaria, closeResetModal:closeResetModal
 };
 
 var CLICK_ACTIONS = {
@@ -2048,6 +2104,8 @@ var CLICK_ACTIONS = {
   'upload-p12':             function(){ uploadP12(); },
   'save-banco':             function(){ saveBanco(); },
   'save-email-notificaciones': function(){ saveEmailNotificaciones(); },
+  'open-reset-modal':       function(){ openResetModal(); },
+  'do-reset-datos':         function(){ doResetDatos(); },
   'open-factura-modal':     function(){ openFacturaModal(); },
   'open-test-modal':        function(){ openTestModal(); },
   'save-contenido':         function(){ saveContenido(); },
@@ -2095,6 +2153,12 @@ if(citasSearchEl) citasSearchEl.addEventListener('input', function(){ citasSearc
 
 var facturasSearchEl = document.getElementById('facturasSearch');
 if(facturasSearchEl) facturasSearchEl.addEventListener('input', function(){ facturasSearchTerm = this.value; renderFacturas(); });
+
+// El botón de reinicio solo se habilita si el texto escrito es exactamente "REINICIAR".
+var resetConfirmEl = document.getElementById('resetConfirmInput');
+if(resetConfirmEl) resetConfirmEl.addEventListener('input', function(){
+  document.getElementById('resetConfirmBtn').disabled = this.value.trim().toUpperCase() !== 'REINICIAR';
+});
 
 var correoAdjuntoEl = document.getElementById('correoAdjunto');
 if(correoAdjuntoEl) correoAdjuntoEl.addEventListener('change', function(){
