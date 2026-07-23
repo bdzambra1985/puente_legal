@@ -195,6 +195,7 @@ function initDB() {
     banco_tipo:            'Corriente',
     banco_cuenta:          '0000000000',
     banco_nota:            'Envía el comprobante por WhatsApp al +593 99 652 6419 indicando tu número de cita. Procesamos la confirmación en menos de 2 horas hábiles.',
+    email_notificaciones:  '',
     sri_ambiente:          '1',
     sri_ruc:               '',
     sri_razon_social:      '',

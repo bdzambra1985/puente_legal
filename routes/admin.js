@@ -340,13 +340,6 @@ router.get('/citas', (req, res) => {
   res.json(getDB().prepare('SELECT * FROM citas ORDER BY fecha DESC, hora ASC').all());
 });
 
-router.get('/otp-pending', (req, res) => {
-  const rows = getDB().prepare(
-    "SELECT email, phone, code, expires_at FROM otp_verifications WHERE used=0 AND expires_at > datetime('now') ORDER BY expires_at ASC"
-  ).all();
-  res.json(rows);
-});
-
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 router.put('/citas/:id', async (req, res) => {
@@ -512,6 +505,7 @@ router.get('/contacto', (req, res) => {
 const CONTACTO_EDITABLE = new Set([
   'whatsapp', 'telefono', 'email', 'cobertura',
   'banco_nombre', 'banco_titular', 'banco_tipo', 'banco_cuenta', 'banco_nota',
+  'email_notificaciones',
 ]);
 
 router.put('/contacto', (req, res) => {

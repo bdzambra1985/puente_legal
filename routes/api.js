@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const { getDB } = require('../database');
-const { sendOTP } = require('../utils/email');
+const { sendOTP, sendComprobanteNotificacion } = require('../utils/email');
 const { saveComprobante } = require('../utils/upload');
 const rateLimit = require('../middleware/rateLimit');
 const { SECRET } = require('../config');
@@ -99,7 +99,7 @@ router.post('/citas/send-otp', otpByIp, otpByEmail, async (req, res) => {
   db.prepare('INSERT INTO otp_verifications (email,phone,code,expires_at) VALUES (?,?,?,?)').run(email, phone || '', code, expires);
   try {
     const resendId = await sendOTP(email, code);
-    if (resendId) db.prepare('UPDATE otp_verifications SET resend_email_id=? WHERE email=? AND used=0').run(resendId, email);
+    if (resendId) db.prepare('UPDATE otp_verifications SET resend_email_id=? WHERE email=?').run(resendId, email);
     res.json({ ok: true });
   } catch (e) {
     console.error('[otp] Error enviando email:', e.message);
@@ -120,7 +120,13 @@ const otpStatusLimiter = rateLimit({ windowMs: 5 * 60 * 1000, max: 100,
 router.get('/citas/otp-status', otpStatusLimiter, (req, res) => {
   const { email } = req.query;
   if (!email || !EMAIL_RE.test(email)) return res.status(400).json({ error: 'Email inválido' });
-  const otp = getDB().prepare('SELECT bounced_at, delivered_at FROM otp_verifications WHERE email=? AND used=0 ORDER BY id DESC LIMIT 1').get(email);
+  // Sin "AND used=0" a propósito: la confirmación de entrega (email.delivered)
+  // suele llegar DESPUÉS de que el cliente ya verificó el código (used pasa a
+  // 1 en ese momento) — sobre todo en el modo WhatsApp, donde el código lo
+  // conoce el navegador de entrada y no depende de leerlo del correo. El
+  // patrón delete-then-insert de arriba ya garantiza una sola fila por
+  // email, así que filtrar por used=0 acá solo perdía la confirmación tardía.
+  const otp = getDB().prepare('SELECT bounced_at, delivered_at FROM otp_verifications WHERE email=? ORDER BY id DESC LIMIT 1').get(email);
   res.json({ bounced: !!(otp && otp.bounced_at), delivered: !!(otp && otp.delivered_at) });
 });
 
@@ -165,11 +171,13 @@ const BOUNCE_LIKE_EVENTS = new Set(['email.bounced', 'email.suppressed']);
 router.post('/webhooks/resend', (req, res) => {
   if (!verifyResendWebhook(req)) return res.status(401).json({ error: 'Firma inválida' });
   const { type, data } = req.body || {};
+  // Sin "AND used=0" — ver comentario en /citas/otp-status: la confirmación
+  // puede llegar después de que el cliente ya verificó el código.
   if (BOUNCE_LIKE_EVENTS.has(type) && data && data.email_id) {
-    getDB().prepare('UPDATE otp_verifications SET bounced_at=? WHERE resend_email_id=? AND used=0')
+    getDB().prepare('UPDATE otp_verifications SET bounced_at=? WHERE resend_email_id=?')
       .run(new Date().toISOString(), data.email_id);
   } else if (type === 'email.delivered' && data && data.email_id) {
-    getDB().prepare('UPDATE otp_verifications SET delivered_at=? WHERE resend_email_id=? AND used=0')
+    getDB().prepare('UPDATE otp_verifications SET delivered_at=? WHERE resend_email_id=?')
       .run(new Date().toISOString(), data.email_id);
   }
   res.json({ ok: true });
@@ -198,8 +206,11 @@ router.post('/citas/verify-otp', verifLimiter, (req, res) => {
   res.json({ ok: true, verifToken: issueVerifToken(email) });
 });
 
-/* Generar código WhatsApp (POST /api/citas/gen-code) — el usuario lo envía por WhatsApp */
-router.post('/citas/gen-code', otpByIp, otpByEmail, (req, res) => {
+/* Generar código WhatsApp (POST /api/citas/gen-code) — el usuario lo envía por WhatsApp,
+   y ahora también se le manda el mismo código por correo: el flujo de WhatsApp valida el
+   correo igual que el de Zoom (bounce/suppressed vía webhook), ya que ese correo es donde
+   después le va a llegar la confirmación de la cita. */
+router.post('/citas/gen-code', otpByIp, otpByEmail, async (req, res) => {
   const { email, phone } = req.body;
   if (!email || !EMAIL_RE.test(email))
     return res.status(400).json({ error: 'Email inválido' });
@@ -208,7 +219,14 @@ router.post('/citas/gen-code', otpByIp, otpByEmail, (req, res) => {
   const db = getDB();
   db.prepare('DELETE FROM otp_verifications WHERE email=?').run(email);
   db.prepare('INSERT INTO otp_verifications (email,phone,code,expires_at) VALUES (?,?,?,?)').run(email, phone || '', code, expires);
-  res.json({ ok: true, code });
+  try {
+    const resendId = await sendOTP(email, code);
+    if (resendId) db.prepare('UPDATE otp_verifications SET resend_email_id=? WHERE email=?').run(resendId, email);
+    res.json({ ok: true, code });
+  } catch (e) {
+    console.error('[gen-code] Error enviando email:', e.message);
+    res.status(500).json({ error: 'Error al enviar el correo' });
+  }
 });
 
 /* Slots disponibles para una fecha (GET /api/citas/disponibles?fecha=YYYY-MM-DD) */
@@ -271,7 +289,7 @@ router.get('/citas/:id', (req, res) => {
 router.post('/citas/:id/comprobante', uploadLimiter, upload.single('comprobante'), async (req, res) => {
   const db = getDB();
   const email = String(req.body.email || '').trim().toLowerCase();
-  const cita = db.prepare('SELECT id,email,estado,resumen_texto FROM citas WHERE id=?').get(req.params.id);
+  const cita = db.prepare('SELECT id,nombre,email,estado,resumen_texto FROM citas WHERE id=?').get(req.params.id);
   if (!cita || !email || String(cita.email).toLowerCase() !== email)
     return res.status(404).json({ error: 'NOT_FOUND' });
   if (cita.estado !== 'confirmada' || !(cita.resumen_texto || '').trim())
@@ -288,6 +306,14 @@ router.post('/citas/:id/comprobante', uploadLimiter, upload.single('comprobante'
     db.prepare('UPDATE citas SET comprobante_path=?, comprobante_estado=?, factura_estado=? WHERE id=?')
       .run(savedPath, 'pendiente', 'pendiente', cita.id);
     res.json({ ok: true });
+    // No debe bloquear ni condicionar la respuesta al cliente: si no hay
+    // correo de notificaciones configurado, o falla el envío, el
+    // comprobante ya quedó guardado igual.
+    const notifEmail = db.prepare("SELECT value FROM contacto WHERE key='email_notificaciones'").get();
+    if (notifEmail && notifEmail.value) {
+      sendComprobanteNotificacion(cita, notifEmail.value)
+        .catch(e => console.error('[comprobante] Error enviando notificación:', e.message));
+    }
   } catch (e) {
     console.error('[comprobante] Error guardando archivo:', e.message);
     res.status(500).json({ error: 'Error al guardar el archivo' });
